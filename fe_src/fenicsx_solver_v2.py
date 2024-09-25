@@ -5,7 +5,7 @@ import numpy as np
 import ufl
 from mpi4py import MPI
 from petsc4py import PETSc
-from dolfinx import fem, io, la, log
+from dolfinx import fem, io, la, log, mesh
 from generate_mesh import create_mesh  # , create_mesh_scaled
 import basix.ufl
 import dolfinx.fem.petsc
@@ -28,16 +28,73 @@ T_iso = PETSc.ScalarType(0.0)  # Isothermal temperature, K
 R = PETSc.ScalarType(2e-9)  # Kapitza resistance, m^2K/W
 C = PETSc.ScalarType(1.0)  # Slip parameter for fully diffusive boundaries
 Length = 0.439e-6  # Characteristic length, adjust as necessary
+# Length = 1
 
+Lx = 25 * Length
+Ly = 12.5 * Length
+source_width = Length * 0.5
+source_height = Length * 0.25
+r_tol = Length / 1e5
 # Calculate the line heat source q_l
-delta_T = 0.5  # K
-q_l = kappa * delta_T / Length  # W/
-print(f"Line heat source q_l = {q_l:.3e} W/m")
+# delta_T = 0.5  # K
+# q_l = kappa * delta_T / Length  # W/
+# print(f"Line heat source q_l = {q_l:.3e} W/m")
+q_l = 20
 Q = PETSc.ScalarType(q_l)
 
-msh, cell_markers, facet_markers = create_mesh(Length)
 
-ds = ufl.Measure("ds", domain=msh, subdomain_data=facet_markers)
+with io.XDMFFile(MPI.COMM_WORLD, "fe_src/mesh_matei/mesh.xdmf", "r") as xdmf:
+    msh = xdmf.read_mesh(name="mesh")
+
+
+def isothermal_boundary(x):
+    return np.isclose(x[1], 0.0, rtol=r_tol)
+
+
+def source_boundary(x):
+    # return np.logical_and(
+    #     np.logical_and(
+    #         x[0] >= 0.5 * Lx - 0.5 * source_width,
+    #         x[0] <= 0.5 * Lx + 0.5 * source_width
+    #     ),
+    #     np.isclose(x[1], Ly + source_height)
+    # )
+    return np.isclose(x[1], Ly + source_height, rtol=r_tol)
+
+
+def slip_boundary(x):
+    on_left = np.isclose(x[0], 0.0)
+    on_right = np.isclose(x[0], Lx)
+    on_top = np.isclose(x[1], Ly)
+    in_source_region = np.logical_and(
+        np.logical_and(
+            x[0] >= 0.5 * Lx - 0.5 * source_width,
+            x[0] <= 0.5 * Lx + 0.5 * source_width
+        ),
+        np.isclose(x[1], Ly + source_height)
+    )
+    return np.logical_or.reduce((on_left, on_right, on_top, in_source_region))
+
+
+boundaries = [
+    (1, isothermal_boundary),
+    (2, slip_boundary),
+    (3, source_boundary),
+]
+
+
+facet_indices, facet_markers = [], []
+fdim = msh.topology.dim - 1
+for (marker, locator) in boundaries:
+    facets = mesh.locate_entities(msh, fdim, locator)
+    facet_indices.append(facets)
+    facet_markers.append(np.full_like(facets, marker))
+facet_indices = np.hstack(facet_indices).astype(np.int32)
+facet_markers = np.hstack(facet_markers).astype(np.int32)
+sorted_facets = np.argsort(facet_indices)
+facet_tag = mesh.meshtags(msh, fdim, facet_indices[sorted_facets], facet_markers[sorted_facets])
+
+ds = ufl.Measure("ds", domain=msh, subdomain_data=facet_tag)
 ds_bottom = ds(1)
 ds_slip = ds(2)
 ds_top = ds(3)
@@ -54,26 +111,26 @@ ds_top = ds(3)
 # print(f"Integral of 1 over total region: {totat_check}")
 # print(f"Should be: {Length ** 2 * 0.25 + 25 * 12.5 * Length ** 2}")
 
+# CHECK DX SOURCE
+check_form0 = fem.form(PETSc.ScalarType(1) * ds_top)
+check_local0 = fem.assemble_scalar(check_form0)  # assemble over cell
+totat_check0 = msh.comm.allreduce(check_local0, op=MPI.SUM)
+print(f"Integral of 1 over source line: {totat_check0}")
+print(f"Should be: {source_width}")
+
 # # CHECK ISOTHERMAL LINE
 check_form2 = fem.form(PETSc.ScalarType(1) * ds_bottom)
 check_local2 = fem.assemble_scalar(check_form2)  # assemble over cell
 totat_check2 = msh.comm.allreduce(check_local2, op=MPI.SUM)
 print(f"Integral of 1 over isothermal line: {totat_check2}")
-print(f"Should be: {5 * 1 * Length}")
+print(f"Should be: {Lx}")
 
 # # CHECK SLIP LINE
 check_form3 = fem.form(PETSc.ScalarType(1) * ds_slip)
 check_local3 = fem.assemble_scalar(check_form3)  # assemble over cell
 totat_check3 = msh.comm.allreduce(check_local3, op=MPI.SUM)
 print(f"Integral of 1 over slip line: {totat_check3}")
-print(f"Should be: {(5 + 2.5 * 2) * Length}")
-
-# CHECK DX SOURCE
-check_form0 = fem.form(PETSc.ScalarType(1) * ds_top)
-check_local0 = fem.assemble_scalar(check_form0)  # assemble over cell
-totat_check0 = msh.comm.allreduce(check_local0, op=MPI.SUM)
-print(f"Integral of 1 over source line: {totat_check0}")
-print(f"Should be: {Length}")
+print(f"Should be: {Ly * 2 + (Lx-source_width)}")
 
 
 # Function spaces for temperature and heat flux
@@ -154,11 +211,11 @@ L = dolfinx.fem.petsc.create_vector(residual)
 solver = PETSc.KSP().create(msh.comm)
 solver.setOperators(A)
 solver.setType("minres")
-solver.setTolerances(rtol=1e-10)
+solver.setTolerances(rtol=1e-6)
 
 pc = solver.getPC()
 pc.setType("lu")
-pc.setFactorSolverType("mumps")
+pc.setFactorSolverType("umfpack")
 pc.setFactorSetUpSolverType()
 # pc.getFactorMatrix().setMumpsIcntl(icntl=24, ival=1)
 # pc.getFactorMatrix().setMumpsIcntl(icntl=25, ival=0)
@@ -171,7 +228,6 @@ max_iterations = 10
 # solutions = np.zeros((max_iterations + 1, len(coords)))
 # solutions[0] = U.x.array[sort_order]
 
-i = 0
 while i < max_iterations:
     print("Iteration", i)
     # Assemble Jacobian and residual
