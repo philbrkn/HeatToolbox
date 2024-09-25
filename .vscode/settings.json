@@ -1,0 +1,12 @@
+{
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "flake8.args": [
+        "--max-line-length", "88"
+        // "--extend-ignore", "E203"
+       ],
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/*.pyo": true
+    }
+}

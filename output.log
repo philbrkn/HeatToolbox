@@ -1,0 +1,29 @@
+Info    : Meshing 1D...
+Info    : [  0%] Meshing curve 1 (Line)
+Info    : [ 20%] Meshing curve 2 (Line)
+Info    : [ 30%] Meshing curve 3 (Line)
+Info    : [ 40%] Meshing curve 4 (Line)
+Info    : [ 50%] Meshing curve 5 (Line)
+Info    : [ 60%] Meshing curve 6 (Line)
+Info    : [ 70%] Meshing curve 7 (Line)
+Info    : [ 80%] Meshing curve 8 (Line)
+Info    : [ 90%] Meshing curve 9 (Line)
+Info    : [100%] Meshing curve 10 (Line)
+Info    : Done meshing 1D (Wall 0.00220675s, CPU 0s)
+Info    : Meshing 2D...
+Info    : Meshing surface 1 (Plane, Frontal-Delaunay)
+Info    : Done meshing 2D (Wall 1.2188s, CPU 1.22296s)
+Info    : 37657 nodes 75064 elements
+Info    : Writing 'domain_with_extrusion.msh'...
+Info    : Done writing 'domain_with_extrusion.msh'
+2024-09-20 09:29:59.917 (   2.995s) [main            ]      dofmapbuilder.cpp:166   INFO| Checking required entities per dimension
+2024-09-20 09:29:59.917 (   2.996s) [main            ]      dofmapbuilder.cpp:264   INFO| Cell type:0, dofmap:74040x6
+2024-09-20 09:29:59.925 (   3.003s) [main            ]      dofmapbuilder.cpp:320   INFO| Global index computation
+2024-09-20 09:29:59.926 (   3.004s) [main            ]      dofmapbuilder.cpp:637   INFO| Got 2 index_maps
+2024-09-20 09:29:59.965 (   3.043s) [main            ]           ordering.cpp:204   INFO| GPS pseudo-diameter:(324) 148830-5
+2024-09-20 09:29:59.976 (   3.054s) [main            ]      dofmapbuilder.cpp:644   INFO| Get global indices
+2024-09-20 09:29:59.984 (   3.063s) [main            ]                MPI.cpp:164   INFO| Computing communication graph edges (using NBX algorithm). Number of input edges: 0
+2024-09-20 09:29:59.984 (   3.063s) [main            ]                MPI.cpp:235   INFO| Finished graph edge discovery using NBX algorithm. Number of discovered edges 0
+(D) Norm of velocity coefficient vector (monolithic, direct): 0.0
+(D) Norm of pressure coefficient vector (monolithic, direct): 0.0
+2024-09-20 09:30:00.066 (   3.145s) [main            ]             loguru.cpp:526   INFO| atexit
