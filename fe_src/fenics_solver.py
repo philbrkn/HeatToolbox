@@ -18,7 +18,7 @@ from fenics import (
     VectorElement,
     FiniteElement,
     MixedElement,
-    RectangleMesh,
+    refine,
     Constant,
     Identity,
     split,
@@ -26,14 +26,16 @@ from fenics import (
     sqrt,
     Measure,
     DOLFIN_EPS,
-    plot
+    plot,
+    interpolate
 )
-from fe_src.utils import img_to_gamma, filter_function
+from mshr import Rectangle, generate_mesh
+# from fe_src.utils import img_to_gamma, filter_function
 import matplotlib.pyplot as plt
 
 # Define constants
 L = 439e-9  # Characteristic length
-Lx, Ly = 5 * L, 2.5 * L
+Lx, Ly = 25 * L, 12.5 * L
 width, height = 0.5 * L, 0.25 * L
 resolution = 64
 niter = 500
@@ -44,26 +46,15 @@ ell_di = 10 * L / sqrt(5)
 source_value = Constant(10)
 
 # Define the domain and source
-# domain = Rectangle(Point(0, 0), Point(Lx, Ly))
-# source_region = Rectangle(
-#     Point(0.5 * Lx - 0.5 * width, Ly), Point(0.5 * Lx + 0.5 * width, Ly + height)
-# )
-# domain += source_region
+domain = Rectangle(Point(0, 0), Point(Lx, Ly))
+source_region = Rectangle(
+    Point(0.5 * Lx - 0.5 * width, Ly), Point(0.5 * Lx + 0.5 * width, Ly + height)
+)
+domain += source_region
 
 # # Generate and refine mesh
-# mesh = generate_mesh(domain, resolution)
-# mesh = refine(mesh)
-
-
-# Adjusted domain dimensions to include the source region
-domain_Lx = Lx
-domain_Ly = Ly + height
-
-# Mesh resolution
-nx = ny = resolution  # Use your predefined 'resolution' variable
-
-# Create the mesh
-mesh = RectangleMesh(Point(0, 0), Point(domain_Lx, domain_Ly), nx, ny)
+mesh = generate_mesh(domain, resolution)
+mesh = refine(mesh)
 
 
 # SubDomain for the base domain
@@ -144,14 +135,14 @@ sections.set_all(0)
 CentralSection().mark(sections, 1)
 
 # Plot subdomains
-plot(subdomains)
-plt.title("Subdomains")
-plt.show()
+# plot(subdomains)
+# plt.title("Subdomains")
+# plt.show()
 
-# Plot boundaries
-plot(boundaries)
-plt.title("Boundaries")
-plt.show()
+# # Plot boundaries
+# plot(boundaries)
+# plt.title("Boundaries")
+# plt.show()
 
 # Define finite elements
 Q = VectorElement("CG", mesh.ufl_cell(), 2)  # For vector field u
@@ -197,9 +188,9 @@ def u_t(u):
 
 def solve_pde(img):  # GO IMAGE INSTEAD
     # Map image to gamma
-    gamma = img_to_gamma(img, mesh)
-    gamma_bar = filter_function(gamma, r_min=mesh.hmin() / 20, projection=True)
-
+    # gamma = img_to_gamma(img, mesh)
+    # gamma_bar = filter_function(gamma, r_min=mesh.hmin() / 20, projection=True)
+    gamma = interpolate(Constant(0.0), W.sub(1).collapse())
     # Define variational problem
     up = Function(W)
     v_q = TestFunction(W)
@@ -207,8 +198,8 @@ def solve_pde(img):  # GO IMAGE INSTEAD
     v, q = split(v_q)
 
     # Material properties interpolation
-    k = ramp(gamma_bar, k_si, k_di)
-    ell = ramp(gamma_bar, ell_si, ell_di)
+    k = ramp(gamma, k_si, k_di)
+    ell = ramp(gamma, ell_si, ell_di)
 
     # Define the PDE using gamma_bar
     # Continuity equation
@@ -225,8 +216,8 @@ def solve_pde(img):  # GO IMAGE INSTEAD
     )
     # Boundary terms
     boundary_terms = (
-        -dot(n, t(gamma_bar, u, p)) * dot(v, n) * ds_slip
-        - dot(u, n) * dot(n, t(gamma_bar, v, q)) * ds_slip
+        -dot(n, t(gamma, u, p)) * dot(v, n) * ds_slip
+        - dot(u, n) * dot(n, t(gamma, v, q)) * ds_slip
         + ell * dot(u_t(u), u_t(v)) * ds_slip
         + dot(u, n) * dot(v, n) * ds_slip
         + source_value * dot(v, n) * ds_source
@@ -245,3 +236,11 @@ def solve_pde(img):  # GO IMAGE INSTEAD
     u_h, p_h = up.split(deepcopy=True)
 
     return u_h, p_h
+
+
+if __name__ == "__main__":
+    u_h, p_h = solve_pde(None)
+
+    plot(p_h)
+    plt.title("temp Field")
+    plt.show()

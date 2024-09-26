@@ -1,5 +1,5 @@
 '''
-kinda works temp distribution is just off
+works. just slow.
 '''
 import numpy as np
 import ufl
@@ -28,7 +28,6 @@ T_iso = PETSc.ScalarType(0.0)  # Isothermal temperature, K
 R = PETSc.ScalarType(2e-9)  # Kapitza resistance, m^2K/W
 C = PETSc.ScalarType(1.0)  # Slip parameter for fully diffusive boundaries
 Length = 0.439e-6  # Characteristic length, adjust as necessary
-# Length = 1
 
 Lx = 25 * Length
 Ly = 12.5 * Length
@@ -39,7 +38,7 @@ r_tol = Length / 1e5
 # delta_T = 0.5  # K
 # q_l = kappa * delta_T / Length  # W/
 # print(f"Line heat source q_l = {q_l:.3e} W/m")
-q_l = 20
+q_l = 100
 Q = PETSc.ScalarType(q_l)
 
 
@@ -222,7 +221,7 @@ pc.setFactorSetUpSolverType()
 du = dolfinx.fem.Function(W)
 
 i = 0
-max_iterations = 10
+max_iterations = 5
 # coords = W.tabulate_dof_coordinates()[:, 0]
 # sort_order = np.argsort(coords)
 # solutions = np.zeros((max_iterations + 1, len(coords)))
