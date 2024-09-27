@@ -13,7 +13,7 @@ import basix.ufl
 
 import dolfinx.fem.petsc  # ghost import
 
-from utils import gather_mesh_on_rank0
+from utils import gather_mesh_on_rank0, gather_vector_data_on_rank0
 from vae_model import VAE, z_to_img, Flatten, UnFlatten
 
 os.environ["OMP_NUM_THREADS"] = "1"  # Use one thread per process
@@ -35,15 +35,19 @@ L_Y = 2.5 * LENGTH
 SOURCE_WIDTH = LENGTH
 SOURCE_HEIGHT = LENGTH * 0.25
 R_TOL = LENGTH * 1e-3
-RESOLUTION = LENGTH / 7  # Adjust mesh resolution as needed
+RESOLUTION = LENGTH / 10  # Adjust mesh resolution as needed
 
+# MPI initialization
+comm = MPI.COMM_WORLD
+RANK = comm.Get_rank()
+SIZE = comm.Get_size()
 
-# VAE #
+# LOAD VAE #
 # Set parameters
 num_samples = 1  # Number of simulations
 latent_size = 4     # Size of the latent vector
 device = torch.device("cpu")  # Change to "cuda" if using GPU
-if MPI.COMM_WORLD.rank == 0:
+if RANK == 0:
     # Load the pre-trained VAE model
     model = VAE()
     model = torch.load('./model/model', map_location=torch.device('cpu'))
@@ -68,14 +72,9 @@ def slip_boundary(x):
 
 
 def main():
-    # MPI initialization
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    size = comm.Get_size()
+    print(f"Rank {RANK} of {SIZE} is running.")
 
-    print(f"Rank {rank} of {size} is running.")
-
-    if rank == 0:
+    if RANK == 0:
         time1 = time.time()
     else:
         time1 = None
@@ -83,7 +82,7 @@ def main():
     # Create mesh
     msh = create_mesh(L_X, L_Y, SOURCE_WIDTH, SOURCE_HEIGHT, RESOLUTION)
 
-    if rank == 0:
+    if RANK == 0:
         z = np.random.randn(latent_size)
         img = z_to_img(z, model, device)
     else:
@@ -116,11 +115,8 @@ def main():
 
 
 def create_mesh(L_x, L_y, source_width, source_height, resolution):
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-
     gdim = 2
-    if rank == 0:
+    if RANK == 0:
         gmsh.initialize()
         gmsh.model.add("domain_with_extrusion")
 
@@ -171,7 +167,7 @@ def create_mesh(L_x, L_y, source_width, source_height, resolution):
     comm = MPI.COMM_WORLD
     msh, _, _ = io.gmshio.model_to_mesh(gmsh.model, comm, rank=0, gdim=gdim)
 
-    if rank == 0:
+    if RANK == 0:
         gmsh.finalize()
 
     return msh
@@ -235,6 +231,8 @@ def define_variational_form(U, v, s, kappa_si, ell_si, kappa_di, ell_di, n, ds_s
 
     ramp_kappa = ramp(gamma, kappa_si, kappa_di)
     ramp_ell = ramp(gamma, ell_si, ell_di)
+    # ramp_kappa = ramp(gamma, kappa_di, kappa_si)
+    # ramp_ell = ramp(gamma, ell_di, ell_si)
 
     viscous_term = (
         ramp_ell ** 2
@@ -293,7 +291,7 @@ def img_to_gamma_expression(img, domain):
     x_min = comm.allreduce(x_local_min, op=MPI.MIN)
     x_max = comm.allreduce(x_local_max, op=MPI.MAX)
     y_min = comm.allreduce(y_local_min, op=MPI.MIN)
-    y_max = comm.allreduce(y_local_max, op=MPI.MAX)
+    y_max = comm.allreduce(y_local_max, op=MPI.MAX) - SOURCE_HEIGHT
 
     img_height, img_width = img.shape
 
@@ -445,7 +443,7 @@ def postprocess_results(U, msh, img, gamma, time1):
     global_top, global_geom, global_ct, global_vals = gather_mesh_on_rank0(msh, V1, T)
     _, _, _, global_gamma = gather_mesh_on_rank0(msh, V1, gamma)
 
-    if msh.comm.rank == 0:
+    if RANK == 0:
         print(f"(D) Norm of flux coefficient vector (monolithic, direct): {norm_q}")
         print(f"(D) Norm of temp coefficient vector (monolithic, direct): {norm_T}")
 
@@ -462,6 +460,7 @@ def postprocess_results(U, msh, img, gamma, time1):
             # Plot the scalar field
             plotter = pv.Plotter()
             plotter.add_mesh(grid, cmap="coolwarm", show_edges=False)
+            plotter.view_xy()
             plotter.show()
 
         # plot gamma
@@ -473,8 +472,33 @@ def postprocess_results(U, msh, img, gamma, time1):
             # Plot the scalar field
             plotter = pv.Plotter()
             plotter.add_mesh(grid, show_edges=True)
+            plotter.view_xy()
             plotter.show()
 
+    # Vector field
+    # gdim = msh.geometry.dim
+    # V_dg = fem.functionspace(msh, ("DG", 2, (gdim,)))
+    # q_dg = fem.Function(V_dg)
+    # q_copy = q.copy()
+    # q_dg.interpolate(q_copy)
+    # glob_top_q, glob_geom_q, glob_ct_q, glob_q_dg = gather_mesh_on_rank0(msh, V_dg, q_dg)
+
+    # if RANK == 0:
+    #     print(glob_q_dg.shape)
+    #     print(glob_geom_q.shape)
+    #     V_grid = pv.UnstructuredGrid(glob_top_q, glob_ct_q, glob_geom_q)
+    #     Esh_values = np.zeros((glob_geom_q.shape[0], 3), dtype=np.float64)
+    #     Esh_values[:, :msh.topology.dim] = glob_q_dg.reshape(glob_geom_q.shape[0], msh.topology.dim).real
+    #     V_grid.point_data["u"] = Esh_values
+
+    #     plotter = pv.Plotter()
+    #     plotter.add_text("magnitude", font_size=12, color="black")
+    #     plotter.add_mesh(V_grid.copy(), show_edges=False)
+    #     plotter.view_xy()
+    #     plotter.link_views()
+    #     plotter.show()
+
+    if RANK == 0:
         # plot image
         import matplotlib.pyplot as plt
         plt.imshow(img, cmap='gray')

@@ -75,6 +75,54 @@ def gather_mesh_on_rank0(mesh, V, function, root=0):
     return None, None, None, None
 
 
+def gather_vector_data_on_rank0(mesh, function, root=0):
+    """
+    Gathers cell centers and vector function data from all ranks to rank 0.
+
+    Parameters:
+    mesh: dolfinx.Mesh
+        The distributed mesh.
+    function: dolfinx.Function
+        The vector function (e.g., q_dg) to gather.
+    root: int
+        The rank on which to gather data (default is 0).
+
+    Returns:
+    On rank 0:
+        - cell_centers: np.ndarray (global cell centers)
+        - function_values: np.ndarray (global vector function values at cell centers)
+    On other ranks:
+        - None, None
+    """
+    comm = mesh.comm
+    rank = comm.rank
+
+    # Get local cell centers
+    num_cells_local = mesh.topology.index_map(mesh.topology.dim).size_local
+    # Coordinates of cell vertices
+    cell_vertices = mesh.geometry.x[mesh.topology.connectivity(mesh.topology.dim, 0).array]
+    # Reshape to (num_cells_local, num_vertices_per_cell, gdim)
+    num_vertices_per_cell = cell_vertices.shape[0] // num_cells_local
+    cell_vertices = cell_vertices.reshape((num_cells_local, num_vertices_per_cell, -1))
+    # Compute cell centers
+    cell_centers_local = cell_vertices.mean(axis=1)
+
+    # Evaluate function at cell centers
+    function_values_local = function.eval(cell_centers_local, mesh.cells)
+
+    # Gather data on root
+    all_cell_centers = comm.gather(cell_centers_local, root=root)
+    all_function_values = comm.gather(function_values_local, root=root)
+
+    if rank == root:
+        # Concatenate data from all ranks
+        cell_centers = np.vstack(all_cell_centers)
+        function_values = np.vstack(all_function_values)
+        return cell_centers, function_values
+    else:
+        return None, None
+
+
 # Apply filter function
 def filter_function(rho_n, mesh, dx, projection=True, name="Filtered"):
     # Find the minimum size (hmin) across all processes
