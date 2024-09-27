@@ -12,7 +12,8 @@ import basix.ufl
 import dolfinx.fem.petsc
 import os
 from utils import gather_solution_on_rank0, gather_mesh_on_rank0
-
+import gmsh
+import time
 os.environ["OMP_NUM_THREADS"] = "1"  # Use one thread per process
 
 comm = MPI.COMM_WORLD
@@ -21,6 +22,8 @@ size = comm.Get_size()
 
 print(f"Rank {rank} of {size} is running.")
 
+if rank == 0:
+    time1 = time.time()
 # Define dimensions based on the provided figure
 # Define physical constants from the problem description
 c = PETSc.ScalarType(1.63e6)  # J/m^3K, specific heat capacity
@@ -35,19 +38,82 @@ Length = 0.439e-6  # Characteristic length, adjust as necessary
 
 Lx = 25 * Length
 Ly = 12.5 * Length
-source_width = Length * 0.5
+source_width = Length
 source_height = Length * 0.25
 r_tol = Length * 1e-3
 # Calculate the line heat source q_l
 # delta_T = 0.5  # K
 # q_l = kappa * delta_T / Length  # W/
 # print(f"Line heat source q_l = {q_l:.3e} W/m")
-q_l = 100
+q_l = 90
 Q = PETSc.ScalarType(q_l)
 
 
-with io.XDMFFile(MPI.COMM_WORLD, "fe_src/mesh_matei/mesh.xdmf", "r") as xdmf:
-    msh = xdmf.read_mesh(name="mesh")
+############################################
+#---------- 4 Mesh Creation ---------------#
+############################################
+
+gdim = 2
+# Define parameters
+resolution = Length / 2  # Adjust mesh resolution as needed
+
+if rank == 0:
+    gmsh.initialize()
+    gmsh.model.add("domain_with_extrusion")
+
+    # Define points for the base rectangle
+    p0 = gmsh.model.geo.addPoint(0, 0, 0, meshSize=resolution)
+    p1 = gmsh.model.geo.addPoint(Lx, 0, 0, meshSize=resolution)
+    p2 = gmsh.model.geo.addPoint(Lx, Ly, 0, meshSize=resolution)
+    p3 = gmsh.model.geo.addPoint(0, Ly, 0, meshSize=resolution)
+
+    # Define lines for the base rectangle
+    l0 = gmsh.model.geo.addLine(p0, p1)
+    l1 = gmsh.model.geo.addLine(p1, p2)
+    l2 = gmsh.model.geo.addLine(p2, p3)
+    l3 = gmsh.model.geo.addLine(p3, p0)
+
+    # Define points for the extrusion (source region)
+    x_min = 0.5 * Lx - 0.5 * source_width
+    x_max = 0.5 * Lx + 0.5 * source_width
+    p4 = gmsh.model.geo.addPoint(x_min, Ly, 0, meshSize=resolution)
+    p5 = gmsh.model.geo.addPoint(x_max, Ly, 0, meshSize=resolution)
+    p6 = gmsh.model.geo.addPoint(x_max, Ly + source_height, 0, meshSize=resolution)
+    p7 = gmsh.model.geo.addPoint(x_min, Ly + source_height, 0, meshSize=resolution)
+
+    # Define lines for the extrusion
+    l4 = gmsh.model.geo.addLine(p4, p5)
+    l5 = gmsh.model.geo.addLine(p5, p6)
+    l6 = gmsh.model.geo.addLine(p6, p7)
+    l7 = gmsh.model.geo.addLine(p7, p4)
+
+    # Connect the extrusion to the base rectangle
+    l8 = gmsh.model.geo.addLine(p3, p4)
+    l9 = gmsh.model.geo.addLine(p5, p2)
+
+    # Define curve loops
+    loop_combined = gmsh.model.geo.addCurveLoop(
+        [l0, l1, -l9, l5, l6, l7, -l8, l3]
+    )
+    surface = gmsh.model.geo.addPlaneSurface([loop_combined])
+
+    gmsh.model.geo.synchronize()
+
+    # Define physical groups for domains (if needed)
+    gmsh.model.addPhysicalGroup(2, [surface], tag=1)
+    gmsh.model.setPhysicalName(2, 1, "Domain")
+
+    # Generate the mesh
+    gmsh.model.mesh.generate(2)
+
+
+# Convert GMSH model to DOLFINx mesh and distribute it across all ranks
+msh, _, _ = io.gmshio.model_to_mesh(gmsh.model, comm, rank=0, gdim=gdim)
+
+if rank == 0:
+    gmsh.finalize()
+
+################################
 
 
 def isothermal_boundary(x):
@@ -211,10 +277,9 @@ solver = PETSc.KSP().create(msh.comm)
 solver.setOperators(A)
 # solver.setType("minres")  # for umpfpack
 
-solver.setType("preonly")  # for mumps
+solver.setType("minres")  # for mumps
 solver.setTolerances(rtol=1e-6, atol=1e-13, max_it=1000)
 pc = solver.getPC()
-# pc.setFactorSolverType("umfpack")  # for sequential
 pc.setType("lu")
 pc.setFactorSolverType("mumps")
 
@@ -240,7 +305,7 @@ pc.getFactorMatrix().setMumpsCntl(3, 1e-6)  # absolute pivoting scale
 # Enable detailed MUMPS diagnostic outputs
 pc.getFactorMatrix().setMumpsIcntl(icntl=1, ival=-1)  # Print all error messages
 pc.getFactorMatrix().setMumpsIcntl(icntl=2, ival=3)  # Enable diagnostic printing, statistics, and warnings
-pc.getFactorMatrix().setMumpsIcntl(icntl=4, ival=1)  # Set print level to maximum verbosity (0-4)
+pc.getFactorMatrix().setMumpsIcntl(icntl=4, ival=0)  # Set print level to maximum verbosity (0-4)
 
 # After the first analysis, set ICNTL(1) = -1 to skip further analyses
 pc.getFactorMatrix().setMumpsIcntl(1, -1)  # Suppress analysis phase in subsequent calls
@@ -306,6 +371,8 @@ if rank == 0:
     print(f"(D) Norm of flux coefficient vector (monolithic, direct): {norm_q}")
     print(f"(D) Norm of temp coefficient vector (monolithic, direct): {norm_T}")
 
+    time2 = time.time()
+    print(f"Time taken: {time2 - time1}")
     # with io.XDMFFile(msh.comm, "scalar_field.xdmf", "w") as xdmf:
     #     # Write the mesh to the XDMF file
     #     xdmf.write_mesh(msh)

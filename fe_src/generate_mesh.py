@@ -3,7 +3,7 @@ from mpi4py import MPI
 from dolfinx.io import gmshio
 
 
-def create_mesh_v2(L, Lx, Ly, source_width, source_height, rank):
+def create_mesh_v2(L, Lx, Ly, source_width, source_height):
     # generate_mesh.py
 
     # Initialize Gmsh
@@ -11,7 +11,7 @@ def create_mesh_v2(L, Lx, Ly, source_width, source_height, rank):
     gmsh.model.add("domain_with_extrusion")
 
     # Define parameters
-    resolution = L / 64  # Adjust mesh resolution as needed
+    resolution = L/2  # Adjust mesh resolution as needed
 
     # Define points for the base rectangle
     p0 = gmsh.model.geo.addPoint(0, 0, 0, meshSize=resolution)
@@ -62,26 +62,35 @@ def create_mesh_v2(L, Lx, Ly, source_width, source_height, rank):
     # gmsh.model.addPhysicalGroup(1, [l1, l9, l5, l7, l8, l3], tag=2)
     # gmsh.model.setPhysicalName(1, 2, "SlipBoundary")
 
-
     # Define physical groups for domains (if needed)
     gmsh.model.addPhysicalGroup(2, [surface], tag=1)
     gmsh.model.setPhysicalName(2, 1, "Domain")
 
     # Generate the mesh
     gmsh.model.mesh.generate(2)
+    print("hi1")
 
     # Write mesh to file
     # gmsh.write("domain_with_extrusion.msh")
     domain, cell_markers, facet_markers = gmshio.model_to_mesh(
         gmsh.model, MPI.COMM_WORLD, rank=rank, gdim=2
     )
-
+    print("hi2")
     # Finalize Gmsh
     gmsh.finalize()
 
     return domain, cell_markers, facet_markers
 
 
+if __name__ == "__main__":
+    Length = 0.439e-6  # Characteristic length, adjust as necessary
+    Lx = 25 * Length
+    Ly = 12.5 * Length
+    source_width = Length * 0.5
+    source_height = Length * 0.25
+    create_mesh_v2(Length, Lx, Ly, source_width, source_height)
+
+'''
 def create_mesh(L):
     # generate_mesh.py
 
@@ -163,3 +172,4 @@ def create_mesh(L):
     gmsh.finalize()
 
     return domain, cell_markers, facet_markers
+'''
