@@ -11,7 +11,7 @@ from generate_mesh import create_mesh_v2  # , create_mesh_scaled
 import basix.ufl
 import dolfinx.fem.petsc
 import os
-from utils import gather_solution_on_rank0, gather_mesh_on_rank0
+from utils import gather_mesh_on_rank0
 import gmsh
 import time
 os.environ["OMP_NUM_THREADS"] = "1"  # Use one thread per process
