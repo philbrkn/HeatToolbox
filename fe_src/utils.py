@@ -9,85 +9,7 @@ from mpi4py import MPI
 import dolfinx.fem
 from dolfinx import fem
 from ufl import TestFunction, TrialFunction, inner, grad, form, derivative, inner
-
-import ufl
-from dolfinx import cpp as _cpp
-from dolfinx import la
-from dolfinx.fem import (
-    Function,
-    FunctionSpace,
-    dirichletbc,
-    form,
-    locate_dofs_geometrical,
-)
-from dolfinx.fem.petsc import (
-    apply_lifting,
-    assemble_matrix,
-    assemble_vector,
-    create_matrix,
-    create_vector,
-    set_bc,
-)
-
-from mpi4py import MPI
-from petsc4py import PETSc
-
-
-import numpy as np
-from mpi4py import MPI
 import dolfinx
-
-
-def gather_solution_on_rank0(function, mesh):
-    """
-    Gathers a distributed solution field from all MPI ranks and orders it in a single global array on rank 0.
-
-    Parameters:
-    function: dolfinx.Function
-        The function (solution) to be gathered from all ranks.
-    mesh: dolfinx.Mesh
-        The mesh associated with the function space.
-
-    Returns:
-    global_array (numpy.ndarray): Gathered solution array on rank 0 (None on other ranks).
-    global_x (numpy.ndarray): Gathered coordinates of DOFs on rank 0 (None on other ranks).
-    """
-    comm = mesh.comm
-    rank = comm.rank
-
-    # Ensure data is up-to-date
-    function.x.scatter_forward()
-
-    # Get the index map and local ranges
-    imap = function.function_space.dofmap.index_map
-    local_range = (
-        np.asarray(imap.local_range, dtype=np.int32)
-        * function.function_space.dofmap.index_map_bs
-    )
-    size_global = imap.size_global * function.function_space.dofmap.index_map_bs
-
-    # Gather local ranges and solution data on rank 0
-    ranges = comm.gather(local_range, root=0)
-    data = comm.gather(function.vector.array, root=0)
-
-    # Gather local coordinates of degrees of freedom (DOFs)
-    x = function.function_space.tabulate_dof_coordinates()[: imap.size_local]
-    x_glob = comm.gather(x, root=0)
-
-    if rank == 0:
-        # Create global array for solution values
-        global_array = np.zeros(size_global)
-        for r, d in zip(ranges, data):
-            global_array[r[0] : r[1]] = d
-
-        # Create global array for coordinates of DOFs
-        global_x = np.zeros((size_global, x.shape[1]))
-        for r, x_ in zip(ranges, x_glob):
-            global_x[r[0] : r[1], :] = x_
-
-        return global_array, global_x
-    else:
-        return None, None
 
 
 def gather_mesh_on_rank0(mesh, V, function, root=0):
@@ -151,22 +73,6 @@ def gather_mesh_on_rank0(mesh, V, function, root=0):
         return root_top, root_geom, root_ct, root_vals
 
     return None, None, None, None
-
-# Map image to gamma
-def img_to_gamma(img, mesh, dx):
-    # Map the image to the gamma field on the mesh
-    x = mesh.geometry.x
-    x_coords = x[:, 0]
-    y_coords = x[:, 1]
-    x_min, x_max = x_coords.min(), x_coords.max()
-    y_min, y_max = y_coords.min(), y_coords.max()
-    x_norm = (x_coords - x_min) / (x_max - x_min)
-    y_norm = (y_coords - y_min) / (y_max - y_min)
-    img_height, img_width = img.shape
-    x_indices = (x_norm * (img_width - 1)).astype(int)
-    y_indices = ((1 - y_norm) * (img_height - 1)).astype(int)
-    gamma_values = img[y_indices, x_indices]
-    return gamma_values
 
 
 # Apply filter function
@@ -357,3 +263,55 @@ def save_for_modulus(filename, mesh, temperature_field, flux_field):
         # Save field data
         hdf5_file.create_dataset("fields/temperature", data=temperature_values)
         hdf5_file.create_dataset("fields/flux", data=flux_values)
+
+
+def gather_solution_on_rank0(function, mesh):
+    """
+    Gathers a distributed solution field from all MPI ranks and orders it in a single global array on rank 0.
+
+    Parameters:
+    function: dolfinx.Function
+        The function (solution) to be gathered from all ranks.
+    mesh: dolfinx.Mesh
+        The mesh associated with the function space.
+
+    Returns:
+    global_array (numpy.ndarray): Gathered solution array on rank 0 (None on other ranks).
+    global_x (numpy.ndarray): Gathered coordinates of DOFs on rank 0 (None on other ranks).
+    """
+    comm = mesh.comm
+    rank = comm.rank
+
+    # Ensure data is up-to-date
+    function.x.scatter_forward()
+
+    # Get the index map and local ranges
+    imap = function.function_space.dofmap.index_map
+    local_range = (
+        np.asarray(imap.local_range, dtype=np.int32)
+        * function.function_space.dofmap.index_map_bs
+    )
+    size_global = imap.size_global * function.function_space.dofmap.index_map_bs
+
+    # Gather local ranges and solution data on rank 0
+    ranges = comm.gather(local_range, root=0)
+    data = comm.gather(function.vector.array, root=0)
+
+    # Gather local coordinates of degrees of freedom (DOFs)
+    x = function.function_space.tabulate_dof_coordinates()[: imap.size_local]
+    x_glob = comm.gather(x, root=0)
+
+    if rank == 0:
+        # Create global array for solution values
+        global_array = np.zeros(size_global)
+        for r, d in zip(ranges, data):
+            global_array[r[0] : r[1]] = d
+
+        # Create global array for coordinates of DOFs
+        global_x = np.zeros((size_global, x.shape[1]))
+        for r, x_ in zip(ranges, x_glob):
+            global_x[r[0] : r[1], :] = x_
+
+        return global_array, global_x
+    else:
+        return None, None

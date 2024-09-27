@@ -6,11 +6,15 @@ import ufl
 import gmsh
 from mpi4py import MPI
 from petsc4py import PETSc
+import torch
 
 from dolfinx import fem, io, la, mesh
 import basix.ufl
 
+import dolfinx.fem.petsc  # ghost import
+
 from utils import gather_mesh_on_rank0
+from vae_model import VAE, z_to_img, Flatten, UnFlatten
 
 os.environ["OMP_NUM_THREADS"] = "1"  # Use one thread per process
 
@@ -20,17 +24,32 @@ T_ISO = PETSc.ScalarType(0.0)  # Isothermal temperature, K
 Q_L = 90
 Q = PETSc.ScalarType(Q_L)
 
-ELL = PETSc.ScalarType(196e-9)  # Non-local length, m
-KAPPA = PETSc.ScalarType(141.0)  # W/mK, thermal conductivity
-
+ELL_SI = PETSc.ScalarType(196e-9)  # Non-local length, m
+ELL_DI = PETSc.ScalarType(196e-8)
+KAPPA_SI = PETSc.ScalarType(141.0)  # W/mK, thermal conductivity
+KAPPA_DI = PETSc.ScalarType(600.0)
 LENGTH = 0.439e-6  # Characteristic length, adjust as necessary
 
-L_X = 25 * LENGTH
-L_Y = 12.5 * LENGTH
+L_X = 5 * LENGTH
+L_Y = 2.5 * LENGTH
 SOURCE_WIDTH = LENGTH
 SOURCE_HEIGHT = LENGTH * 0.25
 R_TOL = LENGTH * 1e-3
-RESOLUTION = LENGTH / 2  # Adjust mesh resolution as needed
+RESOLUTION = LENGTH / 7  # Adjust mesh resolution as needed
+
+
+# VAE #
+# Set parameters
+num_samples = 1  # Number of simulations
+latent_size = 4     # Size of the latent vector
+device = torch.device("cpu")  # Change to "cuda" if using GPU
+if MPI.COMM_WORLD.rank == 0:
+    # Load the pre-trained VAE model
+    model = VAE()
+    model = torch.load('./model/model', map_location=torch.device('cpu'))
+    # model.load_state_dict(torch.load('model.pth', map_location=device))
+    model = model.to(device)
+    model.eval()
 
 
 def isothermal_boundary(x):
@@ -64,21 +83,36 @@ def main():
     # Create mesh
     msh = create_mesh(L_X, L_Y, SOURCE_WIDTH, SOURCE_HEIGHT, RESOLUTION)
 
+    if rank == 0:
+        z = np.random.randn(latent_size)
+        img = z_to_img(z, model, device)
+    else:
+        img = None
+
+    img = comm.bcast(img, root=0)
     # Define boundary conditions and measures
     ds, ds_bottom, ds_slip, ds_top = define_boundary_conditions(msh)
 
     # Define function spaces and functions
     W, U, dU, v, s = define_function_spaces(msh)
 
+    # set gamma as a function equal to 0
+    V_gamma = fem.functionspace(msh, ("CG", 1))
+    gamma = fem.Function(V_gamma)  # Material field
+    gamma_expr = img_to_gamma_expression(img, msh)
+    gamma.interpolate(gamma_expr)
+
     # Define variational forms
     n = ufl.FacetNormal(msh)
-    F = define_variational_form(U, v, s, KAPPA, ELL, n, ds_slip, ds_top, Q)
+    F = define_variational_form(
+        U, v, s, KAPPA_SI, ELL_SI, KAPPA_DI, ELL_DI, n, ds_slip, ds_top, Q, gamma
+    )
 
     # Solve the problem
     solve_problem(U, dU, F, W)
-        
+
     # Post-process results
-    postprocess_results(U, msh, time1)
+    postprocess_results(U, msh, img, gamma, time1)
 
 
 def create_mesh(L_x, L_y, source_width, source_height, resolution):
@@ -192,12 +226,18 @@ def define_function_spaces(msh):
     return W, U, dU, v, s
 
 
-def define_variational_form(U, v, s, kappa, ell, n, ds_slip, ds_top, Q):
+def define_variational_form(U, v, s, kappa_si, ell_si, kappa_di, ell_di, n, ds_slip, ds_top, Q, gamma):
 
     q, T = ufl.split(U)
 
+    def ramp(gamma, a_min, a_max, qa=200):
+        return a_min + (a_max - a_min) * gamma / (1 + qa * (1 - gamma))
+
+    ramp_kappa = ramp(gamma, kappa_si, kappa_di)
+    ramp_ell = ramp(gamma, ell_si, ell_di)
+
     viscous_term = (
-        ell**2
+        ramp_ell ** 2
         * (
             ufl.inner(ufl.grad(q), ufl.grad(v))
             + 2 * ufl.inner(ufl.div(q) * ufl.Identity(2), ufl.grad(v))
@@ -209,13 +249,10 @@ def define_variational_form(U, v, s, kappa, ell, n, ds_slip, ds_top, Q):
     flux_continuity = -ufl.div(q) * s * ufl.dx
 
     # Define pressure term (related to ∇T)
-    pressure_term = -kappa * T * ufl.div(v) * ufl.dx
+    pressure_term = - ramp_kappa * T * ufl.div(v) * ufl.dx
 
     # Define flux term (q ⋅ v)
     flux_term = ufl.inner(q, v) * ufl.dx
-
-    def ramp(gamma, a_min, a_max, qa=200):
-        return a_min + (a_max - a_min) * gamma / (1+qa*(1-gamma))
 
     # Tangential component of q
     def u_t(q):
@@ -224,8 +261,8 @@ def define_variational_form(U, v, s, kappa, ell, n, ds_slip, ds_top, Q):
     # Slip boundary condition term
     def t(q, T):
         return (
-            ell**2 * (ufl.grad(q) + 2 * ufl.div(q) * ufl.Identity(2))
-            - kappa * T * ufl.Identity(2)
+            ramp_ell**2 * (ufl.grad(q) + 2 * ufl.div(q) * ufl.Identity(2))
+            - ramp_kappa * T * ufl.Identity(2)
         ) * n
 
     F = (
@@ -235,12 +272,88 @@ def define_variational_form(U, v, s, kappa, ell, n, ds_slip, ds_top, Q):
         + pressure_term  # Pressure-like term from ∇T
         - ufl.dot(n, t(q, T)) * ufl.dot(v, n) * ds_slip  # Slip boundary condition term
         - ufl.dot(q, n) * ufl.dot(n, t(v, s)) * ds_slip  # Slip boundary condition term
-        + ell * ufl.dot(u_t(q), u_t(v)) * ds_slip  # Slip boundary stabilization term
+        + ramp_ell * ufl.dot(u_t(q), u_t(v)) * ds_slip  # Slip boundary stabilization term
         + ufl.dot(q, n) * ufl.dot(v, n) * ds_slip  # Additional stabilization
         + Q * ufl.dot(v, n) * ds_top  # Source term at the top boundary
     )
 
     return F
+
+
+def img_to_gamma_expression(img, domain):
+    # Precompute local min and max coordinates of the mesh
+    x = domain.geometry.x
+    x_local_min = np.min(x[:, 0]) if x.size > 0 else np.inf
+    x_local_max = np.max(x[:, 0]) if x.size > 0 else -np.inf
+    y_local_min = np.min(x[:, 1]) if x.size > 0 else np.inf
+    y_local_max = np.max(x[:, 1]) if x.size > 0 else -np.inf
+
+    # Compute global min and max coordinates
+    comm = domain.comm
+    x_min = comm.allreduce(x_local_min, op=MPI.MIN)
+    x_max = comm.allreduce(x_local_max, op=MPI.MAX)
+    y_min = comm.allreduce(y_local_min, op=MPI.MIN)
+    y_max = comm.allreduce(y_local_max, op=MPI.MAX)
+
+    img_height, img_width = img.shape
+
+    x_range = x_max - x_min
+    y_range = y_max - y_min
+
+    # Define the area of the mesh that corresponds to the image
+    # Center the image horizontally on the mesh
+    image_fraction_x = y_range / x_range  # Adjusted to fit the aspect ratio
+    x_image_width = x_range * image_fraction_x
+    x_image_min = x_min + (x_range - x_image_width) / 2.0
+    x_image_max = x_image_min + x_image_width
+
+    # For the vertical direction, the image spans the full height of the mesh
+    y_image_min = y_min
+    y_image_max = y_max
+
+    # Calculate the ranges
+    x_image_range = x_image_max - x_image_min
+    y_image_range = y_image_max - y_image_min
+
+    # Avoid division by zero
+    if x_image_range == 0:
+        x_image_range = 1.0
+    if y_image_range == 0:
+        y_image_range = 1.0
+
+    def gamma_expression(x_input):
+        # x_input is of shape (gdim, N)
+        x_coords = x_input[0, :]
+        y_coords = x_input[1, :]
+
+        # Initialize gamma_values with zeros
+        gamma_values = np.zeros_like(x_coords)
+
+        # Create a mask for points within the image area
+        in_x = np.logical_and(x_coords >= x_image_min, x_coords <= x_image_max)
+        in_y = np.logical_and(y_coords >= y_image_min, y_coords <= y_image_max)
+        in_image = np.logical_and(in_x, in_y)
+
+        # For points inside the image area, map to image indices
+        if np.any(in_image):
+            x_coords_in = x_coords[in_image]
+            y_coords_in = y_coords[in_image]
+
+            x_norm = (x_coords_in - x_image_min) / x_image_range
+            y_norm = (y_coords_in - y_image_min) / y_image_range
+
+            x_indices = np.clip((x_norm * (img_width - 1)).astype(int), 0, img_width - 1)
+            y_indices = np.clip(((1 - y_norm) * (img_height - 1)).astype(int), 0, img_height - 1)
+
+            gamma_values_in = img[y_indices, x_indices]
+
+            gamma_values[in_image] = gamma_values_in
+
+        # Points outside the image area remain zero
+
+        return gamma_values
+
+    return gamma_expression
 
 
 def solve_problem(U, dU, F, W):
@@ -323,13 +436,14 @@ def solve_problem(U, dU, F, W):
             break
 
 
-def postprocess_results(U, msh, time1):
+def postprocess_results(U, msh, img, gamma, time1):
 
     q, T = U.sub(0).collapse(), U.sub(1).collapse()
     norm_q, norm_T = la.norm(q.x), la.norm(T.x)
 
     V1, _ = U.function_space.sub(1).collapse()
     global_top, global_geom, global_ct, global_vals = gather_mesh_on_rank0(msh, V1, T)
+    _, _, _, global_gamma = gather_mesh_on_rank0(msh, V1, gamma)
 
     if msh.comm.rank == 0:
         print(f"(D) Norm of flux coefficient vector (monolithic, direct): {norm_q}")
@@ -349,6 +463,22 @@ def postprocess_results(U, msh, time1):
             plotter = pv.Plotter()
             plotter.add_mesh(grid, cmap="coolwarm", show_edges=False)
             plotter.show()
+
+        # plot gamma
+        if global_gamma is not None:
+            grid = pv.UnstructuredGrid(global_top, global_ct, global_geom)
+            grid.point_data["gamma"] = global_gamma.real
+            grid.set_active_scalars("gamma")
+
+            # Plot the scalar field
+            plotter = pv.Plotter()
+            plotter.add_mesh(grid, show_edges=True)
+            plotter.show()
+
+        # plot image
+        import matplotlib.pyplot as plt
+        plt.imshow(img, cmap='gray')
+        plt.show()
 
 
 if __name__ == "__main__":
