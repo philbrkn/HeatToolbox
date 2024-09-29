@@ -1,5 +1,5 @@
 '''
-define boundary conditions via custom definitions
+defining boundary conditions via gmsh
 '''
 import os
 import time
@@ -16,7 +16,7 @@ import basix.ufl
 
 import dolfinx.fem.petsc  # ghost import
 
-from utils import gather_mesh_on_rank0, gather_vector_data_on_rank0
+from utils import gather_mesh_on_rank0
 from vae_model import VAE, z_to_img, Flatten, UnFlatten
 
 os.environ["OMP_NUM_THREADS"] = "1"  # Use one thread per process
@@ -24,7 +24,8 @@ os.environ["OMP_NUM_THREADS"] = "1"  # Use one thread per process
 # Physical constants
 C = PETSc.ScalarType(1.0)  # Slip parameter for fully diffusive boundaries
 T_ISO = PETSc.ScalarType(0.0)  # Isothermal temperature, K
-Q_L = 90
+# Q_L = 50
+Q_L = 120
 Q = PETSc.ScalarType(Q_L)
 
 ELL_SI = PETSc.ScalarType(196e-9)  # Non-local length, m
@@ -35,8 +36,8 @@ LENGTH = 0.439e-6  # Characteristic length, adjust as necessary
 
 L_X = 5 * LENGTH
 L_Y = 2.5 * LENGTH
-SOURCE_WIDTH = LENGTH
-SOURCE_HEIGHT = LENGTH * 0.25
+SOURCE_WIDTH = LENGTH * 0.5
+SOURCE_HEIGHT = LENGTH * 0.25 * 0.5
 R_TOL = LENGTH * 1e-3
 RESOLUTION = LENGTH / 10  # Adjust mesh resolution as needed
 
@@ -83,17 +84,49 @@ def main():
         time1 = None
 
     # Create mesh
-    msh = create_mesh(L_X, L_Y, SOURCE_WIDTH, SOURCE_HEIGHT, RESOLUTION)
+    msh, cell_markers, facet_markers = create_mesh(L_X, L_Y, SOURCE_WIDTH, SOURCE_HEIGHT, RESOLUTION)
 
     if RANK == 0:
-        z = np.random.randn(latent_size)
+        # z = np.random.randn(latent_size)
+        # print(f"z: {z}")
+        # z = np.array([0.57852902, -0.75218827,  0.07094553, -0.40801165])  # tree
+        # z = np.array([-0.28166873, -0.25455361, -1, 1])
+        # z = np.array([0.90583324, -0.70455073, -0.1075645,  -1])
+        z = np.array([0.63012329, -0.5772154,  -0.86185697,  0.09507076])
         img = z_to_img(z, model, device)
     else:
         img = None
 
     img = comm.bcast(img, root=0)
     # Define boundary conditions and measures
-    ds, ds_bottom, ds_slip, ds_top = define_boundary_conditions(msh)
+
+    ds = ufl.Measure("ds", domain=msh, subdomain_data=facet_markers)
+    ds_bottom = ds(1)
+    ds_slip = ds(2)
+    ds_top = ds(3)
+    
+    check_form0 = fem.form(PETSc.ScalarType(1) * ds_top)
+    check_local0 = fem.assemble_scalar(check_form0)  # assemble over cell
+    totat_check0 = msh.comm.allreduce(check_local0, op=MPI.SUM)
+    if RANK == 0:
+        print(f"Integral of 1 over source line: {totat_check0}")
+        print(f"Should be: {SOURCE_WIDTH}")
+
+    # # CHECK ISOTHERMAL LINE
+    check_form2 = fem.form(PETSc.ScalarType(1) * ds_bottom)
+    check_local2 = fem.assemble_scalar(check_form2)  # assemble over cell
+    totat_check2 = msh.comm.allreduce(check_local2, op=MPI.SUM)
+    if RANK == 0:
+        print(f"Integral of 1 over isothermal line: {totat_check2}")
+        print(f"Should be: {L_X}")
+
+    # # CHECK SLIP LINE
+    check_form3 = fem.form(PETSc.ScalarType(1) * ds_slip)
+    check_local3 = fem.assemble_scalar(check_form3)  # assemble over cell
+    totat_check3 = msh.comm.allreduce(check_local3, op=MPI.SUM)
+    if RANK == 0:
+        print(f"Integral of 1 over slip line: {totat_check3}")
+        print(f"Should be: {L_Y * 2 + (L_X-SOURCE_WIDTH)}")
 
     # Define function spaces and functions
     W, U, dU, v, s = define_function_spaces(msh)
@@ -101,6 +134,7 @@ def main():
     # set gamma as a function equal to 0
     V_gamma = fem.functionspace(msh, ("CG", 1))
     gamma = fem.Function(V_gamma)  # Material field
+
     gamma_expr = img_to_gamma_expression(img, msh)
     gamma.interpolate(gamma_expr)
 
@@ -158,7 +192,15 @@ def create_mesh(L_x, L_y, source_width, source_height, resolution):
         surface = gmsh.model.geo.addPlaneSurface([loop_combined])
 
         gmsh.model.geo.synchronize()
-
+        # Isothermal boundary
+        gmsh.model.addPhysicalGroup(1, [l0], tag=1)
+        gmsh.model.setPhysicalName(1, 1, "IsothermalBoundary")
+        # Source boundary
+        gmsh.model.addPhysicalGroup(1, [l6], tag=3)
+        gmsh.model.setPhysicalName(1, 3, "TopBoundary")
+        # Slip boundary
+        gmsh.model.addPhysicalGroup(1, [l1, l9, l5, l7, l8, l3], tag=2)
+        gmsh.model.setPhysicalName(1, 2, "SlipBoundary")
         # Define physical groups for domains (if needed)
         gmsh.model.addPhysicalGroup(2, [surface], tag=1)
         gmsh.model.setPhysicalName(2, 1, "Domain")
@@ -168,41 +210,12 @@ def create_mesh(L_x, L_y, source_width, source_height, resolution):
 
     # Convert GMSH model to DOLFINx mesh and distribute it across all ranks
     comm = MPI.COMM_WORLD
-    msh, _, _ = io.gmshio.model_to_mesh(gmsh.model, comm, rank=0, gdim=gdim)
+    msh, cell_markers, facet_markers = io.gmshio.model_to_mesh(gmsh.model, comm, rank=0, gdim=gdim)
 
     if RANK == 0:
         gmsh.finalize()
 
-    return msh
-
-
-def define_boundary_conditions(msh):
-
-    boundaries = [
-        (1, isothermal_boundary),
-        (2, slip_boundary),
-        (3, source_boundary),
-    ]
-
-    facet_indices, facet_markers = [], []
-    fdim = msh.topology.dim - 1
-    for marker, locator in boundaries:
-        facets = mesh.locate_entities(msh, fdim, locator)
-        facet_indices.append(facets)
-        facet_markers.append(np.full_like(facets, marker))
-    facet_indices = np.hstack(facet_indices).astype(np.int32)
-    facet_markers = np.hstack(facet_markers).astype(np.int32)
-    sorted_facets = np.argsort(facet_indices)
-    facet_tag = mesh.meshtags(
-        msh, fdim, facet_indices[sorted_facets], facet_markers[sorted_facets]
-    )
-
-    ds = ufl.Measure("ds", domain=msh, subdomain_data=facet_tag)
-    ds_bottom = ds(1)
-    ds_slip = ds(2)
-    ds_top = ds(3)
-
-    return ds, ds_bottom, ds_slip, ds_top
+    return msh, cell_markers, facet_markers
 
 
 def define_function_spaces(msh):
@@ -281,7 +294,7 @@ def define_variational_form(U, v, s, kappa_si, ell_si, kappa_di, ell_di, n, ds_s
     return F
 
 
-def img_to_gamma_expression(img, domain):
+def img_to_gamma_expression(img, domain, mask_extrusion=True):
     # Precompute local min and max coordinates of the mesh
     x = domain.geometry.x
     x_local_min = np.min(x[:, 0]) if x.size > 0 else np.inf
@@ -294,33 +307,26 @@ def img_to_gamma_expression(img, domain):
     x_min = comm.allreduce(x_local_min, op=MPI.MIN)
     x_max = comm.allreduce(x_local_max, op=MPI.MAX)
     y_min = comm.allreduce(y_local_min, op=MPI.MIN)
-    y_max = comm.allreduce(y_local_max, op=MPI.MAX) - SOURCE_HEIGHT
+    y_max = comm.allreduce(y_local_max, op=MPI.MAX)
 
     img_height, img_width = img.shape
 
     x_range = x_max - x_min
     y_range = y_max - y_min
 
-    # Define the area of the mesh that corresponds to the image
-    # Center the image horizontally on the mesh
-    image_fraction_x = y_range / x_range  # Adjusted to fit the aspect ratio
-    x_image_width = x_range * image_fraction_x
-    x_image_min = x_min + (x_range - x_image_width) / 2.0
-    x_image_max = x_image_min + x_image_width
+    y_min += SOURCE_HEIGHT  # to make image higher
+    x_min -= x_range/100  # to move image  to the left
 
-    # For the vertical direction, the image spans the full height of the mesh
-    y_image_min = y_min
-    y_image_max = y_max
+    # Avoid division by zero in case the mesh or image has no range
+    if x_range == 0:
+        x_range = 1.0
+    if y_range == 0:
+        y_range = 1.0
 
-    # Calculate the ranges
-    x_image_range = x_image_max - x_image_min
-    y_image_range = y_image_max - y_image_min
-
-    # Avoid division by zero
-    if x_image_range == 0:
-        x_image_range = 1.0
-    if y_image_range == 0:
-        y_image_range = 1.0
+    # define the extrusion region
+    y_min_extrusion = L_Y - SOURCE_HEIGHT
+    x_min_extrusion = L_X / 2 - SOURCE_WIDTH / 2
+    x_max_extrusion = L_X / 2 + SOURCE_WIDTH / 2
 
     def gamma_expression(x_input):
         # x_input is of shape (gdim, N)
@@ -330,27 +336,23 @@ def img_to_gamma_expression(img, domain):
         # Initialize gamma_values with zeros
         gamma_values = np.zeros_like(x_coords)
 
-        # Create a mask for points within the image area
-        in_x = np.logical_and(x_coords >= x_image_min, x_coords <= x_image_max)
-        in_y = np.logical_and(y_coords >= y_image_min, y_coords <= y_image_max)
-        in_image = np.logical_and(in_x, in_y)
+        # For all points in the mesh, scale the image to the full size of the mesh
+        x_norm = (x_coords - x_min) / x_range  # Normalize x coordinates to the range of the mesh
+        y_norm = (y_coords - y_min) / y_range  # Normalize y coordinates to the range of the mesh
 
-        # For points inside the image area, map to image indices
-        if np.any(in_image):
-            x_coords_in = x_coords[in_image]
-            y_coords_in = y_coords[in_image]
+        x_indices = np.clip((x_norm * (img_width - 1)).astype(int), 0, img_width - 1)
+        y_indices = np.clip(((1 - y_norm) * (img_height - 1)).astype(int), 0, img_height - 1)
 
-            x_norm = (x_coords_in - x_image_min) / x_image_range
-            y_norm = (y_coords_in - y_image_min) / y_image_range
+        gamma_values = img[y_indices, x_indices]  # Map image values to the mesh
 
-            x_indices = np.clip((x_norm * (img_width - 1)).astype(int), 0, img_width - 1)
-            y_indices = np.clip(((1 - y_norm) * (img_height - 1)).astype(int), 0, img_height - 1)
-
-            gamma_values_in = img[y_indices, x_indices]
-
-            gamma_values[in_image] = gamma_values_in
-
-        # Points outside the image area remain zero
+        # Mask the top extrusion if requested
+        if mask_extrusion:
+            # above Ly and between Lx/2 - w/2 and Lx/2 + w/2
+            in_extrusion = np.logical_and(
+                np.logical_and(y_coords > y_min_extrusion, x_coords >= x_min_extrusion),
+                x_coords <= x_max_extrusion,
+            )
+            gamma_values[in_extrusion] = 1.0
 
         return gamma_values
 

@@ -8,8 +8,10 @@ from dolfinx.plot import vtk_mesh
 from mpi4py import MPI
 import dolfinx.fem
 from dolfinx import fem
+import ufl
 from ufl import TestFunction, TrialFunction, inner, grad, form, derivative, inner
 import dolfinx
+from petsc4py import PETSc
 
 
 def gather_mesh_on_rank0(mesh, V, function, root=0):
@@ -58,8 +60,12 @@ def gather_mesh_on_rank0(mesh, V, function, root=0):
     topology[topology_dofs] = global_dofs
 
     # Gather mesh and function data on the root process
-    global_topology = comm.gather(topology[:(num_dofs_per_cell + 1) * num_cells_local], root=root)
-    global_geometry = comm.gather(geometry[:V.dofmap.index_map.size_local, :], root=root)
+    global_topology = comm.gather(
+        topology[: (num_dofs_per_cell + 1) * num_cells_local], root=root
+    )
+    global_geometry = comm.gather(
+        geometry[: V.dofmap.index_map.size_local, :], root=root
+    )
     global_ct = comm.gather(cell_types[:num_cells_local], root=root)
     global_vals = comm.gather(function.x.array[:num_dofs_local], root=root)
 
@@ -73,6 +79,147 @@ def gather_mesh_on_rank0(mesh, V, function, root=0):
         return root_top, root_geom, root_ct, root_vals
 
     return None, None, None, None
+
+
+def project_gamma(gamma, slope=10, point=0.5):
+    gamma_values = gamma.vector.array
+
+    return (np.tanh(slope * (gamma_values - point)) + np.tanh(slope * point)) / (
+        np.tanh(slope * (1 - point)) + np.tanh(slope * point)
+    )
+
+    
+def alpha_function(gamma, msh, alphamin=0.0125, alphamax=1, qa=1):
+    comm = msh.comm
+    gamma.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT, mode=PETSc.ScatterMode.FORWARD)
+    interface = ufl.inner(ufl.grad(gamma), ufl.grad(gamma))
+
+    V_g = gamma.function_space
+    interface_g = fem.Function(V_g)
+    inter_expr = fem.Expression(interface, V_g.element.interpolation_points())
+    interface_g.interpolate(inter_expr)
+    # interface = project(interface, gamma.function_space())
+
+    interface_filtered = filter_function(interface_g, msh, rad_div=10)
+    # Normalize the filtered interface
+    # interface_g *= 1 / (interface_g.vector.max() + 1e-10)
+    interface_values = interface_filtered.vector.array
+    
+    # filter out small values
+    interface_values = interface_filtered.vector.array
+    global_max = comm.allreduce(np.max(interface_values), op=MPI.MAX)
+    if global_max > 1e-10:
+        interface_values /= global_max
+    interface_filtered.vector.array[:] = interface_values
+    interface_filtered.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT, mode=PETSc.ScatterMode.FORWARD)
+
+    # interface_filtered.vector.set(interface_values)
+    # inter_expr = fem.Expression(interface_filtered, V_g.element.interpolation_points())
+    # interface_filtered.interpolate(inter_expr)
+    # interface_filtered.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT, mode=PETSc.ScatterMode.FORWARD)
+
+    # interface_gg = project(interface, gamma.function_space())
+    interface_filtered_2 = filter_function(interface_filtered, msh, rad_div=15)
+    interface_filtered_2.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT, mode=PETSc.ScatterMode.FORWARD)
+
+    # Compute the global mean
+    interface_values = interface_filtered_2.vector.array.copy()
+    local_sum = np.sum(interface_values)
+    local_count = len(interface_values)
+    global_sum = comm.allreduce(local_sum, op=MPI.SUM)
+    global_count = comm.allreduce(local_count, op=MPI.SUM)
+
+    global_mean = global_sum / global_count
+
+    inter_proj_gamma = project_gamma(interface_filtered_2, point=global_mean)
+    interface_filtered_2.vector.array = inter_proj_gamma
+    interface_filtered_2.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT, mode=PETSc.ScatterMode.FORWARD)
+    # interface_g.vector().set_local(project_gamma(interface, point=mean))
+
+    interface_rev = 1 - interface_filtered_2
+
+    alpha = alphamin + (alphamax - alphamin) * (1 - interface_rev) / (
+        1 + qa * interface_rev
+    )
+
+    # project alpha
+    alpha_g = fem.Function(V_g)
+    alpha_expr = fem.Expression(alpha, V_g.element.interpolation_points())
+    alpha_g.interpolate(alpha_expr)
+    alpha_g.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT, mode=PETSc.ScatterMode.FORWARD)
+
+    alpha_clamp = alpha_g.vector.array.copy()
+    alpha_clamp = np.clip(alpha_clamp, alphamin, alphamax)
+
+    alpha_g.vector.array[:] = alpha_clamp
+    alpha_g.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT, mode=PETSc.ScatterMode.FORWARD)
+
+    return alpha_g
+
+
+# Apply filter function
+def filter_function(rho_n, mesh, rad_div=20, projection=True, name="Filtered"):
+    # Find the minimum size (hmin) across all processes
+    tdim = mesh.topology.dim
+    num_cells = mesh.topology.index_map(tdim).size_local
+
+    # Compute the size of all cells in the mesh
+    h_sizes = mesh.h(tdim, np.arange(num_cells))
+
+    # Find the minimum size (hmin) across all processes
+    hmin = mesh.comm.allreduce(np.min(h_sizes), op=MPI.MIN)
+    # Compute the filter radius
+    r_min = hmin / rad_div
+
+    V = rho_n.function_space
+
+    # Define trial and test functions
+    rho = TrialFunction(V)
+    w = TestFunction(V)
+
+    # Define the bilinear and linear forms
+    a = (r_min**2) * inner(grad(rho), grad(w)) * ufl.dx + rho * w * ufl.dx
+    L = rho_n * w * ufl.dx
+
+    # Create the solution function
+    rho_filtered = fem.Function(V, name=name)
+    # Create the linear problem and solve
+    problem = dolfinx.fem.petsc.LinearProblem(
+        a,
+        L,
+        u=rho_filtered,
+        bcs=[],
+        petsc_options={"ksp_type": "cg", "pc_type": "sor"},
+    )
+    rho_filtered = problem.solve()
+    rho_filtered.vector.ghostUpdate(addv=PETSc.InsertMode.INSERT, mode=PETSc.ScatterMode.FORWARD)
+
+    return rho_filtered
+
+
+def save_for_modulus(filename, mesh, temperature_field, flux_field):
+    """
+    Save the mesh and fields (temperature, flux)
+    into an HDF5 file compatible with Modulus.
+
+    Parameters:
+    - filename: Name of the HDF5 file to create.
+    - mesh: FEniCS mesh object.
+    - temperature_field: FEniCS Function representing the temperature.
+    - flux_field: FEniCS Function representing the flux.
+    """
+    coordinates = mesh.coordinates()
+    connectivity = mesh.cells()
+    temperature_values = temperature_field.vector().get_local()
+    flux_values = flux_field.vector().get_local()
+
+    with h5py.File(filename, "w") as hdf5_file:
+        # Save mesh data
+        hdf5_file.create_dataset("mesh/coordinates", data=coordinates)
+        hdf5_file.create_dataset("mesh/connectivity", data=connectivity)
+        # Save field data
+        hdf5_file.create_dataset("fields/temperature", data=temperature_values)
+        hdf5_file.create_dataset("fields/flux", data=flux_values)
 
 
 def gather_vector_data_on_rank0(mesh, function, root=0):
@@ -100,7 +247,9 @@ def gather_vector_data_on_rank0(mesh, function, root=0):
     # Get local cell centers
     num_cells_local = mesh.topology.index_map(mesh.topology.dim).size_local
     # Coordinates of cell vertices
-    cell_vertices = mesh.geometry.x[mesh.topology.connectivity(mesh.topology.dim, 0).array]
+    cell_vertices = mesh.geometry.x[
+        mesh.topology.connectivity(mesh.topology.dim, 0).array
+    ]
     # Reshape to (num_cells_local, num_vertices_per_cell, gdim)
     num_vertices_per_cell = cell_vertices.shape[0] // num_cells_local
     cell_vertices = cell_vertices.reshape((num_cells_local, num_vertices_per_cell, -1))
@@ -121,196 +270,6 @@ def gather_vector_data_on_rank0(mesh, function, root=0):
         return cell_centers, function_values
     else:
         return None, None
-
-
-# Apply filter function
-def filter_function(rho_n, mesh, dx, projection=True, name="Filtered"):
-    # Find the minimum size (hmin) across all processes
-    tdim = mesh.topology.dim
-    num_cells = mesh.topology.index_map(tdim).size_local
-
-    # Compute the size of all cells in the mesh
-    h_sizes = mesh.h(tdim, np.arange(num_cells))
-
-    # Find the minimum size (hmin) across all processes
-    hmin = mesh.comm.allreduce(np.min(h_sizes), op=MPI.MIN)
-    # Compute the filter radius
-    r_min = hmin / 20
-
-    V = rho_n.function_space
-
-    # Define trial and test functions
-    rho = TrialFunction(V)
-    w = TestFunction(V)
-
-    # Define the bilinear and linear forms
-    a = (r_min**2) * inner(grad(rho), grad(w)) * dx + rho * w * dx
-    L = rho_n * w * dx
-
-    # Create the solution function
-    rho_filtered = fem.Function(V, name=name)
-    # Create the linear problem and solve
-    problem = dolfinx.fem.petsc.LinearProblem(
-        a,
-        L,
-        u=rho_filtered,
-        bcs=[],
-        petsc_options={"ksp_type": "cg", "pc_type": "sor"},
-    )
-    rho_filtered = problem.solve()
-
-    # Optional projection
-    # if projection:
-    #     rho_p = project_gamma(rho_filtered)
-    #     rho_filtered.x.array[:] = rho_p
-
-    return rho_filtered
-
-
-def plot_mesh(mesh):
-    # Create a PyVista mesh
-    topology, cell_types, geometry = vtk_mesh(mesh, mesh.topology.dim)
-    grid = pv.UnstructuredGrid(topology, cell_types, geometry)
-
-    # Plot the mesh using PyVista
-    plotter = pv.Plotter()
-    plotter.add_mesh(grid, show_edges=True)
-    plotter.show()
-
-
-def plot_boundaries(mesh, facet_markers):
-    # Create a PyVista plotter
-    plotter = pv.Plotter()
-
-    # Extract the boundary facets based on the facet markers
-    topology, cell_types, geometry = vtk_mesh(mesh, mesh.topology.dim)
-    grid = pv.UnstructuredGrid(topology, cell_types, geometry)
-
-    # Add the boundary markers as a new cell array
-    grid.cell_data["Boundary Markers"] = facet_markers.values
-
-    # Plot boundaries with different colors for each marker
-    plotter.add_mesh(
-        grid, scalars="Boundary Markers", show_edges=True, show_scalar_bar=True
-    )
-    plotter.show()
-
-
-def plot_subdomains(mesh, cell_markers):
-    plotter = pv.Plotter()
-
-    for marker in np.unique(cell_markers.values):
-        cells = np.where(cell_markers.values == marker)[0]
-        topology, cell_types, geometry = vtk_mesh(mesh, mesh.topology.dim, cells)
-        subdomain_grid = pv.UnstructuredGrid(topology, cell_types, geometry)
-        plotter.add_mesh(subdomain_grid, show_edges=True, label=f"Subdomain {marker}")
-
-    plotter.add_legend()
-    plotter.show()
-
-
-def plot_scalar_field(mesh, scalar_field):
-    topology, cell_types, geometry = vtk_mesh(mesh, mesh.topology.dim)
-    grid = pv.UnstructuredGrid(topology, cell_types, geometry)
-    grid.point_data["T"] = scalar_field.x.array.real
-    grid.set_active_scalars("T")
-
-    # Plot the scalar field
-    plotter = pv.Plotter()
-    plotter.add_mesh(grid, cmap="coolwarm", show_edges=True)
-    plotter.show()
-
-
-def plot_vector_field(mesh, vector_field, Q):
-    top_imap = mesh.topology.index_map(mesh.topology.dim)
-    num_cells = top_imap.size_local + top_imap.num_ghosts
-    midpoints = dolfinx.mesh.compute_midpoints(
-        mesh, mesh.topology.dim, np.arange(num_cells, dtype=np.int32)
-    )
-    num_dofs = Q.dofmap.index_map.size_local + Q.dofmap.index_map.num_ghosts
-    # topology, cell_types, x
-    grid = pv.UnstructuredGrid(
-        *vtk_mesh(mesh, mesh.topology.dim, np.arange(num_cells, dtype=np.int32))
-    )
-
-    print(num_cells, num_dofs)
-    assert num_cells == num_dofs
-    values = np.zeros((num_dofs, 3), dtype=np.float64)
-    values[:, : mesh.geometry.dim] = vector_field.x.array.real.reshape(
-        num_dofs, Q.dofmap.index_map_bs
-    )
-
-    cloud = pv.PolyData(midpoints)
-    cloud["qw"] = values
-    cloud["[W/m2]"] = np.linalg.norm(values, axis=1)
-
-    # FOR NORMAL FLUX FIGURES
-    glyphs = cloud.glyph("qw", scale=False, factor=5e-2)
-    # glyphs = cloud.glyph("qw", scale=True, factor=3.5e-6)
-
-    # THRESHOLD
-    plotter = pv.Plotter()
-    sargs = dict(
-        height=0.1,
-        vertical=False,
-        position_x=0.22,
-        position_y=0.05,
-        n_labels=2,
-        fmt="%.3g",
-    )
-    actor2 = plotter.add_mesh(
-        glyphs,
-        cmap=plt.cm.jet,
-        scalar_bar_args=sargs,
-        scalars="[W/m2]",
-        show_scalar_bar=show_scalar_bar,
-        clim=(0, 1e4),
-    )
-    actor = plotter.add_mesh(grid, color="white", show_edges=False)  # , opacity=0.2)
-    plotter.view_xy()
-    plotter.show()
-
-
-def plot_material_distribution(mesh, material_field):
-    topology, cell_types, geometry = vtk_mesh(mesh, mesh.topology.dim)
-    grid = pv.UnstructuredGrid(topology, cell_types, geometry)
-    # grid.point_data["Material"] = material_field.x.array
-
-    # Plot the material distribution
-    plotter = pv.Plotter()
-    plotter.add_mesh(grid, cmap="coolwarm", show_edges=True)
-    plotter.show()
-
-
-def project_gamma(gamma, slope=10, point=0.5):
-    return (np.tanh(slope * (gamma.vector() - point)) + np.tanh(slope * point)) / (
-        np.tanh(slope * (1 - point)) + np.tanh(slope * point)
-    )
-
-
-def save_for_modulus(filename, mesh, temperature_field, flux_field):
-    """
-    Save the mesh and fields (temperature, flux)
-    into an HDF5 file compatible with Modulus.
-
-    Parameters:
-    - filename: Name of the HDF5 file to create.
-    - mesh: FEniCS mesh object.
-    - temperature_field: FEniCS Function representing the temperature.
-    - flux_field: FEniCS Function representing the flux.
-    """
-    coordinates = mesh.coordinates()
-    connectivity = mesh.cells()
-    temperature_values = temperature_field.vector().get_local()
-    flux_values = flux_field.vector().get_local()
-
-    with h5py.File(filename, "w") as hdf5_file:
-        # Save mesh data
-        hdf5_file.create_dataset("mesh/coordinates", data=coordinates)
-        hdf5_file.create_dataset("mesh/connectivity", data=connectivity)
-        # Save field data
-        hdf5_file.create_dataset("fields/temperature", data=temperature_values)
-        hdf5_file.create_dataset("fields/flux", data=flux_values)
 
 
 def gather_solution_on_rank0(function, mesh):
