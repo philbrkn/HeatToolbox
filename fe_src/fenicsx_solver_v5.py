@@ -91,8 +91,8 @@ def main():
         # print(f"z: {z}")
         # z = np.array([0.57852902, -0.75218827,  0.07094553, -0.40801165])  # tree
         # z = np.array([-0.28166873, -0.25455361, -1, 1])
-        # z = np.array([0.90583324, -0.70455073, -0.1075645,  -1])
-        z = np.array([0.63012329, -0.5772154,  -0.86185697,  0.09507076])
+        z = np.array([0.90583324, -0.70455073, -0.1075645,  -1])
+        # z = np.array([0.63012329, -0.5772154,  -0.86185697,  0.09507076])
         img = z_to_img(z, model, device)
     else:
         img = None
@@ -311,11 +311,12 @@ def img_to_gamma_expression(img, domain, mask_extrusion=True):
 
     img_height, img_width = img.shape
 
+    # ranges in mesh dimensions
     x_range = x_max - x_min
     y_range = y_max - y_min
 
     y_min += SOURCE_HEIGHT  # to make image higher
-    x_min -= x_range/100  # to move image  to the left
+    # center the image
 
     # Avoid division by zero in case the mesh or image has no range
     if x_range == 0:
@@ -323,10 +324,10 @@ def img_to_gamma_expression(img, domain, mask_extrusion=True):
     if y_range == 0:
         y_range = 1.0
 
-    # define the extrusion region
-    y_min_extrusion = L_Y - SOURCE_HEIGHT
-    x_min_extrusion = L_X / 2 - SOURCE_WIDTH / 2
-    x_max_extrusion = L_X / 2 + SOURCE_WIDTH / 2
+    # define the extrusion region for masking
+    y_min_extrusion = L_Y - SOURCE_HEIGHT * 2
+    x_min_extrusion = L_X / 2 - SOURCE_WIDTH * 0.6
+    x_max_extrusion = L_X / 2 + SOURCE_WIDTH * 0.6
 
     def gamma_expression(x_input):
         # x_input is of shape (gdim, N)
@@ -336,10 +337,12 @@ def img_to_gamma_expression(img, domain, mask_extrusion=True):
         # Initialize gamma_values with zeros
         gamma_values = np.zeros_like(x_coords)
 
+        x_mesh_center = x_range / 2
         # For all points in the mesh, scale the image to the full size of the mesh
-        x_norm = (x_coords - x_min) / x_range  # Normalize x coordinates to the range of the mesh
+        x_norm = (x_coords - x_mesh_center) / x_range + 0.52
         y_norm = (y_coords - y_min) / y_range  # Normalize y coordinates to the range of the mesh
 
+        # Map the normalized coordinates to the image
         x_indices = np.clip((x_norm * (img_width - 1)).astype(int), 0, img_width - 1)
         y_indices = np.clip(((1 - y_norm) * (img_height - 1)).astype(int), 0, img_height - 1)
 
