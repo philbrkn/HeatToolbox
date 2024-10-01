@@ -209,6 +209,8 @@ def solve_image(img):
 
     q, T = U.sub(0).collapse(), U.sub(1).collapse()
 
+    # ignore temperatures that are far below 0
+    T.vector.array[T.vector.array < -0.01] = 0.00
     temp_form = fem.form(T * ufl.dx)
     temp_local = fem.assemble_scalar(temp_form)
     temp_global = msh.comm.allreduce(temp_local, op=MPI.SUM)

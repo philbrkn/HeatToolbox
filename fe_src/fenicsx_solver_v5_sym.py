@@ -40,7 +40,7 @@ L_Y = 2.5 * LENGTH
 SOURCE_WIDTH = (LENGTH / 2) / 2  # symmetry condition
 SOURCE_HEIGHT = LENGTH * 0.25 * 0.5
 R_TOL = LENGTH * 1e-3
-RESOLUTION = LENGTH / 15  # Adjust mesh resolution as needed
+RESOLUTION = LENGTH / 50  # Adjust mesh resolution as needed
 
 # MPI initialization
 comm = MPI.COMM_WORLD
@@ -85,7 +85,8 @@ def main():
         # print(f"z: {z}")
         # z = np.array([0.57852902, -0.75218827,  0.07094553, -0.40801165])  # tree
         # z = np.array([0.90583324, -0.70455073, -0.1075645,  -1])  # tree
-        z = np.array([[0.68886154,  0.74409391,  0.45715316, -0.13316644]])
+        # z = np.array([[0.68886154,  0.74409391,  0.45715316, -0.13316644]])  # lots of negs
+        z = np.array([[0.91578013,  0.06633388,  0.3837567,  -0.36896428]])
         img = z_to_img(z, model, device)
         img = img[:, :img.shape[1] // 2]  # Take the left half of the image
     else:
@@ -136,7 +137,7 @@ def main():
     # Define variational forms
     n = ufl.FacetNormal(msh)
     F = define_variational_form(
-        U, v, s, KAPPA_SI, ELL_SI, KAPPA_DI, ELL_DI, n, ds_slip, ds_top, ds_symmetry, Q, gamma
+        U, v, s, KAPPA_SI, ELL_SI, KAPPA_DI, ELL_DI, n, ds_slip, ds_top, ds_symmetry, ds_bottom, Q, gamma
     )
 
     # Solve the problem
@@ -231,11 +232,15 @@ def define_function_spaces(msh):
     return W, U, dU, v, s
 
 
-def define_variational_form(U, v, s, kappa_si, ell_si, kappa_di, ell_di, n, ds_slip, ds_top, ds_symmetry, Q, gamma):
+def define_variational_form(U, v, s, kappa_si, ell_si, kappa_di, ell_di, n, ds_slip, ds_top, ds_symmetry, ds_bottom, Q, gamma):
 
     q, T = ufl.split(U)
 
     F_sym = ufl.dot(q, n) * ufl.dot(v, n) * ds_symmetry
+
+    # T_iso_form = fem.Constant(msh, T_ISO)
+    # R = PETSc.ScalarType(2e-9)  # Kapitza resistance, m^2K/W
+    # F_isothermal = (T - T_ISO + R * ufl.dot(q, n)) * s * ds_bottom
 
     def ramp(gamma, a_min, a_max, qa=200):
         return a_min + (a_max - a_min) * gamma / (1 + qa * (1 - gamma))
@@ -285,6 +290,7 @@ def define_variational_form(U, v, s, kappa_si, ell_si, kappa_di, ell_di, n, ds_s
         + ufl.dot(q, n) * ufl.dot(v, n) * ds_slip  # Additional stabilization
         + Q * ufl.dot(v, n) * ds_top  # Source term at the top boundary
         + F_sym  # Symmetry boundary condition
+        # + F_isothermal  # Isothermal boundary condition
     )
 
     return F
@@ -459,7 +465,8 @@ def postprocess_results(U, msh, img, gamma, time1):
 
             # Plot the scalar field
             plotter = pv.Plotter()
-            plotter.add_mesh(grid, cmap="coolwarm", show_edges=False)
+            plotter.add_mesh(grid, cmap="coolwarm", show_edges=False, clim=(0, 0.5))
+            # plotter.add_mesh(grid, cmap="coolwarm", show_edges=False)
             plotter.view_xy()
             plotter.show()
 
@@ -476,34 +483,28 @@ def postprocess_results(U, msh, img, gamma, time1):
             plotter.show()
 
     # Vector field
-    # gdim = msh.geometry.dim
-    # V_dg = fem.functionspace(msh, ("DG", 2, (gdim,)))
-    # q_dg = fem.Function(V_dg)
-    # q_copy = q.copy()
-    # q_dg.interpolate(q_copy)
-    # glob_top_q, glob_geom_q, glob_ct_q, glob_q_dg = gather_mesh_on_rank0(msh, V_dg, q_dg)
+    if RANK == 0:
+        gdim = msh.geometry.dim
+        V_dg = fem.functionspace(msh, ("DG", 2, (gdim,)))
+        q_dg = fem.Function(V_dg)
+        q_copy = q.copy()
+        q_dg.interpolate(q_copy)
 
-    # if RANK == 0:
-    #     print(glob_q_dg.shape)
-    #     print(glob_geom_q.shape)
-    #     V_grid = pv.UnstructuredGrid(glob_top_q, glob_ct_q, glob_geom_q)
-    #     Esh_values = np.zeros((glob_geom_q.shape[0], 3), dtype=np.float64)
-    #     Esh_values[:, :msh.topology.dim] = glob_q_dg.reshape(glob_geom_q.shape[0], msh.topology.dim).real
-    #     V_grid.point_data["u"] = Esh_values
+        with io.VTXWriter(msh.comm, "flux.bp", q_dg) as vtx:
+            vtx.write(0.0)
 
-    #     plotter = pv.Plotter()
-    #     plotter.add_text("magnitude", font_size=12, color="black")
-    #     plotter.add_mesh(V_grid.copy(), show_edges=False)
-    #     plotter.view_xy()
-    #     plotter.link_views()
-    #     plotter.show()
+        V_cells, V_types, V_x = dolfinx.plot.vtk_mesh(V_dg)
+        V_grid = pv.UnstructuredGrid(V_cells, V_types, V_x)
+        Esh_values = np.zeros((V_x.shape[0], 3), dtype=np.float64)
+        Esh_values[:, :msh.topology.dim] = q_dg.x.array.reshape(V_x.shape[0], msh.topology.dim).real
+        V_grid.point_data["u"] = Esh_values
 
-    # if RANK == 0:
-    #     # plot image
-    #     import matplotlib.pyplot as plt
-    #     plt.imshow(img, cmap='gray')
-    #     plt.show()
-
+        plotter = pv.Plotter()
+        plotter.add_text("magnitude", font_size=12, color="black")
+        plotter.add_mesh(V_grid.copy(), show_edges=False)
+        plotter.view_xy()
+        plotter.link_views()
+        plotter.show()
 
 if __name__ == "__main__":
     main()

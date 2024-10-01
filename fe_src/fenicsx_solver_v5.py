@@ -39,7 +39,7 @@ L_Y = 2.5 * LENGTH
 SOURCE_WIDTH = LENGTH * 0.5
 SOURCE_HEIGHT = LENGTH * 0.25 * 0.5
 R_TOL = LENGTH * 1e-3
-RESOLUTION = LENGTH / 10  # Adjust mesh resolution as needed
+RESOLUTION = LENGTH / 15  # Adjust mesh resolution as needed
 
 # MPI initialization
 comm = MPI.COMM_WORLD
@@ -91,9 +91,13 @@ def main():
         # print(f"z: {z}")
         # z = np.array([0.57852902, -0.75218827,  0.07094553, -0.40801165])  # tree
         # z = np.array([-0.28166873, -0.25455361, -1, 1])
-        z = np.array([0.90583324, -0.70455073, -0.1075645,  -1])
+        # z = np.array([0.90583324, -0.70455073, -0.1075645,  -1])
         # z = np.array([0.63012329, -0.5772154,  -0.86185697,  0.09507076])
+        z = np.array([[0.91578013,  0.06633388,  0.3837567,  -0.36896428]])  # tree sym
         img = z_to_img(z, model, device)
+        # symmetrize and de symmetrize
+        img = img[:, :img.shape[1] // 2]  # Take the left half of the image
+        img = np.concatenate((img, img[:, ::-1]), axis=1)  # Symmetrize the image
     else:
         img = None
 
@@ -339,7 +343,7 @@ def img_to_gamma_expression(img, domain, mask_extrusion=True):
 
         x_mesh_center = x_range / 2
         # For all points in the mesh, scale the image to the full size of the mesh
-        x_norm = (x_coords - x_mesh_center) / x_range + 0.52
+        x_norm = (x_coords - x_mesh_center) / x_range + 0.5
         y_norm = (y_coords - y_min) / y_range  # Normalize y coordinates to the range of the mesh
 
         # Map the normalized coordinates to the image
@@ -484,33 +488,28 @@ def postprocess_results(U, msh, img, gamma, time1):
             plotter.show()
 
     # Vector field
-    # gdim = msh.geometry.dim
-    # V_dg = fem.functionspace(msh, ("DG", 2, (gdim,)))
-    # q_dg = fem.Function(V_dg)
-    # q_copy = q.copy()
-    # q_dg.interpolate(q_copy)
-    # glob_top_q, glob_geom_q, glob_ct_q, glob_q_dg = gather_mesh_on_rank0(msh, V_dg, q_dg)
+    if RANK == 0:
+        gdim = msh.geometry.dim
+        V_dg = fem.functionspace(msh, ("DG", 2, (gdim,)))
+        q_dg = fem.Function(V_dg)
+        q_copy = q.copy()
+        q_dg.interpolate(q_copy)
 
-    # if RANK == 0:
-    #     print(glob_q_dg.shape)
-    #     print(glob_geom_q.shape)
-    #     V_grid = pv.UnstructuredGrid(glob_top_q, glob_ct_q, glob_geom_q)
-    #     Esh_values = np.zeros((glob_geom_q.shape[0], 3), dtype=np.float64)
-    #     Esh_values[:, :msh.topology.dim] = glob_q_dg.reshape(glob_geom_q.shape[0], msh.topology.dim).real
-    #     V_grid.point_data["u"] = Esh_values
+        with io.VTXWriter(msh.comm, "flux.bp", q_dg) as vtx:
+            vtx.write(0.0)
 
-    #     plotter = pv.Plotter()
-    #     plotter.add_text("magnitude", font_size=12, color="black")
-    #     plotter.add_mesh(V_grid.copy(), show_edges=False)
-    #     plotter.view_xy()
-    #     plotter.link_views()
-    #     plotter.show()
+        V_cells, V_types, V_x = dolfinx.plot.vtk_mesh(V_dg)
+        V_grid = pv.UnstructuredGrid(V_cells, V_types, V_x)
+        Esh_values = np.zeros((V_x.shape[0], 3), dtype=np.float64)
+        Esh_values[:, :msh.topology.dim] = q_dg.x.array.reshape(V_x.shape[0], msh.topology.dim).real
+        V_grid.point_data["u"] = Esh_values
 
-    # if RANK == 0:
-    #     # plot image
-    #     import matplotlib.pyplot as plt
-    #     plt.imshow(img, cmap='gray')
-    #     plt.show()
+        plotter = pv.Plotter()
+        plotter.add_text("magnitude", font_size=12, color="black")
+        plotter.add_mesh(V_grid.copy(), show_edges=False)
+        plotter.view_xy()
+        plotter.link_views()
+        plotter.show()
 
 
 if __name__ == "__main__":
