@@ -58,12 +58,13 @@ def img_to_gamma_expression(img, domain, config):
 
         gamma_values = img[y_indices, x_indices]  # Map image values to the mesh
 
-        # Mask the top extrusion if requested
-        in_extrusion = np.logical_and(
-            np.logical_and(y_coords > y_min_extrusion, x_coords >= x_min_extrusion),
-            x_coords <= x_max_extrusion,
-        )
-        gamma_values[in_extrusion] = 1.0
+        if config.mask_extrusion:
+            # Mask the top extrusion if requested
+            in_extrusion = np.logical_and(
+                np.logical_and(y_coords > y_min_extrusion, x_coords >= x_min_extrusion),
+                x_coords <= x_max_extrusion,
+            )
+            gamma_values[in_extrusion] = 1.0
 
         return gamma_values
 

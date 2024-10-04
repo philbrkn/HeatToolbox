@@ -1,12 +1,15 @@
-import time
+# post_processing.py
+
 import numpy as np
 import pyvista as pv
-from dolfinx import fem, la, plot
+from dolfinx import fem, la, plot, geometry
+import matplotlib.pyplot as plt
 
 
 class PostProcessingModule:
-    def __init__(self, rank):
+    def __init__(self, rank, config):
         self.rank = rank
+        self.config = config
 
     def postprocess_results(self, U, msh, img, gamma):
         q, T = U.sub(0).collapse(), U.sub(1).collapse()
@@ -43,6 +46,38 @@ class PostProcessingModule:
                 )
 
             self.plot_vector_field(q, msh)
+
+            x_char = self.config.L_X if self.config.symmetry else self.config.L_X / 2
+            # horizontal line:
+            x_end = x_char
+            y_val = self.config.L_Y - self.config.LENGTH / 8
+            (x_vals, T_x) = self.get_temperature_line(T, msh, "horizontal", start=0, end=x_end, value=y_val)
+            # vertical line:
+            y_end = self.config.L_Y + self.config.SOURCE_HEIGHT
+            x_val = x_char - self.config.LENGTH * 3 / 8
+            (y_vals, T_y) = self.get_temperature_line(T, msh, "vertical", start=0, end=y_end, value=x_val)
+
+            # normalize x and y vals by config.ell_si
+            x_vals = (x_end - x_vals) / self.config.ELL_SI
+            y_vals = (y_end - y_vals) / self.config.ELL_SI
+
+            # figure with a single plot
+            fig, ax = plt.subplots(figsize=(10, 5))
+            fig.suptitle("Temperature profiles")
+
+            # horizontal line in red
+            ax.plot(x_vals, T_x, color='red', label="T(x) - Horizontal Line")
+
+            # vertical line in blue
+            ax.plot(y_vals, T_y, color='blue', label="T(y) - Vertical Line")
+
+            # Set labels and legend
+            ax.set_xlabel("Position (normalized)")
+            ax.set_ylabel("Temperature (T)")
+            ax.legend()
+
+            # Display the plot
+            plt.show()
 
     def gather_mesh_on_rank0(self, mesh, V, function, root=0):
         """
@@ -151,3 +186,57 @@ class PostProcessingModule:
         plotter.view_xy()
         plotter.link_views()
         plotter.show()
+
+    def get_temperature_line(
+        self,
+        T_results,
+        msh,
+        line_orientation="horizontal",
+        start=0.0,
+        end=1.0,
+        value=0.5,
+        num_points=200,
+    ):
+        # tol = 1e-9  # Small tolerance to avoid hitting boundaries exactly
+        tol = self.config.LENGTH * 1e-3  # Small tolerance to avoid hitting boundaries exactly
+        points = np.zeros((3, num_points))
+
+        if line_orientation == "horizontal":
+            x_coords = np.linspace(start + tol, end - tol, num_points)            
+            points[0] = x_coords
+            points[1] = value
+        elif line_orientation == "vertical":
+            y_coords = np.linspace(start + tol, end - tol, num_points)
+            points[0] = value
+            points[1] = y_coords
+        else:
+            raise ValueError(
+                "line_orientation must be either 'horizontal' or 'vertical'"
+            )
+
+        # Create bounding box tree for the mesh
+        bb_tree = geometry.bb_tree(msh, msh.topology.dim)
+
+        # Find cells whose bounding-box collide with the the points
+        cell_candidates = geometry.compute_collisions_points(bb_tree, points.T)
+
+        # Choose one of the cells that contains the point
+        colliding_cells = geometry.compute_colliding_cells(msh, cell_candidates, points.T)
+
+        cells = []
+        points_on_proc = []
+        # Get the temperature values at the points
+        for i, point in enumerate(points.T):
+            if len(colliding_cells.links(i)) > 0:
+                points_on_proc.append(point)
+                cells.append(colliding_cells.links(i)[0])
+
+        points_on_proc = np.array(points_on_proc, dtype=np.float64)
+        T_values = T_results.eval(points_on_proc, cells)
+
+        if line_orientation == "horizontal":
+            # Return the coordinates and their corresponding temperature values
+            return (points[0], T_values)
+        elif line_orientation == "vertical":
+            # Return the coordinates and their corresponding temperature values
+            return (points[1], T_values)

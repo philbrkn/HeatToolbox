@@ -20,23 +20,34 @@ class SimulationConfig:
     def __init__(self, args):
         self.C = PETSc.ScalarType(1.0)  # Slip parameter for fully diffusive boundaries
         self.T_ISO = PETSc.ScalarType(0.0)  # Isothermal temperature, K
-        self.Q_L = 120
+        self.Q_L = 70
         self.Q = PETSc.ScalarType(self.Q_L)
+
+        self.MEAN_FREE_PATH = 0.439e-6  # Characteristic length, adjust as necessary
+        self.KNUDSEN = 1.0  # Knudsen number, adjust as necessary
+
+        # geometric properties
+        self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN  # Characteristic length, L
+        self.L_X = 25 * self.LENGTH
+        self.L_Y = 12.5 * self.LENGTH
+        self.SOURCE_WIDTH = self.LENGTH
+        self.SOURCE_HEIGHT = (self.LENGTH * 0.25)
+        self.R_TOL = self.LENGTH * 1e-3
+        self.RESOLUTION = self.LENGTH / 10  # Adjust mesh RESOLUTION as needed
+        self.mask_extrusion = True
+
+        # material properties
         self.ELL_SI = PETSc.ScalarType(196e-9)  # Non-local length, m
         self.ELL_DI = PETSc.ScalarType(196e-8)
         self.KAPPA_SI = PETSc.ScalarType(141.0)  # W/mK, thermal conductivity
         self.KAPPA_DI = PETSc.ScalarType(600.0)
-        self.LENGTH = 0.439e-6  # Characteristic length, adjust as necessary
-        self.L_X = 5 * self.LENGTH
-        self.L_Y = 2.5 * self.LENGTH
-        self.SOURCE_WIDTH = (self.LENGTH / 2)
-        self.SOURCE_HEIGHT = self.LENGTH * 0.25 * 0.5
-        self.R_TOL = self.LENGTH * 1e-3
-        self.RESOLUTION = self.LENGTH / 20  # Adjust mesh RESOLUTION as needed
+
         if args.symmetry:
             self.L_X = self.L_X / 2
             self.SOURCE_WIDTH = self.SOURCE_WIDTH / 2
             self.symmetry = True  # Enable or disable symmetry
+        if args.blank:
+            self.mask_extrusion = False
 
 
 def main():
@@ -46,6 +57,7 @@ def main():
     parser.add_argument("--latent", nargs=4, type=float, default=None,
                         help="Specify latent vector values (z1, z2, z3, z4) for 'solve' mode.")
     parser.add_argument("--symmetry", action="store_true", help="Enable symmetry in the domain.")
+    parser.add_argument("--blank", action="store_true", help="Run with a blank image.")
     args = parser.parse_args()
 
     # Initialize configuration
@@ -89,7 +101,10 @@ def main():
 
     # Generate image from latent vector
     if rank == 0:
-        sample = z_to_img(latent_vector, model)
+        if args.blank:
+            sample = np.zeros((128, 128))
+        else:
+            sample = z_to_img(latent_vector, model)
         sample = sample[:, :sample.shape[1] // 2]  # Take the left half of the image
         # resymmetrize the image if symmetry is not enabled
         if not config.symmetry:
@@ -102,11 +117,11 @@ def main():
     # Solve the image using the solver
     avg_temp_global = solver.solve_image(sample)
     time2 = MPI.Wtime()
-    print(f"Average temperature: {avg_temp_global:.2f} K")
-    print(f"Time taken to solve: {time2 - time1:.2f} seconds")
+    print(f"Average temperature: {avg_temp_global:.4f} K")
+    print(f"Time taken to solve: {time2 - time1:.3f} seconds")
 
     # Optional Post-processing
-    post_processor = PostProcessingModule(rank)
+    post_processor = PostProcessingModule(rank, config)
     post_processor.postprocess_results(solver.U, solver.msh, sample, solver.gamma)
 
 

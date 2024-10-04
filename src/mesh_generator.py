@@ -13,32 +13,34 @@ class MeshGenerator:
             gmsh.model.add("domain_with_extrusion")
 
             L_X = self.config.L_X
-            y_max = self.config.L_Y + self.config.SOURCE_HEIGHT
             res = self.config.RESOLUTION
 
             if self.config.symmetry:
+                y_max = self.config.L_Y + self.config.SOURCE_HEIGHT
                 # Define points for the base rectangle
-                p0 = gmsh.model.geo.addPoint(0, 0, 0, meshSize=res)
-                p1 = gmsh.model.geo.addPoint(L_X, 0, 0, meshSize=res)
-                p2 = gmsh.model.geo.addPoint(L_X, y_max, 0, meshSize=res)
-                p3 = gmsh.model.geo.addPoint(0, self.config.L_Y, 0, meshSize=res)
+                p0 = gmsh.model.geo.addPoint(0, 0, 0, meshSize=res)  # bottom left
+                p1 = gmsh.model.geo.addPoint(L_X, 0, 0, meshSize=res)  # bottom right
+                p2 = gmsh.model.geo.addPoint(L_X, y_max, 0, meshSize=res)  # top right
+                p3 = gmsh.model.geo.addPoint(0, self.config.L_Y, 0, meshSize=res)  # tl
 
                 # Define lines for the base rectangle
-                l0 = gmsh.model.geo.addLine(p0, p1)
-                l1 = gmsh.model.geo.addLine(p1, p2)
-                l3 = gmsh.model.geo.addLine(p3, p0)
+                l0 = gmsh.model.geo.addLine(p0, p1)  # bottom of base rectangle
+                l1 = gmsh.model.geo.addLine(p1, p2)  # right of base rectangle
+                l3 = gmsh.model.geo.addLine(p3, p0)  # left of base rectangle
 
                 # Define points for the extrusion (source region)
                 x_min = L_X - self.config.SOURCE_WIDTH
+                # bottom left of extrusion:
                 p4 = gmsh.model.geo.addPoint(x_min, self.config.L_Y, 0, meshSize=res)
+                # top left of extrusion:
                 p7 = gmsh.model.geo.addPoint(x_min, y_max, 0, meshSize=res)
 
                 # Define lines for the extrusion
-                l6 = gmsh.model.geo.addLine(p2, p7)
-                l7 = gmsh.model.geo.addLine(p7, p4)
+                l6 = gmsh.model.geo.addLine(p2, p7)  # top of extrusion
+                l7 = gmsh.model.geo.addLine(p7, p4)  # left of extrusion
 
                 # Connect the extrusion to the base rectangle
-                l8 = gmsh.model.geo.addLine(p3, p4)
+                l8 = gmsh.model.geo.addLine(p3, p4)  # top of base rectangle
 
                 # Define curve loops
                 loop_combined = gmsh.model.geo.addCurveLoop([l0, l1, l6, l7, -l8, l3])
@@ -52,6 +54,10 @@ class MeshGenerator:
                 gmsh.model.setPhysicalName(1, 3, "TopBoundary")
                 gmsh.model.addPhysicalGroup(1, [l7, l8, l3], tag=2)
                 gmsh.model.setPhysicalName(1, 2, "SlipBoundary")
+                # gmsh.model.addPhysicalGroup(1, [l7, l6], tag=3)
+                # gmsh.model.setPhysicalName(1, 3, "TopBoundary")
+                # gmsh.model.addPhysicalGroup(1, [l8, l3], tag=2)
+                # gmsh.model.setPhysicalName(1, 2, "SlipBoundary")
                 gmsh.model.addPhysicalGroup(1, [l1], tag=4)
                 gmsh.model.setPhysicalName(1, 4, "Symmetry")
                 gmsh.model.addPhysicalGroup(2, [surface], tag=1)
