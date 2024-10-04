@@ -40,7 +40,7 @@ L_Y = 2.5 * LENGTH
 SOURCE_WIDTH = (LENGTH / 2) / 2  # symmetry condition
 SOURCE_HEIGHT = LENGTH * 0.25 * 0.5
 R_TOL = LENGTH * 1e-3
-RESOLUTION = LENGTH / 50  # Adjust mesh resolution as needed
+RESOLUTION = LENGTH / 20  # Adjust mesh resolution as needed
 
 # MPI initialization
 comm = MPI.COMM_WORLD
@@ -187,10 +187,11 @@ def create_mesh_sym(L_x, L_y, source_width, source_height, resolution):
         gmsh.model.addPhysicalGroup(1, [l0], tag=1)
         gmsh.model.setPhysicalName(1, 1, "IsothermalBoundary")
         # Source boundary
-        gmsh.model.addPhysicalGroup(1, [l6], tag=3)
+        gmsh.model.addPhysicalGroup(1, [l6, l7], tag=3)
         gmsh.model.setPhysicalName(1, 3, "TopBoundary")
         # Slip boundary
-        gmsh.model.addPhysicalGroup(1, [l7, l8, l3], tag=2)
+        # gmsh.model.addPhysicalGroup(1, [l7, l8, l3], tag=2)
+        gmsh.model.addPhysicalGroup(1, [l8, l3], tag=2)
         gmsh.model.setPhysicalName(1, 2, "SlipBoundary")
         # Symmetry boundary
         gmsh.model.addPhysicalGroup(1, [l1], tag=4)
@@ -465,8 +466,8 @@ def postprocess_results(U, msh, img, gamma, time1):
 
             # Plot the scalar field
             plotter = pv.Plotter()
-            plotter.add_mesh(grid, cmap="coolwarm", show_edges=False, clim=(0, 0.5))
-            # plotter.add_mesh(grid, cmap="coolwarm", show_edges=False)
+            # plotter.add_mesh(grid, cmap="coolwarm", show_edges=False, clim=(0, 0.5))
+            plotter.add_mesh(grid, cmap="coolwarm", show_edges=False)
             plotter.view_xy()
             plotter.show()
 
@@ -490,9 +491,6 @@ def postprocess_results(U, msh, img, gamma, time1):
         q_copy = q.copy()
         q_dg.interpolate(q_copy)
 
-        with io.VTXWriter(msh.comm, "flux.bp", q_dg) as vtx:
-            vtx.write(0.0)
-
         V_cells, V_types, V_x = dolfinx.plot.vtk_mesh(V_dg)
         V_grid = pv.UnstructuredGrid(V_cells, V_types, V_x)
         Esh_values = np.zeros((V_x.shape[0], 3), dtype=np.float64)
@@ -505,6 +503,7 @@ def postprocess_results(U, msh, img, gamma, time1):
         plotter.view_xy()
         plotter.link_views()
         plotter.show()
+
 
 if __name__ == "__main__":
     main()
