@@ -4,6 +4,7 @@ import numpy as np
 import pyvista as pv
 from dolfinx import fem, la, plot, geometry
 import matplotlib.pyplot as plt
+import ufl
 
 
 class PostProcessingModule:
@@ -14,12 +15,17 @@ class PostProcessingModule:
     def postprocess_results(self, U, msh, img, gamma):
         q, T = U.sub(0).collapse(), U.sub(1).collapse()
         norm_q, norm_T = la.norm(q.x), la.norm(T.x)
+        q_x, q_y = q.split()  # extract components
 
         V1, _ = U.function_space.sub(1).collapse()
         global_top, global_geom, global_ct, global_vals = self.gather_mesh_on_rank0(
             msh, V1, T
         )
         _, _, _, global_gamma = self.gather_mesh_on_rank0(msh, V1, gamma)
+
+        # calculate curl
+        curl_q = self.calculate_curl(q, msh, plot_curl=False)
+        eff_cond = self.calculate_eff_thermal_cond(q, T, msh)
 
         if self.rank == 0:
             print(f"(D) Norm of flux coefficient vector (monolithic, direct): {norm_q}")
@@ -47,36 +53,56 @@ class PostProcessingModule:
 
             self.plot_vector_field(q, msh)
 
+            # GET TEMPERATURE and FLUX PROFILES #
             x_char = self.config.L_X if self.config.symmetry else self.config.L_X / 2
             # horizontal line:
             x_end = x_char
             y_val = self.config.L_Y - self.config.LENGTH / 8
             (x_vals, T_x) = self.get_temperature_line(T, msh, "horizontal", start=0, end=x_end, value=y_val)
+            (_, q_x_vals_horiz) = self.get_temperature_line(q_x, msh, "horizontal", start=0, end=x_end, value=y_val)
+            (_, curl_vals_horiz) = self.get_temperature_line(curl_q, msh, "horizontal", start=0, end=x_end, value=y_val)
+
             # vertical line:
             y_end = self.config.L_Y + self.config.SOURCE_HEIGHT
             x_val = x_char - self.config.LENGTH * 3 / 8
             (y_vals, T_y) = self.get_temperature_line(T, msh, "vertical", start=0, end=y_end, value=x_val)
-
+            (_, q_y_vals_vert) = self.get_temperature_line(q_y, msh, "vertical", start=0, end=y_end, value=x_val)
+            (_, curl_vals_vert) = self.get_temperature_line(curl_q, msh, "vertical", start=0, end=y_end, value=x_val)
+            (_, eff_cond_vals) = self.get_temperature_line(eff_cond, msh, "vertical", start=0, end=y_end, value=x_val)
             # normalize x and y vals by config.ell_si
-            x_vals = (x_end - x_vals) / self.config.ELL_SI
-            y_vals = (y_end - y_vals) / self.config.ELL_SI
+            x_vals = (x_vals[-1] - x_vals) / self.config.ELL_SI
+            y_vals = (y_vals[-1] - y_vals) / self.config.ELL_SI
 
-            # figure with a single plot
+            # PLOT TEMP PROFILES #
             fig, ax = plt.subplots(figsize=(10, 5))
             fig.suptitle("Temperature profiles")
-
-            # horizontal line in red
             ax.plot(x_vals, T_x, color='red', label="T(x) - Horizontal Line")
-
-            # vertical line in blue
             ax.plot(y_vals, T_y, color='blue', label="T(y) - Vertical Line")
-
-            # Set labels and legend
             ax.set_xlabel("Position (normalized)")
             ax.set_ylabel("Temperature (T)")
             ax.legend()
+            plt.show()
 
-            # Display the plot
+            # PLOT FLUX PROFILES #
+            q_x_vals_horiz *= -1  # flip the sign of the flux
+            # 2 subplot:
+            fig, axs = plt.subplots(1, 2, figsize=(10, 4))
+            axs[0].plot(y_vals, q_y_vals_vert, color='blue', label="Vert flux - Vertical Line")
+            axs[1].plot(x_vals, q_x_vals_horiz, color='red', label="Horiz flux - Horizontal Line")
+            # make axis titles
+            axs[0].set_xlabel("Position (normalized)")
+            axs[0].set_ylabel("Heat flux vertical [W/m^2]")
+            axs[1].set_xlabel("Position (normalized)")
+            axs[1].set_ylabel("Heat flux horizontal [W/m^2]")
+            plt.show()
+            
+            # PLOT CURL AND EFF CONDUCTIVITY PROFILES #
+            fig, axs = plt.subplots(1, 2, figsize=(10, 4))
+            curl_vals_horiz *= -1  # flip the sign of the curl
+            curl_vals_vert *= -1  # flip the sign of the curl
+            axs[0].plot(x_vals, curl_vals_horiz, color='red', label="Curl(q) - Horizontal Line")
+            axs[0].plot(y_vals, curl_vals_vert, color='blue', label="Curl(q) - Vertical Line")
+            axs[1].plot(y_vals, eff_cond_vals, color='blue', label="Effective conductivity - Vertical Line")
             plt.show()
 
     def gather_mesh_on_rank0(self, mesh, V, function, root=0):
@@ -240,3 +266,51 @@ class PostProcessingModule:
         elif line_orientation == "vertical":
             # Return the coordinates and their corresponding temperature values
             return (points[1], T_values)
+
+    def calculate_curl(self, q, msh, plot_curl=False):
+
+        def curl_2d(q: fem.Function):
+            # Returns the z-component of the 2D curl as a scalar
+            return q[1].dx(0) - q[0].dx(1)
+
+        V_curl = fem.functionspace(msh, ("DG", 1))  # DG space for scalar curl
+        curl_function = fem.Function(V_curl)
+
+        curl_flux_calculator = fem.Expression(curl_2d(q), V_curl.element.interpolation_points())
+        curl_function.interpolate(curl_flux_calculator)
+
+        if plot_curl:
+            V_cells, V_types, V_x = plot.vtk_mesh(V_curl)
+            curl_values = curl_function.x.array
+            curl_grid = pv.UnstructuredGrid(V_cells, V_types, V_x)
+            curl_grid.point_data["Curl"] = curl_values
+            curl_grid.set_active_scalars("Curl")
+            # Plot the curl field
+            plotter = pv.Plotter()
+            plotter.add_mesh(curl_grid, cmap="coolwarm", show_edges=False)
+            plotter.view_xy()
+            plotter.show()
+
+        return curl_function
+
+    def calculate_eff_thermal_cond(self, q, T, msh):
+        def heat_flux_magnitude(q):
+            q_x, q_y = q[0], q[1]
+            return ufl.sqrt(q_x**2 + q_y**2)
+
+        def temperature_gradient_magnitude(T):
+            grad_T = ufl.grad(T)
+            return ufl.sqrt(grad_T[0]**2 + grad_T[1]**2)
+
+        def k_cond(q, T):
+            q_magnitude = heat_flux_magnitude(q)
+            grad_T_magnitude = temperature_gradient_magnitude(T)
+            return q_magnitude / (grad_T_magnitude)  # Add a small value to avoid division by zero
+
+        V_cond = fem.functionspace(msh, ("DG", 1))  # DG space for scalar curl
+        cond_function = fem.Function(V_cond)
+
+        curl_flux_calculator = fem.Expression(k_cond(q, T), V_cond.element.interpolation_points())
+        cond_function.interpolate(curl_flux_calculator)
+
+        return cond_function

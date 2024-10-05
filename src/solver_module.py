@@ -45,7 +45,8 @@ class Solver:
         W1 = self.W.sub(1)
         Q1, _ = W1.collapse()
         noslip = fem.Function(Q1)  # Set a constant function for noslip condition
-        facets = mesh.locate_entities(self.msh, 1, lambda x: np.isclose(x[1], 0.0, rtol=self.config.R_TOL))
+        rtol = self.config.LENGTH * 1e-3
+        facets = mesh.locate_entities(self.msh, 1, lambda x: np.isclose(x[1], 0.0, rtol=rtol))
         dofs = fem.locate_dofs_topological((W1, Q1), 1, facets)
         self.bc0 = fem.dirichletbc(noslip, dofs, W1)
 

@@ -24,7 +24,7 @@ class SimulationConfig:
         self.Q = PETSc.ScalarType(self.Q_L)
 
         self.MEAN_FREE_PATH = 0.439e-6  # Characteristic length, adjust as necessary
-        self.KNUDSEN = 1.0  # Knudsen number, adjust as necessary
+        self.KNUDSEN = 1  # Knudsen number, adjust as necessary
 
         # geometric properties
         self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN  # Characteristic length, L
@@ -32,8 +32,8 @@ class SimulationConfig:
         self.L_Y = 12.5 * self.LENGTH
         self.SOURCE_WIDTH = self.LENGTH
         self.SOURCE_HEIGHT = (self.LENGTH * 0.25)
-        self.R_TOL = self.LENGTH * 1e-3
-        self.RESOLUTION = self.LENGTH / 10  # Adjust mesh RESOLUTION as needed
+        # self.RESOLUTION = self.LENGTH / 20  # to get good profiles
+        self.RESOLUTION = self.LENGTH / 10  # fast but ish profiles
         self.mask_extrusion = True
 
         # material properties
@@ -46,6 +46,9 @@ class SimulationConfig:
             self.L_X = self.L_X / 2
             self.SOURCE_WIDTH = self.SOURCE_WIDTH / 2
             self.symmetry = True  # Enable or disable symmetry
+        else:
+            self.symmetry = False
+
         if args.blank:
             self.mask_extrusion = False
 
