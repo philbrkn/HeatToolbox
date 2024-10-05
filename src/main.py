@@ -20,7 +20,7 @@ class SimulationConfig:
     def __init__(self, args):
         self.C = PETSc.ScalarType(1.0)  # Slip parameter for fully diffusive boundaries
         self.T_ISO = PETSc.ScalarType(0.0)  # Isothermal temperature, K
-        self.Q_L = 70
+        self.Q_L = 80
         self.Q = PETSc.ScalarType(self.Q_L)
 
         self.MEAN_FREE_PATH = 0.439e-6  # Characteristic length, adjust as necessary
@@ -37,7 +37,7 @@ class SimulationConfig:
         self.mask_extrusion = True
 
         # material properties
-        self.ELL_SI = PETSc.ScalarType(196e-9)  # Non-local length, m
+        self.ELL_SI = PETSc.ScalarType(self.MEAN_FREE_PATH / np.sqrt(5))  # Non-local length, m
         self.ELL_DI = PETSc.ScalarType(196e-8)
         self.KAPPA_SI = PETSc.ScalarType(141.0)  # W/mK, thermal conductivity
         self.KAPPA_DI = PETSc.ScalarType(600.0)

@@ -5,6 +5,7 @@ import pyvista as pv
 from dolfinx import fem, la, plot, geometry
 import matplotlib.pyplot as plt
 import ufl
+from mpi4py import MPI
 
 
 class PostProcessingModule:
@@ -23,10 +24,11 @@ class PostProcessingModule:
         )
         _, _, _, global_gamma = self.gather_mesh_on_rank0(msh, V1, gamma)
 
+        print("test1")
         # calculate curl
         curl_q = self.calculate_curl(q, msh, plot_curl=False)
         eff_cond = self.calculate_eff_thermal_cond(q, T, msh)
-
+        print("test2")
         if self.rank == 0:
             print(f"(D) Norm of flux coefficient vector (monolithic, direct): {norm_q}")
             print(f"(D) Norm of temp coefficient vector (monolithic, direct): {norm_T}")
@@ -51,28 +53,34 @@ class PostProcessingModule:
                     show_edges=True,
                 )
 
+        # Code for flux plotting (only runs when not in parallel)
+        if msh.comm.size == 1:
             self.plot_vector_field(q, msh)
+        else:
+            if self.rank == 0:
+                print("Flux plotting is disabled when running in parallel.")
 
-            # GET TEMPERATURE and FLUX PROFILES #
-            x_char = self.config.L_X if self.config.symmetry else self.config.L_X / 2
-            # horizontal line:
-            x_end = x_char
-            y_val = self.config.L_Y - self.config.LENGTH / 8
-            (x_vals, T_x) = self.get_temperature_line(T, msh, "horizontal", start=0, end=x_end, value=y_val)
-            (_, q_x_vals_horiz) = self.get_temperature_line(q_x, msh, "horizontal", start=0, end=x_end, value=y_val)
-            (_, curl_vals_horiz) = self.get_temperature_line(curl_q, msh, "horizontal", start=0, end=x_end, value=y_val)
+        # GET TEMPERATURE and FLUX PROFILES #
+        x_char = self.config.L_X if self.config.symmetry else self.config.L_X / 2
+        # horizontal line:
+        x_end = x_char
+        y_val = self.config.L_Y - self.config.LENGTH / 8
+        (x_vals, T_x) = self.get_temperature_line(T, msh, "horizontal", start=0, end=x_end, value=y_val)
+        (_, q_x_vals_horiz) = self.get_temperature_line(q_x, msh, "horizontal", start=0, end=x_end, value=y_val)
+        (_, curl_vals_horiz) = self.get_temperature_line(curl_q, msh, "horizontal", start=0, end=x_end, value=y_val)
 
-            # vertical line:
-            y_end = self.config.L_Y + self.config.SOURCE_HEIGHT
-            x_val = x_char - self.config.LENGTH * 3 / 8
-            (y_vals, T_y) = self.get_temperature_line(T, msh, "vertical", start=0, end=y_end, value=x_val)
-            (_, q_y_vals_vert) = self.get_temperature_line(q_y, msh, "vertical", start=0, end=y_end, value=x_val)
-            (_, curl_vals_vert) = self.get_temperature_line(curl_q, msh, "vertical", start=0, end=y_end, value=x_val)
-            (_, eff_cond_vals) = self.get_temperature_line(eff_cond, msh, "vertical", start=0, end=y_end, value=x_val)
-            # normalize x and y vals by config.ell_si
-            x_vals = (x_vals[-1] - x_vals) / self.config.ELL_SI
-            y_vals = (y_vals[-1] - y_vals) / self.config.ELL_SI
+        # vertical line:
+        y_end = self.config.L_Y + self.config.SOURCE_HEIGHT
+        x_val = x_char - self.config.LENGTH * 3 / 8
+        (y_vals, T_y) = self.get_temperature_line(T, msh, "vertical", start=0, end=y_end, value=x_val)
+        (_, q_y_vals_vert) = self.get_temperature_line(q_y, msh, "vertical", start=0, end=y_end, value=x_val)
+        (_, curl_vals_vert) = self.get_temperature_line(curl_q, msh, "vertical", start=0, end=y_end, value=x_val)
+        (_, eff_cond_vals) = self.get_temperature_line(eff_cond, msh, "vertical", start=0, end=y_end, value=x_val)
+        # normalize x and y vals by config.ell_si
+        x_vals = (x_vals[-1] - x_vals) / self.config.ELL_SI
+        y_vals = (y_vals[-1] - y_vals) / self.config.ELL_SI
 
+        if self.rank == 0:
             # PLOT TEMP PROFILES #
             fig, ax = plt.subplots(figsize=(10, 5))
             fig.suptitle("Temperature profiles")
@@ -228,7 +236,7 @@ class PostProcessingModule:
         points = np.zeros((3, num_points))
 
         if line_orientation == "horizontal":
-            x_coords = np.linspace(start + tol, end - tol, num_points)            
+            x_coords = np.linspace(start + tol, end - tol, num_points)
             points[0] = x_coords
             points[1] = value
         elif line_orientation == "vertical":
@@ -305,7 +313,7 @@ class PostProcessingModule:
         def k_cond(q, T):
             q_magnitude = heat_flux_magnitude(q)
             grad_T_magnitude = temperature_gradient_magnitude(T)
-            return q_magnitude / (grad_T_magnitude)  # Add a small value to avoid division by zero
+            return q_magnitude / (grad_T_magnitude)
 
         V_cond = fem.functionspace(msh, ("DG", 1))  # DG space for scalar curl
         cond_function = fem.Function(V_cond)
