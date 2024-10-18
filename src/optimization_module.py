@@ -29,20 +29,18 @@ class OptimizationModule:
         return 1 / obj
 
     def optimize(self, init_points=10, n_iter=60):
-        if self.rank == 0:
-            pbounds = {"z1": (-1, 1), "z2": (-1, 1), "z3": (-1, 1), "z4": (-1, 1)}
-            optimizer = BayesianOptimization(
-                f=self.evaluate, pbounds=pbounds, random_state=1
-            )
-            optimizer.maximize(init_points=init_points, n_iter=n_iter)
-            best_params = optimizer.max["params"]
-            best_z = np.array(
-                [
-                    best_params["z1"],
-                    best_params["z2"],
-                    best_params["z3"],
-                    best_params["z4"],
-                ]
-            )
-            return best_z
-        return None
+        pbounds = {"z1": (-1, 1), "z2": (-1, 1), "z3": (-1, 1), "z4": (-1, 1)}
+        optimizer = BayesianOptimization(
+            f=self.evaluate, pbounds=pbounds, random_state=1
+        )
+        optimizer.maximize(init_points=init_points, n_iter=n_iter)
+        best_params = optimizer.max["params"]
+        best_z = np.array(
+            [
+                best_params["z1"],
+                best_params["z2"],
+                best_params["z3"],
+                best_params["z4"],
+            ]
+        )
+        return best_z

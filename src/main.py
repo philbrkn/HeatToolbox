@@ -18,23 +18,28 @@ from solver_module import Solver
 
 class SimulationConfig:
     def __init__(self, args):
+        # Physical properties
         self.C = PETSc.ScalarType(1.0)  # Slip parameter for fully diffusive boundaries
         self.T_ISO = PETSc.ScalarType(0.0)  # Isothermal temperature, K
         self.Q_L = 80
-        self.Q = PETSc.ScalarType(self.Q_L)
 
         self.MEAN_FREE_PATH = 0.439e-6  # Characteristic length, adjust as necessary
         self.KNUDSEN = 1  # Knudsen number, adjust as necessary
 
-        # geometric properties
+        # Geometric properties
         self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN  # Characteristic length, L
+        # Base rectangle:
         self.L_X = 25 * self.LENGTH
         self.L_Y = 12.5 * self.LENGTH
+        # Source rectangle:
         self.SOURCE_WIDTH = self.LENGTH
         self.SOURCE_HEIGHT = (self.LENGTH * 0.25)
-        # self.RESOLUTION = self.LENGTH / 20  # to get good profiles
-        self.RESOLUTION = self.LENGTH / 10  # fast but ish profiles
         self.mask_extrusion = True
+
+        # Set the resolution of the mesh
+        # self.RESOLUTION = self.LENGTH / 30  # to get REALLY good profiles
+        # self.RESOLUTION = self.LENGTH / 20  # to get good profiles
+        self.RESOLUTION = self.LENGTH / 5  # fast but ish profiles
 
         # material properties
         self.ELL_SI = PETSc.ScalarType(self.MEAN_FREE_PATH / np.sqrt(5))  # Non-local length, m
@@ -42,6 +47,22 @@ class SimulationConfig:
         self.KAPPA_SI = PETSc.ScalarType(141.0)  # W/mK, thermal conductivity
         self.KAPPA_DI = PETSc.ScalarType(600.0)
 
+        # cannot be symmetry and two sources:
+        self.two_sources = args.two_sources
+        if args.source_positions is None:
+            self.source_positions = [0.5]
+            self.source_positions = [0.25, 0.75]
+        self.source_positions = args.source_positions  # List of positions between 0 and 1 (normalized)
+
+        if self.two_sources and args.symmetry:
+            raise ValueError("Cannot have both symmetry and two sources.")
+        if self.two_sources:
+            self.Q_left = PETSc.ScalarType(40)
+            self.Q_right = PETSc.ScalarType(80)
+        else:
+            self.Q = PETSc.ScalarType(self.Q_L)
+
+        # symmetry in geometry
         if args.symmetry:
             self.L_X = self.L_X / 2
             self.SOURCE_WIDTH = self.SOURCE_WIDTH / 2
@@ -58,9 +79,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--optim", action="store_true", help="Run optimization.")
     parser.add_argument("--latent", nargs=4, type=float, default=None,
-                        help="Specify latent vector values (z1, z2, z3, z4) for 'solve' mode.")
-    parser.add_argument("--symmetry", action="store_true", help="Enable symmetry in the domain.")
+                        help="Specify z values (z1, z2, z3, z4) for 'solve' mode.")
+    parser.add_argument("--symmetry", action="store_true",
+                        help="Enable left-right symmetry in the domain.")
     parser.add_argument("--blank", action="store_true", help="Run with a blank image.")
+    parser.add_argument("--two_sources", action="store_true",
+                        help="Run with two sources, set heat in code parameters.")
+
     args = parser.parse_args()
 
     # Initialize configuration
@@ -88,14 +113,15 @@ def main():
         if rank == 0:
             np.save("best_latent_vector.npy", best_z)
 
+    # Run solving based on provided latent vector
     else:
-        # Run solving based on provided latent vector
         if args.latent is None:
-            # If latent vector is not provided, load the best saved latent vector
             if rank == 0:
-                latent_vector = np.load("best_latent_vector.npy")
+                # latent_vector = np.load("best_latent_vector.npy")
+                # latent_vector = np.random.randn(4)
                 # latent_vector =
                 # np.array([[0.91578013,  0.06633388,  0.3837567,  -0.36896428]])
+                latent_vector = np.array([0.8019, 1.0, -0.5918, 0.4979])
             else:
                 latent_vector = None
             latent_vector = MPI.COMM_WORLD.bcast(latent_vector, root=0)
@@ -104,14 +130,25 @@ def main():
 
     # Generate image from latent vector
     if rank == 0:
-        if args.blank:
-            sample = np.zeros((128, 128))
+        if args.two_sources:
+            sample_l = z_to_img(latent_vector, model)
+            sample_r = z_to_img(latent_vector, model)
+            # Take the left half of each image and ressymetrize
+            sample_l = sample_l[:, :sample_l.shape[1] // 2]
+            sample_r = sample_r[:, :sample_r.shape[1] // 2]
+            sample_l = np.concatenate((sample_l, sample_l[:, ::-1]), axis=1)
+            sample_r = np.concatenate((sample_r, sample_r[:, ::-1]), axis=1)
+            sample = np.concatenate((sample_l, sample_r), axis=1)
         else:
-            sample = z_to_img(latent_vector, model)
-        sample = sample[:, :sample.shape[1] // 2]  # Take the left half of the image
-        # resymmetrize the image if symmetry is not enabled
-        if not config.symmetry:
-            sample = np.concatenate((sample, sample[:, ::-1]), axis=1)
+            if args.blank:
+                sample = np.zeros((128, 128))
+            else:
+                sample = z_to_img(latent_vector, model)
+            sample = sample[:, :sample.shape[1] // 2]  # Take the left half of the image
+
+            # resymmetrize the image if symmetry not activated (see full image)
+            if not config.symmetry:
+                sample = np.concatenate((sample, sample[:, ::-1]), axis=1)
     else:
         sample = None
 
@@ -120,8 +157,9 @@ def main():
     # Solve the image using the solver
     avg_temp_global = solver.solve_image(sample)
     time2 = MPI.Wtime()
-    print(f"Average temperature: {avg_temp_global:.4f} K")
-    print(f"Time taken to solve: {time2 - time1:.3f} seconds")
+    if rank == 0:
+        print(f"Average temperature: {avg_temp_global:.4f} K")
+        print(f"Time taken to solve: {time2 - time1:.3f} seconds")
 
     # Optional Post-processing
     post_processor = PostProcessingModule(rank, config)

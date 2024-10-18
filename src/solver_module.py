@@ -38,8 +38,13 @@ class Solver:
         self.ds = ufl.Measure("ds", domain=self.msh, subdomain_data=self.facet_markers)
         self.ds_bottom = self.ds(1)  # Isothermal Boundary
         self.ds_slip = self.ds(2)    # Slip Boundary
-        self.ds_top = self.ds(3)     # Top Boundary
-        self.ds_symmetry = self.ds(4) if self.config.symmetry else None
+        if self.config.symmetry:
+            self.ds_symmetry = self.ds(4)
+        if self.config.two_sources:
+            self.ds_top_left = self.ds(3)
+            self.ds_top_right = self.ds(4)
+        else:
+            self.ds_top = self.ds(3)     # Top Boundary
 
         # Set up boundary condition functions and Dirichlet boundary conditions
         W1 = self.W.sub(1)
@@ -73,6 +78,15 @@ class Solver:
         pressure_term = - ramp_kappa * T * ufl.div(self.v) * ufl.dx
         flux_term = ufl.inner(q, self.v) * ufl.dx
 
+        # Source term at the top boundary
+        if self.config.two_sources:
+            source_term = (
+                self.config.Q_left * ufl.dot(self.v, n) * self.ds_top_left
+                + self.config.Q_right * ufl.dot(self.v, n) * self.ds_top_right
+                )
+        else:
+            source_term = self.config.Q * ufl.dot(self.v, n) * self.ds_top
+
         def u_t(q):
             return q - ufl.dot(q, n) * n
 
@@ -91,16 +105,16 @@ class Solver:
             - ufl.dot(q, n) * ufl.dot(n, t(self.v, self.s)) * self.ds_slip  # Slip boundary condition term
             + ramp_ell * ufl.dot(u_t(q), u_t(self.v)) * self.ds_slip  # Slip boundary stabilization term
             + ufl.dot(q, n) * ufl.dot(self.v, n) * self.ds_slip  # Additional stabilization
-            + self.config.Q * ufl.dot(self.v, n) * self.ds_top  # Source term at the top boundary
+            + source_term
         )
 
         # Symmetry boundary condition if enabled
-        if self.ds_symmetry:
+        if self.config.symmetry:
             F += ufl.dot(q, n) * ufl.dot(self.v, n) * self.ds_symmetry
 
         return F
 
-    def solve_image(self, img):
+    def solve_image(self, img):            
         gamma_expr = img_to_gamma_expression(img, self.msh, self.config)
         self.gamma.interpolate(gamma_expr)
 
@@ -191,7 +205,7 @@ class Solver:
         rank = MPI.COMM_WORLD.rank
         # Check measures over specific boundaries
         checks = [
-            ("source line", self.ds_top, self.config.SOURCE_WIDTH),
+            # ("source line", self.ds_top, self.config.SOURCE_WIDTH),
             ("isothermal line", self.ds_bottom, self.config.L_X),
             ("slip line", self.ds_slip, self.config.L_Y + (self.config.L_X - self.config.SOURCE_WIDTH) + self.config.SOURCE_HEIGHT)
         ]

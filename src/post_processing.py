@@ -16,7 +16,6 @@ class PostProcessingModule:
     def postprocess_results(self, U, msh, img, gamma):
         q, T = U.sub(0).collapse(), U.sub(1).collapse()
         norm_q, norm_T = la.norm(q.x), la.norm(T.x)
-        q_x, q_y = q.split()  # extract components
 
         V1, _ = U.function_space.sub(1).collapse()
         global_top, global_geom, global_ct, global_vals = self.gather_mesh_on_rank0(
@@ -24,24 +23,9 @@ class PostProcessingModule:
         )
         _, _, _, global_gamma = self.gather_mesh_on_rank0(msh, V1, gamma)
 
-        print("test1")
-        # calculate curl
-        curl_q = self.calculate_curl(q, msh, plot_curl=False)
-        eff_cond = self.calculate_eff_thermal_cond(q, T, msh)
-        print("test2")
         if self.rank == 0:
             print(f"(D) Norm of flux coefficient vector (monolithic, direct): {norm_q}")
             print(f"(D) Norm of temp coefficient vector (monolithic, direct): {norm_T}")
-
-            if global_vals is not None:
-                self.plot_scalar_field(
-                    global_top,
-                    global_ct,
-                    global_geom,
-                    global_vals,
-                    field_name="T",
-                    # clim=(0, 0.5),
-                )
 
             if global_gamma is not None:
                 self.plot_scalar_field(
@@ -53,13 +37,29 @@ class PostProcessingModule:
                     show_edges=True,
                 )
 
+            if global_vals is not None:
+                self.plot_scalar_field(
+                    global_top,
+                    global_ct,
+                    global_geom,
+                    global_vals,
+                    field_name="T",
+                    # clim=(0, 0.5),
+                )
+
         # Code for flux plotting (only runs when not in parallel)
         if msh.comm.size == 1:
             self.plot_vector_field(q, msh)
+            self.plot_profiles(q, T, msh)
         else:
             if self.rank == 0:
-                print("Flux plotting is disabled when running in parallel.")
+                print("Flux and profiles plotting is disabled when running in parallel.")
+                print("Please run the code in serial to enable flux and profiles plotting.")
 
+    def plot_profiles(self, q, T, msh):
+        q_x, q_y = q.split()  # extract components
+        curl_q = self.calculate_curl(q, msh, plot_curl=False)
+        eff_cond = self.calculate_eff_thermal_cond(q, T, msh)
         # GET TEMPERATURE and FLUX PROFILES #
         x_char = self.config.L_X if self.config.symmetry else self.config.L_X / 2
         # horizontal line:
@@ -80,38 +80,37 @@ class PostProcessingModule:
         x_vals = (x_vals[-1] - x_vals) / self.config.ELL_SI
         y_vals = (y_vals[-1] - y_vals) / self.config.ELL_SI
 
-        if self.rank == 0:
-            # PLOT TEMP PROFILES #
-            fig, ax = plt.subplots(figsize=(10, 5))
-            fig.suptitle("Temperature profiles")
-            ax.plot(x_vals, T_x, color='red', label="T(x) - Horizontal Line")
-            ax.plot(y_vals, T_y, color='blue', label="T(y) - Vertical Line")
-            ax.set_xlabel("Position (normalized)")
-            ax.set_ylabel("Temperature (T)")
-            ax.legend()
-            plt.show()
+        # PLOT TEMP PROFILES #
+        fig, ax = plt.subplots(figsize=(10, 5))
+        fig.suptitle("Temperature profiles")
+        ax.plot(x_vals, T_x, color='red', label="T(x) - Horizontal Line")
+        ax.plot(y_vals, T_y, color='blue', label="T(y) - Vertical Line")
+        ax.set_xlabel("Position (normalized)")
+        ax.set_ylabel("Temperature (T)")
+        ax.legend()
+        plt.show()
 
-            # PLOT FLUX PROFILES #
-            q_x_vals_horiz *= -1  # flip the sign of the flux
-            # 2 subplot:
-            fig, axs = plt.subplots(1, 2, figsize=(10, 4))
-            axs[0].plot(y_vals, q_y_vals_vert, color='blue', label="Vert flux - Vertical Line")
-            axs[1].plot(x_vals, q_x_vals_horiz, color='red', label="Horiz flux - Horizontal Line")
-            # make axis titles
-            axs[0].set_xlabel("Position (normalized)")
-            axs[0].set_ylabel("Heat flux vertical [W/m^2]")
-            axs[1].set_xlabel("Position (normalized)")
-            axs[1].set_ylabel("Heat flux horizontal [W/m^2]")
-            plt.show()
-            
-            # PLOT CURL AND EFF CONDUCTIVITY PROFILES #
-            fig, axs = plt.subplots(1, 2, figsize=(10, 4))
-            curl_vals_horiz *= -1  # flip the sign of the curl
-            curl_vals_vert *= -1  # flip the sign of the curl
-            axs[0].plot(x_vals, curl_vals_horiz, color='red', label="Curl(q) - Horizontal Line")
-            axs[0].plot(y_vals, curl_vals_vert, color='blue', label="Curl(q) - Vertical Line")
-            axs[1].plot(y_vals, eff_cond_vals, color='blue', label="Effective conductivity - Vertical Line")
-            plt.show()
+        # PLOT FLUX PROFILES #
+        q_x_vals_horiz *= -1  # flip the sign of the flux
+        # 2 subplot:
+        fig, axs = plt.subplots(1, 2, figsize=(10, 4))
+        axs[0].plot(y_vals, q_y_vals_vert, color='blue', label="Vert flux - Vertical Line")
+        axs[1].plot(x_vals, q_x_vals_horiz, color='red', label="Horiz flux - Horizontal Line")
+        # make axis titles
+        axs[0].set_xlabel("Position (normalized)")
+        axs[0].set_ylabel("Heat flux vertical [W/m^2]")
+        axs[1].set_xlabel("Position (normalized)")
+        axs[1].set_ylabel("Heat flux horizontal [W/m^2]")
+        plt.show()
+
+        # PLOT CURL AND EFF CONDUCTIVITY PROFILES #
+        fig, axs = plt.subplots(1, 2, figsize=(10, 4))
+        curl_vals_horiz *= -1  # flip the sign of the curl
+        curl_vals_vert *= -1  # flip the sign of the curl
+        axs[0].plot(x_vals, curl_vals_horiz, color='red', label="Curl(q) - Horizontal Line")
+        axs[0].plot(y_vals, curl_vals_vert, color='blue', label="Curl(q) - Vertical Line")
+        axs[1].plot(y_vals, eff_cond_vals, color='blue', label="Effective conductivity - Vertical Line")
+        plt.show()
 
     def gather_mesh_on_rank0(self, mesh, V, function, root=0):
         """
