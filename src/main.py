@@ -49,29 +49,26 @@ class SimulationConfig:
         self.KAPPA_SI = PETSc.ScalarType(141.0)  # W/mK, thermal conductivity
         self.KAPPA_DI = PETSc.ScalarType(600.0)
 
-        # Source positions (normalized between 0 and 1)
-        self.source_positions = args.source_positions
-        if not self.source_positions:
-            self.source_positions = [0.5]  # Default to center if none provided
-
-        # Validate source positions
-        for pos in self.source_positions:
-            if pos < 0 or pos > 1:
+        if args.sources is not None:
+            if len(args.sources) % 2 != 0:
                 raise ValueError(
-                    "Source positions must be between 0 and 1 (normalized)."
+                    "Each source must have a position and a heat value. Please provide pairs of values."
                 )
-
-        # Set Q values for one or multiple sources
-        # make it so it scales down by 2 for each additional source, in a for loop:
-        self.Q_sources = []
-        for i in range(0, len(self.source_positions)):
-            self.Q_sources.append(self.Q_L / 2 ** i)
-
-        # check length of source positions and Q values
-        if len(self.source_positions) != len(self.Q_sources):
-            raise ValueError(
-                "Length of source_positions and Q_sources must be the same."
-            )
+            # Group the list into pairs
+            sources_pairs = [
+                (args.sources[i], args.sources[i + 1]) for i in range(0, len(args.sources), 2)
+            ]
+            self.source_positions = []
+            self.Q_sources = []
+            for pos, Q in sources_pairs:
+                if pos < 0 or pos > 1:
+                    raise ValueError("Source positions must be between 0 and 1 (normalized).")
+                self.source_positions.append(pos)
+                self.Q_sources.append(PETSc.ScalarType(Q))
+        else:
+            # Default to a single source at the center
+            self.source_positions = [0.5]
+            self.Q_sources = [PETSc.ScalarType(self.Q_L)]
 
         # Cannot be symmetry and two sources:
         if len(self.source_positions) > 1 and args.symmetry:
@@ -107,12 +104,11 @@ def main():
     )
     parser.add_argument("--blank", action="store_true", help="Run with a blank image.")
     parser.add_argument(
-        "--source_positions",
+        "--sources",
         nargs="*",
         type=float,
-        default=[0.5],
-        help="List of source positions along the x-axis"
-        + " (normalized between 0 and 1), from left to right.",
+        default=None,
+        help="List of source positions and heat source values as pairs, e.g., --sources 0.5 80 0.75 40",
     )
     # parser.add_argument("--gamma_only", action="store_true", help="Show gamma only.")
     args = parser.parse_args()

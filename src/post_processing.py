@@ -36,7 +36,7 @@ class PostProcessingModule:
                     field_name="gamma",
                     show_edges=True,
                 )
-            return
+
             if global_vals is not None:
                 self.plot_scalar_field(
                     global_top,

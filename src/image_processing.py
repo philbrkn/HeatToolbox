@@ -13,7 +13,8 @@ def img_list_to_gamma_expression(img_list, config):
     x_range = x_max - x_min
     y_range = y_max - y_min
 
-    y_min_im += 1.5 * config.SOURCE_HEIGHT  # To make image higher
+    # so masking doesn't cut off part of the image
+    y_min_im = y_min + 1.5 * config.SOURCE_HEIGHT  # To make image higher
 
     num_sources = len(config.source_positions)
     source_positions = np.array(config.source_positions) * config.L_X
@@ -54,11 +55,9 @@ def img_list_to_gamma_expression(img_list, config):
             )
 
             # Normalize x and y within the image's range
-            x_norm = (x_coords[in_image] - x_min_image) / (x_max_image - x_min_image)
-            y_norm = (y_coords[in_image] - y_min_im) / (y_max - y_min)
-            # check number of these coords:
-            print("x_norm", len(x_norm))
-            print("y_norm", len(y_norm))
+            x_norm = (x_coords[in_image] - x_min_image) / image_mesh_width
+            y_norm = (y_coords[in_image] - y_min_im) / y_range
+
             x_indices = np.clip(
                 (x_norm * (img_width - 1)).astype(int), 0, img_width - 1
             )
@@ -68,6 +67,8 @@ def img_list_to_gamma_expression(img_list, config):
 
             # Get gamma values from the image
             gamma_values_in_image = img[y_indices, x_indices]
+            # print the different values and how many of them in this array:
+            print(np.unique(gamma_values_in_image, return_counts=True))
 
             # Update gamma_values array:
             # if gamma_values_in_image == 1, set gamma_values to 1
@@ -127,9 +128,7 @@ def img_to_gamma_expression(img, config):
         # For all points in the mesh, scale the image to the full size of the mesh
         x_norm = (x_coords - x_min) / x_range  # Normalize x coordinates
         y_norm = (y_coords - y_min) / y_range  # Normalize y coordinates
-        # check length of these coords:
-        print("x_norm", len(x_norm))
-        print("y_norm", len(y_norm))
+
         x_indices = np.clip((x_norm * (img_width - 1)).astype(int), 0, img_width - 1)
         y_indices = np.clip(
             ((1 - y_norm) * (img_height - 1)).astype(int), 0, img_height - 1

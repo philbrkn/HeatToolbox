@@ -109,4 +109,7 @@ def z_to_img(z, model, device=device):
         # take the left half of the image and resymmetrize
         img = img[:, :img.shape[1] // 2]
         img = np.concatenate((img, img[:, ::-1]), axis=1)
-    return img
+
+        # Apply threshold to make the image binary
+        img_binary = (img >= 0.5).astype(np.float32)
+    return img_binary
