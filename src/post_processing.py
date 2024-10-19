@@ -13,7 +13,7 @@ class PostProcessingModule:
         self.rank = rank
         self.config = config
 
-    def postprocess_results(self, U, msh, img, gamma):
+    def postprocess_results(self, U, msh, gamma):
         q, T = U.sub(0).collapse(), U.sub(1).collapse()
         norm_q, norm_T = la.norm(q.x), la.norm(T.x)
 
@@ -36,7 +36,7 @@ class PostProcessingModule:
                     field_name="gamma",
                     show_edges=True,
                 )
-
+            return
             if global_vals is not None:
                 self.plot_scalar_field(
                     global_top,

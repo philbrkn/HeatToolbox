@@ -3,6 +3,7 @@
 import torch
 from torch import nn
 from mpi4py import MPI
+import numpy as np
 
 # REMOVE LATER?
 image_size = 128
@@ -105,4 +106,7 @@ def z_to_img(z, model, device=device):
         img = sample.squeeze().squeeze().cpu().numpy()
         # flip the image
         img = img[::-1, :]
+        # take the left half of the image and resymmetrize
+        img = img[:, :img.shape[1] // 2]
+        img = np.concatenate((img, img[:, ::-1]), axis=1)
     return img

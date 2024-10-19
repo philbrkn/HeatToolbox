@@ -21,7 +21,7 @@ class SimulationConfig:
         # Physical properties
         self.C = PETSc.ScalarType(1.0)  # Slip parameter for fully diffusive boundaries
         self.T_ISO = PETSc.ScalarType(0.0)  # Isothermal temperature, K
-        self.Q_L = 80
+        self.Q_L = PETSc.ScalarType(80)  # Line heat source, W/m
 
         self.MEAN_FREE_PATH = 0.439e-6  # Characteristic length, adjust as necessary
         self.KNUDSEN = 1  # Knudsen number, adjust as necessary
@@ -33,7 +33,7 @@ class SimulationConfig:
         self.L_Y = 12.5 * self.LENGTH
         # Source rectangle:
         self.SOURCE_WIDTH = self.LENGTH
-        self.SOURCE_HEIGHT = (self.LENGTH * 0.25)
+        self.SOURCE_HEIGHT = self.LENGTH * 0.25
         self.mask_extrusion = True
 
         # Set the resolution of the mesh
@@ -42,25 +42,40 @@ class SimulationConfig:
         self.RESOLUTION = self.LENGTH / 5  # fast but ish profiles
 
         # material properties
-        self.ELL_SI = PETSc.ScalarType(self.MEAN_FREE_PATH / np.sqrt(5))  # Non-local length, m
+        self.ELL_SI = PETSc.ScalarType(
+            self.MEAN_FREE_PATH / np.sqrt(5)
+        )  # Non-local length, m
         self.ELL_DI = PETSc.ScalarType(196e-8)
         self.KAPPA_SI = PETSc.ScalarType(141.0)  # W/mK, thermal conductivity
         self.KAPPA_DI = PETSc.ScalarType(600.0)
 
-        # cannot be symmetry and two sources:
-        self.two_sources = args.two_sources
-        if args.source_positions is None:
-            self.source_positions = [0.5]
-            self.source_positions = [0.25, 0.75]
-        self.source_positions = args.source_positions  # List of positions between 0 and 1 (normalized)
+        # Source positions (normalized between 0 and 1)
+        self.source_positions = args.source_positions
+        if not self.source_positions:
+            self.source_positions = [0.5]  # Default to center if none provided
 
-        if self.two_sources and args.symmetry:
+        # Validate source positions
+        for pos in self.source_positions:
+            if pos < 0 or pos > 1:
+                raise ValueError(
+                    "Source positions must be between 0 and 1 (normalized)."
+                )
+
+        # Set Q values for one or multiple sources
+        # make it so it scales down by 2 for each additional source, in a for loop:
+        self.Q_sources = []
+        for i in range(0, len(self.source_positions)):
+            self.Q_sources.append(self.Q_L / 2 ** i)
+
+        # check length of source positions and Q values
+        if len(self.source_positions) != len(self.Q_sources):
+            raise ValueError(
+                "Length of source_positions and Q_sources must be the same."
+            )
+
+        # Cannot be symmetry and two sources:
+        if len(self.source_positions) > 1 and args.symmetry:
             raise ValueError("Cannot have both symmetry and two sources.")
-        if self.two_sources:
-            self.Q_left = PETSc.ScalarType(40)
-            self.Q_right = PETSc.ScalarType(80)
-        else:
-            self.Q = PETSc.ScalarType(self.Q_L)
 
         # symmetry in geometry
         if args.symmetry:
@@ -78,14 +93,28 @@ def main():
     # Command-line arguments to determine the mode
     parser = argparse.ArgumentParser()
     parser.add_argument("--optim", action="store_true", help="Run optimization.")
-    parser.add_argument("--latent", nargs=4, type=float, default=None,
-                        help="Specify z values (z1, z2, z3, z4) for 'solve' mode.")
-    parser.add_argument("--symmetry", action="store_true",
-                        help="Enable left-right symmetry in the domain.")
+    parser.add_argument(
+        "--latent",
+        nargs=4,
+        type=float,
+        default=None,
+        help="Specify z values (z1, z2, z3, z4) for 'solve' mode.",
+    )
+    parser.add_argument(
+        "--symmetry",
+        action="store_true",
+        help="Enable left-right symmetry in the domain.",
+    )
     parser.add_argument("--blank", action="store_true", help="Run with a blank image.")
-    parser.add_argument("--two_sources", action="store_true",
-                        help="Run with two sources, set heat in code parameters.")
-
+    parser.add_argument(
+        "--source_positions",
+        nargs="*",
+        type=float,
+        default=[0.5],
+        help="List of source positions along the x-axis"
+        + " (normalized between 0 and 1), from left to right.",
+    )
+    # parser.add_argument("--gamma_only", action="store_true", help="Show gamma only.")
     args = parser.parse_args()
 
     # Initialize configuration
@@ -106,7 +135,7 @@ def main():
 
     if args.optim:
         # Run optimization
-        optimizer = OptimizationModule(solver, model, torch.device('cpu'), rank)
+        optimizer = OptimizationModule(solver, model, torch.device("cpu"), rank)
         best_z = optimizer.optimize(init_points=10, n_iter=60)
         latent_vector = best_z
         # Optional: Save the best_z to a file for future solving
@@ -130,32 +159,30 @@ def main():
 
     # Generate image from latent vector
     if rank == 0:
-        if args.two_sources:
-            sample_l = z_to_img(latent_vector, model)
-            sample_r = z_to_img(latent_vector, model)
-            # Take the left half of each image and ressymetrize
-            sample_l = sample_l[:, :sample_l.shape[1] // 2]
-            sample_r = sample_r[:, :sample_r.shape[1] // 2]
-            sample_l = np.concatenate((sample_l, sample_l[:, ::-1]), axis=1)
-            sample_r = np.concatenate((sample_r, sample_r[:, ::-1]), axis=1)
-            sample = np.concatenate((sample_l, sample_r), axis=1)
-        else:
+        img_list = []
+        for idx in range(len(config.source_positions)):
             if args.blank:
-                sample = np.zeros((128, 128))
+                img = np.zeros((128, 128))
             else:
-                sample = z_to_img(latent_vector, model)
-            sample = sample[:, :sample.shape[1] // 2]  # Take the left half of the image
+                # for now same latent vector for all sources
+                img = z_to_img(latent_vector, model)
 
-            # resymmetrize the image if symmetry not activated (see full image)
-            if not config.symmetry:
-                sample = np.concatenate((sample, sample[:, ::-1]), axis=1)
+                # PLOT IMAGE TO TEST #
+                # import matplotlib.pyplot as plt
+                # plt.imshow(img)
+                # plt.show()
+
+            img_list.append(img)
+            if config.symmetry:
+                # Take the left half of the image
+                img_list[0] = img_list[0][:, : img_list[0].shape[1] // 2]
     else:
-        sample = None
+        img_list = None
 
-    sample = MPI.COMM_WORLD.bcast(sample, root=0)
+    img_list = MPI.COMM_WORLD.bcast(img_list, root=0)
 
     # Solve the image using the solver
-    avg_temp_global = solver.solve_image(sample)
+    avg_temp_global = solver.solve_image(img_list)
     time2 = MPI.Wtime()
     if rank == 0:
         print(f"Average temperature: {avg_temp_global:.4f} K")
@@ -163,7 +190,7 @@ def main():
 
     # Optional Post-processing
     post_processor = PostProcessingModule(rank, config)
-    post_processor.postprocess_results(solver.U, solver.msh, sample, solver.gamma)
+    post_processor.postprocess_results(solver.U, solver.msh, solver.gamma)
 
 
 if __name__ == "__main__":

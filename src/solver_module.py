@@ -3,7 +3,7 @@ from mpi4py import MPI
 from petsc4py import PETSc
 from dolfinx import fem, mesh
 import dolfinx.fem.petsc  # ghost import
-from image_processing import img_to_gamma_expression
+from image_processing import img_list_to_gamma_expression, img_to_gamma_expression
 import basix.ufl
 import numpy as np
 
@@ -13,7 +13,6 @@ class Solver:
         self.msh = msh
         self.config = config
         self.facet_markers = facet_markers
-
 
         # Set up function spaces and functions
         P2 = basix.ufl.element("CG", msh.basix_cell(), 2, shape=(msh.geometry.dim,))
@@ -38,18 +37,20 @@ class Solver:
         self.ds = ufl.Measure("ds", domain=self.msh, subdomain_data=self.facet_markers)
         self.ds_bottom = self.ds(1)  # Isothermal Boundary
         self.ds_slip = self.ds(2)    # Slip Boundary
+
+        # Collect top boundary measures based on source positions
+        num_sources = len(self.config.source_positions)
+        top_tags = list(range(3, 3 + num_sources))  # Tags start at 3
+        self.ds_tops = [self.ds(tag) for tag in top_tags]
+
         if self.config.symmetry:
             self.ds_symmetry = self.ds(4)
-        if self.config.two_sources:
-            self.ds_top_left = self.ds(3)
-            self.ds_top_right = self.ds(4)
-        else:
-            self.ds_top = self.ds(3)     # Top Boundary
 
         # Set up boundary condition functions and Dirichlet boundary conditions
         W1 = self.W.sub(1)
         Q1, _ = W1.collapse()
         noslip = fem.Function(Q1)  # Set a constant function for noslip condition
+
         rtol = self.config.LENGTH * 1e-3
         facets = mesh.locate_entities(self.msh, 1, lambda x: np.isclose(x[1], 0.0, rtol=rtol))
         dofs = fem.locate_dofs_topological((W1, Q1), 1, facets)
@@ -78,14 +79,11 @@ class Solver:
         pressure_term = - ramp_kappa * T * ufl.div(self.v) * ufl.dx
         flux_term = ufl.inner(q, self.v) * ufl.dx
 
-        # Source term at the top boundary
-        if self.config.two_sources:
-            source_term = (
-                self.config.Q_left * ufl.dot(self.v, n) * self.ds_top_left
-                + self.config.Q_right * ufl.dot(self.v, n) * self.ds_top_right
-                )
-        else:
-            source_term = self.config.Q * ufl.dot(self.v, n) * self.ds_top
+        # Source term at the top boundaries
+        source_term = sum(
+            Q_i * ufl.dot(self.v, n) * ds_top_i
+            for Q_i, ds_top_i in zip(self.config.Q_sources, self.ds_tops)
+        )
 
         def u_t(q):
             return q - ufl.dot(q, n) * n
@@ -114,8 +112,9 @@ class Solver:
 
         return F
 
-    def solve_image(self, img):            
-        gamma_expr = img_to_gamma_expression(img, self.msh, self.config)
+    def solve_image(self, img_list):
+        gamma_expr = img_list_to_gamma_expression(img_list, self.config)
+        # gamma_expr = img_to_gamma_expression(img_list[0], self.config)
         self.gamma.interpolate(gamma_expr)
 
         # Define variational forms
