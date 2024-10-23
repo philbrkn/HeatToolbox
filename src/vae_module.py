@@ -97,19 +97,37 @@ class VAE(nn.Module):
         return z, mu, logvar
 
 
-def z_to_img(z, model, device=device):
+def apply_volume_fraction(img, vol_fraction):
+    # Flatten the image to a 1D array
+    img_flat = img.flatten()
+    # Sort the pixels
+    sorted_pixels = np.sort(img_flat)
+    # Determine the threshold that will result in the desired volume fraction
+    num_pixels = img_flat.size
+    k = int((1 - vol_fraction) * num_pixels)
+    if k == 0:
+        threshold = sorted_pixels[0] - 1e-5  # All pixels are solid
+    elif k == num_pixels:
+        threshold = sorted_pixels[-1] + 1e-5  # No pixels are solid
+    else:
+        threshold = (sorted_pixels[k] + sorted_pixels[k - 1]) / 2.0
+    # Apply the threshold
+    img_binary = (img >= threshold).astype(np.float32)
+    return img_binary
+
+
+def z_to_img(z, model, vol_fraction, device=device):
     z = torch.from_numpy(z).float().unsqueeze(0).to(device)  # Add batch dimension
     model.eval()
     with torch.no_grad():
         sample = model.decode(z)
         # Remove batch and channel dimensions
         img = sample.squeeze().squeeze().cpu().numpy()
-        # flip the image
+        # Flip the image
         img = img[::-1, :]
-        # take the left half of the image and resymmetrize
+        # Take the left half of the image and resymmetrize
         img = img[:, :img.shape[1] // 2]
         img = np.concatenate((img, img[:, ::-1]), axis=1)
-
-        # Apply threshold to make the image binary
-        img_binary = (img >= 0.5).astype(np.float32)
+    # Apply volume fraction control
+    img_binary = apply_volume_fraction(img, vol_fraction)
     return img_binary

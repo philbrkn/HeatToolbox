@@ -26,6 +26,9 @@ class SimulationConfig:
         self.MEAN_FREE_PATH = 0.439e-6  # Characteristic length, adjust as necessary
         self.KNUDSEN = 1  # Knudsen number, adjust as necessary
 
+        # Volume fraction
+        self.vol_fraction = args.vol_fraction if args.vol_fraction else 0.2  # Default to 20%
+
         # Geometric properties
         self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN  # Characteristic length, L
         # Base rectangle:
@@ -37,9 +40,11 @@ class SimulationConfig:
         self.mask_extrusion = True
 
         # Set the resolution of the mesh
-        # self.RESOLUTION = self.LENGTH / 30  # to get REALLY good profiles
-        # self.RESOLUTION = self.LENGTH / 20  # to get good profiles
-        self.RESOLUTION = self.LENGTH / 5  # fast but ish profiles
+        if args.res is not None:
+            self.RESOLUTION = args.res
+        else:
+            self.RESOLUTION = self.LENGTH / 12  # Result from mesh refinement study
+            # self.RESOLUTION = self.LENGTH / 5  # to get quick profiles
 
         # material properties
         self.ELL_SI = PETSc.ScalarType(
@@ -84,6 +89,13 @@ class SimulationConfig:
 
         if args.blank:
             self.mask_extrusion = False
+            
+        # Parse visualize argument
+        self.visualize = args.visualize
+        if "all" in self.visualize and len(self.visualize) > 1:
+            self.visualize.remove("all")
+        if "none" in self.visualize and len(self.visualize) > 1:
+            raise ValueError("Cannot combine 'none' with other visualization options.")
 
 
 def main():
@@ -110,6 +122,24 @@ def main():
         default=None,
         help="List of source positions and heat source values as pairs, e.g., --sources 0.5 80 0.75 40",
     )
+    parser.add_argument(
+        "--res",
+        type=float,
+        default=None,
+        help="Set the mesh resolution (default: LENGTH / 12).",
+    )
+    parser.add_argument(
+        "--visualize",
+        nargs="*",
+        type=str,
+        default=["all"],
+        choices=["none", "gamma", "temperature", "flux", "all"],
+        help=(
+            "Specify what to visualize. Options: "
+            "'none' (no visualization), 'gamma', 'temperature', 'flux', 'all' "
+            "(default: all). Multiple options can be specified."
+        ),
+    )
     # parser.add_argument("--gamma_only", action="store_true", help="Show gamma only.")
     args = parser.parse_args()
 
@@ -117,12 +147,16 @@ def main():
     config = SimulationConfig(args)
 
     # Load VAE model
+    comm = MPI.COMM_WORLD
     rank = MPI.COMM_WORLD.rank
     model = load_vae_model(rank)
 
     # Mesh generation
     mesh_generator = MeshGenerator(config)
-    msh, cell_markers, facet_markers = mesh_generator.create_mesh()
+    if config.symmetry:
+        msh, cell_markers, facet_markers = mesh_generator.sym_create_mesh()
+    else:
+        msh, cell_markers, facet_markers = mesh_generator.create_mesh()
 
     time1 = MPI.Wtime()
 
@@ -131,47 +165,46 @@ def main():
 
     if args.optim:
         # Run optimization
-        optimizer = OptimizationModule(solver, model, torch.device("cpu"), rank)
-        best_z = optimizer.optimize(init_points=10, n_iter=60)
-        latent_vector = best_z
+        optimizer = OptimizationModule(solver, model, torch.device("cpu"), rank, config)
+        best_z_list = optimizer.optimize(init_points=10, n_iter=100)
+        latent_vectors = best_z_list
         # Optional: Save the best_z to a file for future solving
         if rank == 0:
-            np.save("best_latent_vector.npy", best_z)
+            np.save("best_latent_vector.npy", best_z_list)
 
     # Run solving based on provided latent vector
     else:
-        if args.latent is None:
-            if rank == 0:
-                # latent_vector = np.load("best_latent_vector.npy")
-                # latent_vector = np.random.randn(4)
-                # latent_vector =
-                # np.array([[0.91578013,  0.06633388,  0.3837567,  -0.36896428]])
-                latent_vector = np.array([0.8019, 1.0, -0.5918, 0.4979])
-            else:
-                latent_vector = None
-            latent_vector = MPI.COMM_WORLD.bcast(latent_vector, root=0)
+        if rank == 0:
+            # Load best latent vectors from file if available
+            try:
+                best_z_list = np.load("best_latent_vector.npy", allow_pickle=True)
+                # print shape:
+                # Ensure it's a list of arrays
+                latent_vectors = best_z_list
+            except FileNotFoundError:
+                # If no file exists, use default latent vectors
+                # One latent vector per source
+                latent_vectors = [np.array([0.8019, 1.0, -0.5918, 0.4979])] * len(config.source_positions)
+                print("No saved latent vectors found. Using default latent vectors.")
         else:
-            latent_vector = np.array(args.latent)
+            latent_vectors = None
+        # Broadcast the latent_vectors list to all ranks
+        latent_vectors = comm.bcast(latent_vectors, root=0)
 
     # Generate image from latent vector
     if rank == 0:
         img_list = []
-        for idx in range(len(config.source_positions)):
+        for z in latent_vectors:
             if args.blank:
                 img = np.zeros((128, 128))
             else:
-                # for now same latent vector for all sources
-                img = z_to_img(latent_vector, model)
-
-                # PLOT IMAGE TO TEST #
-                # import matplotlib.pyplot as plt
-                # plt.imshow(img)
-                # plt.show()
-
+                # Ensure z is reshaped correctly if needed
+                img = z_to_img(z.reshape(1, -1), model)
             img_list.append(img)
-            if config.symmetry:
-                # Take the left half of the image
-                img_list[0] = img_list[0][:, : img_list[0].shape[1] // 2]
+
+        # Apply symmetry to each image if enabled
+        if config.symmetry:
+            img_list = [img[:, : img.shape[1] // 2] for img in img_list]
     else:
         img_list = None
 
@@ -181,12 +214,13 @@ def main():
     avg_temp_global = solver.solve_image(img_list)
     time2 = MPI.Wtime()
     if rank == 0:
-        print(f"Average temperature: {avg_temp_global:.4f} K")
+        print(f"Average temperature: {avg_temp_global} K")
         print(f"Time taken to solve: {time2 - time1:.3f} seconds")
 
     # Optional Post-processing
-    post_processor = PostProcessingModule(rank, config)
-    post_processor.postprocess_results(solver.U, solver.msh, solver.gamma)
+    if "none" not in config.visualize:
+        post_processor = PostProcessingModule(rank, config)
+        post_processor.postprocess_results(solver.U, solver.msh, solver.gamma)
 
 
 if __name__ == "__main__":

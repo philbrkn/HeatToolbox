@@ -187,6 +187,8 @@ class MeshGenerator:
             gmsh.model.addPhysicalGroup(2, [surface], tag=1)
             gmsh.model.setPhysicalName(2, 1, "Domain")
 
+            gmsh.model.mesh.generate(2)
+
         comm = MPI.COMM_WORLD
         msh, cell_markers, facet_markers = io.gmshio.model_to_mesh(gmsh.model, comm, rank=0, gdim=2)
 

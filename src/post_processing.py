@@ -34,7 +34,7 @@ class PostProcessingModule:
                     global_geom,
                     global_gamma,
                     field_name="gamma",
-                    show_edges=True,
+                    show_edges=False,
                 )
 
             if global_vals is not None:

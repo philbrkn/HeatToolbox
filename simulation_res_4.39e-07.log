@@ -1,0 +1,16 @@
+[pt-machine:13705] shmem: mmap: an error occurred while determining whether or not /tmp/ompi.pt-machine.1000/jf.0/2882535424/shared_mem_cuda_pool.pt-machine could be created.
+[pt-machine:13705] create_and_attach: unable to create shared memory BTL coordinating structure :: size 134217728 
+Info    : Meshing 1D...
+Info    : [  0%] Meshing curve 1 (Line)
+Info    : [ 20%] Meshing curve 2 (Line)
+Info    : [ 40%] Meshing curve 3 (Line)
+Info    : [ 60%] Meshing curve 4 (Line)
+Info    : [ 70%] Meshing curve 5 (Line)
+Info    : [ 90%] Meshing curve 6 (Line)
+Info    : Done meshing 1D (Wall 0.000320082s, CPU 0.000267s)
+Info    : Meshing 2D...
+Info    : Meshing surface 1 (Plane, Frontal-Delaunay)
+Info    : Done meshing 2D (Wall 0.00402166s, CPU 0.004014s)
+Info    : 226 nodes 456 elements
+Average temperature: 0.0008795189836897455 K
+Time taken to solve: 0.071 seconds

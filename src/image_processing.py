@@ -13,13 +13,13 @@ def img_list_to_gamma_expression(img_list, config):
     x_range = x_max - x_min
     y_range = y_max - y_min
 
-    # so masking doesn't cut off part of the image
+    # Adjust y_min for image mapping
     y_min_im = y_min + 1.5 * config.SOURCE_HEIGHT  # To make image higher
 
     num_sources = len(config.source_positions)
     source_positions = np.array(config.source_positions) * config.L_X
 
-    # image mesh width
+    # Define image mesh width
     image_mesh_width = x_range / num_sources
 
     # Calculate the physical x ranges of each image in the domain
@@ -34,6 +34,9 @@ def img_list_to_gamma_expression(img_list, config):
 
         image_x_ranges.append([x_min_image, x_max_image])
 
+    # Define y-coordinate for the start of extrusion
+    y_min_extrusion = config.L_Y - config.SOURCE_HEIGHT
+
     def gamma_expression(x_input):
         # x_input is of shape (gdim, N)
         x_coords = x_input[0, :]
@@ -47,11 +50,14 @@ def img_list_to_gamma_expression(img_list, config):
             img_height, img_width = img.shape
 
             # Determine which points are within the image's x-range
-            in_image = np.logical_and(x_coords >= x_min_image, x_coords <= x_max_image)
+            in_image = np.logical_and(
+                x_coords >= x_min_image, x_coords <= x_max_image
+            )
 
             # Map y as well, assuming the image spans from y_min to y_max
             in_image = np.logical_and(
-                in_image, np.logical_and(y_coords >= y_min, y_coords <= y_max)
+                in_image,
+                np.logical_and(y_coords >= y_min, y_coords <= y_max)
             )
 
             # Normalize x and y within the image's range
@@ -67,8 +73,6 @@ def img_list_to_gamma_expression(img_list, config):
 
             # Get gamma values from the image
             gamma_values_in_image = img[y_indices, x_indices]
-            # print the different values and how many of them in this array:
-            print(np.unique(gamma_values_in_image, return_counts=True))
 
             # Update gamma_values array:
             # if gamma_values_in_image == 1, set gamma_values to 1
@@ -77,6 +81,33 @@ def img_list_to_gamma_expression(img_list, config):
                 gamma_values_in_image == 1, 1, gamma_values_current
             )
             gamma_values[in_image] = gamma_values_new
+
+        # Apply mask extrusion
+        if config.mask_extrusion:
+            # Mask the top extrusion if requested
+            if config.symmetry:
+                x_min_extrusion = config.L_X - config.SOURCE_WIDTH
+                x_max_extrusion = config.L_X
+
+                in_extrusion = np.logical_and(
+                    np.logical_and(
+                        y_coords > y_min_extrusion, x_coords >= x_min_extrusion
+                    ),
+                    x_coords <= x_max_extrusion,
+                )
+                gamma_values[in_extrusion] = 1.0
+            else:
+                for x_pos in source_positions:
+                    x_min_extrusion = x_pos - config.SOURCE_WIDTH / 2
+                    x_max_extrusion = x_pos + config.SOURCE_WIDTH / 2
+
+                    in_extrusion = np.logical_and(
+                        np.logical_and(
+                            y_coords > y_min_extrusion, x_coords >= x_min_extrusion
+                        ),
+                        x_coords <= x_max_extrusion,
+                    )
+                    gamma_values[in_extrusion] = 1.0
 
         return gamma_values
 
