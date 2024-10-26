@@ -10,7 +10,8 @@ from petsc4py import PETSc
 # import modules
 # from logging_module import LoggingModule
 from mesh_generator import MeshGenerator
-from vae_module import load_vae_model, z_to_img, VAE, Flatten, UnFlatten
+from vae_module import load_vae_model, VAE, Flatten, UnFlatten
+from image_processing import z_to_img
 from optimization_module import OptimizationModule
 from post_processing import PostProcessingModule
 from solver_module import Solver
@@ -27,7 +28,12 @@ class SimulationConfig:
         self.KNUDSEN = 1  # Knudsen number, adjust as necessary
 
         # Volume fraction
-        self.vol_fraction = args.vol_fraction if args.vol_fraction else 0.2  # Default to 20%
+        if args.vf < 0:
+            self.vol_fraction = None
+        elif args.vf:
+            self.vol_fraction = args.vf
+        else:
+            self.vol_fraction = 0.2  # Default to 20%
 
         # Geometric properties
         self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN  # Characteristic length, L
@@ -43,7 +49,7 @@ class SimulationConfig:
         if args.res is not None:
             self.RESOLUTION = args.res
         else:
-            self.RESOLUTION = self.LENGTH / 12  # Result from mesh refinement study
+            self.RESOLUTION = self.LENGTH / 12  # refinement study
             # self.RESOLUTION = self.LENGTH / 5  # to get quick profiles
 
         # material properties
@@ -89,7 +95,7 @@ class SimulationConfig:
 
         if args.blank:
             self.mask_extrusion = False
-            
+
         # Parse visualize argument
         self.visualize = args.visualize
         if "all" in self.visualize and len(self.visualize) > 1:
@@ -99,49 +105,8 @@ class SimulationConfig:
 
 
 def main():
-    # Command-line arguments to determine the mode
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--optim", action="store_true", help="Run optimization.")
-    parser.add_argument(
-        "--latent",
-        nargs=4,
-        type=float,
-        default=None,
-        help="Specify z values (z1, z2, z3, z4) for 'solve' mode.",
-    )
-    parser.add_argument(
-        "--symmetry",
-        action="store_true",
-        help="Enable left-right symmetry in the domain.",
-    )
-    parser.add_argument("--blank", action="store_true", help="Run with a blank image.")
-    parser.add_argument(
-        "--sources",
-        nargs="*",
-        type=float,
-        default=None,
-        help="List of source positions and heat source values as pairs, e.g., --sources 0.5 80 0.75 40",
-    )
-    parser.add_argument(
-        "--res",
-        type=float,
-        default=None,
-        help="Set the mesh resolution (default: LENGTH / 12).",
-    )
-    parser.add_argument(
-        "--visualize",
-        nargs="*",
-        type=str,
-        default=["all"],
-        choices=["none", "gamma", "temperature", "flux", "all"],
-        help=(
-            "Specify what to visualize. Options: "
-            "'none' (no visualization), 'gamma', 'temperature', 'flux', 'all' "
-            "(default: all). Multiple options can be specified."
-        ),
-    )
-    # parser.add_argument("--gamma_only", action="store_true", help="Show gamma only.")
-    args = parser.parse_args()
+    # Parse command-line arguments
+    args = parse_arguments()
 
     # Initialize configuration
     config = SimulationConfig(args)
@@ -199,7 +164,7 @@ def main():
                 img = np.zeros((128, 128))
             else:
                 # Ensure z is reshaped correctly if needed
-                img = z_to_img(z.reshape(1, -1), model)
+                img = z_to_img(z.reshape(1, -1), model, config.vol_fraction)
             img_list.append(img)
 
         # Apply symmetry to each image if enabled
@@ -209,6 +174,9 @@ def main():
         img_list = None
 
     img_list = MPI.COMM_WORLD.bcast(img_list, root=0)
+
+    if "pregamma" in config.visualize:
+        plot_image_list(img_list)
 
     # Solve the image using the solver
     avg_temp_global = solver.solve_image(img_list)
@@ -221,6 +189,71 @@ def main():
     if "none" not in config.visualize:
         post_processor = PostProcessingModule(rank, config)
         post_processor.postprocess_results(solver.U, solver.msh, solver.gamma)
+
+
+def parse_arguments():
+    # Command-line arguments to determine the modes
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--optim", action="store_true", help="Run optimization.")
+    parser.add_argument(
+        "--latent",
+        nargs=4,
+        type=float,
+        default=None,
+        help="Specify z values (z1, z2, z3, z4) for 'solve' mode.",
+    )
+    parser.add_argument(
+        "--symmetry",
+        action="store_true",
+        help="Enable left-right symmetry in the domain.",
+    )
+    parser.add_argument("--blank", action="store_true", help="Run with a blank image.")
+    parser.add_argument(
+        "--sources",
+        nargs="*",
+        type=float,
+        default=None,
+        help="List of source positions and heat source values as pairs, e.g., --sources 0.5 80 0.75 40",
+    )
+    parser.add_argument(
+        "--res",
+        type=float,
+        default=None,
+        help="Set the mesh resolution (default: LENGTH / 12).",
+    )
+    parser.add_argument(
+        "--visualize",
+        nargs="*",
+        type=str,
+        default=["all"],
+        choices=["none", "gamma", "temperature", "flux", "all", "pregamma"],
+        help=(
+            "Specify what to visualize. Options: "
+            "'none' (no visualization), 'gamma', 'temperature', 'flux', 'profiles', 'all' "
+            "(default: all). Multiple options can be specified."
+        ),
+    )
+    parser.add_argument(
+        "--vf",
+        type=float,
+        default=0.2,
+        help=("Set the desired volume fraction (default: 0.2)."
+              "Negative means no volume fraction control."),
+    )
+
+    return parser.parse_args()
+
+
+# plot image list function
+def plot_image_list(img_list):
+    import matplotlib.pyplot as plt
+
+    fig, axs = plt.subplots(1, len(img_list), figsize=(15, 5))
+    for i, img in enumerate(img_list):
+        axs[i].imshow(img, cmap="gray")
+        axs[i].axis("off")
+    # save to a file
+    plt.savefig("image_list.png")
 
 
 if __name__ == "__main__":

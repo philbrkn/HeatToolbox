@@ -3,7 +3,7 @@ import PIL
 from PIL import Image
 from solver_module import Solver
 import numpy as np
-from vae_module import z_to_img
+from image_processing import z_to_img
 
 
 class OptimizationModule:
@@ -31,7 +31,7 @@ class OptimizationModule:
         if self.rank == 0:
             img_list = []
             for z in latent_vectors:
-                sample = z_to_img(z, self.model, self.device)
+                sample = z_to_img(z, self.model, self.config.vol_fraction)
                 # If symmetry is enabled, take left half of the image
                 if self.config.symmetry:
                     sample = sample[:, : sample.shape[1] // 2]
@@ -51,10 +51,10 @@ class OptimizationModule:
         pbounds = {}
         for i in range(self.N_sources):
             pbounds.update({
-                f'z{i}_1': (-1.5, 1.5),
-                f'z{i}_2': (-1.5, 1.5),
-                f'z{i}_3': (-1.5, 1.5),
-                f'z{i}_4': (-1.5, 1.5)
+                f'z{i}_1': (-2.5, 2.5),
+                f'z{i}_2': (-2.5, 2.5),
+                f'z{i}_3': (-2.5, 2.5),
+                f'z{i}_4': (-2.5, 2.5)
             })
 
         optimizer = BayesianOptimization(

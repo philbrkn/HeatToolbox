@@ -13,21 +13,26 @@ class PostProcessingModule:
         self.rank = rank
         self.config = config
 
+        # If environment variable PYVISTA_OFF_SCREEN is set to true save a png
+        # otherwise create interactive plot
+
+        pv.start_xvfb(wait=0.1)
+
     def postprocess_results(self, U, msh, gamma):
         q, T = U.sub(0).collapse(), U.sub(1).collapse()
         norm_q, norm_T = la.norm(q.x), la.norm(T.x)
-
         V1, _ = U.function_space.sub(1).collapse()
         global_top, global_geom, global_ct, global_vals = self.gather_mesh_on_rank0(
             msh, V1, T
         )
         _, _, _, global_gamma = self.gather_mesh_on_rank0(msh, V1, gamma)
 
+        viz = self.config.visualize
         if self.rank == 0:
             print(f"(D) Norm of flux coefficient vector (monolithic, direct): {norm_q}")
             print(f"(D) Norm of temp coefficient vector (monolithic, direct): {norm_T}")
 
-            if global_gamma is not None:
+            if "gamma" in viz and global_gamma is not None:
                 self.plot_scalar_field(
                     global_top,
                     global_ct,
@@ -37,7 +42,7 @@ class PostProcessingModule:
                     show_edges=False,
                 )
 
-            if global_vals is not None:
+            if "temperature" in viz and global_vals is not None:
                 self.plot_scalar_field(
                     global_top,
                     global_ct,
@@ -49,8 +54,10 @@ class PostProcessingModule:
 
         # Code for flux plotting (only runs when not in parallel)
         if msh.comm.size == 1:
-            self.plot_vector_field(q, msh)
-            self.plot_profiles(q, T, msh)
+            if "flux" in viz:
+                self.plot_vector_field(q, msh)
+            if "profiles" in viz:
+                self.plot_profiles(q, T, msh)
         else:
             if self.rank == 0:
                 print("Flux and profiles plotting is disabled when running in parallel.")
@@ -193,10 +200,18 @@ class PostProcessingModule:
         grid.set_active_scalars(field_name)
 
         # Plot the scalar field
-        plotter = pv.Plotter()
+        plotter = pv.Plotter(off_screen=True)
         plotter.add_mesh(grid, cmap="coolwarm", show_edges=show_edges, clim=clim)
         plotter.view_xy()
-        plotter.show()
+        # if pv.OFF_SCREEN:
+        print("Printing offscreen")
+        plotter.screenshot(
+            "2D_function_warp.png",
+            transparent_background=False,
+            window_size=[1000, 1000],
+        )
+        # else:
+        #     plotter.show()
 
     def plot_vector_field(self, q, msh):
         gdim = msh.geometry.dim

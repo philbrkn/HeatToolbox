@@ -1,6 +1,9 @@
 # image_processing.py
 import numpy as np
-from mpi4py import MPI
+# from mpi4py import MPI
+import torch
+import torch.nn.functional as F
+from scipy.ndimage import zoom
 
 
 def img_list_to_gamma_expression(img_list, config):
@@ -112,6 +115,74 @@ def img_list_to_gamma_expression(img_list, config):
         return gamma_values
 
     return gamma_expression
+
+
+def gaussian_blur(img, sigma=1):
+    """Apply Gaussian blur using PyTorch."""
+    # Create a 2D Gaussian kernel
+    kernel_size = int(4 * sigma + 1)
+    x = torch.arange(-kernel_size // 2 + 1.0, kernel_size // 2 + 1.0)
+    gauss = torch.exp(-(x**2) / (2 * sigma**2))
+    gauss = gauss / gauss.sum()
+    gauss_kernel = gauss[:, None] * gauss[None, :]
+    gauss_kernel = gauss_kernel.expand(
+        1, 1, *gauss_kernel.shape
+    )  # Shape to match convolution input
+
+    # Add batch and channel dimensions to the image for convolution
+    img_tensor = torch.from_numpy(img).unsqueeze(0).unsqueeze(0).float()
+
+    # Apply 2D convolution for Gaussian blur
+    blurred_img = F.conv2d(img_tensor, gauss_kernel, padding=kernel_size // 2)
+
+    # Remove extra dimensions
+    return blurred_img.squeeze().numpy()
+
+
+def apply_volume_fraction(img, vf):
+    # Flatten the image to a 1D array
+    img_flat = img.flatten()
+    # Sort the pixels
+    sorted_pixels = np.sort(img_flat)
+    # Determine the threshold that will result in the desired volume fraction
+    num_pixels = img_flat.size
+    k = int((1 - vf) * num_pixels)
+    threshold = (sorted_pixels[k] + sorted_pixels[k - 1]) / 2.0
+    # Apply the threshold
+    img_binary = (img >= threshold).astype(np.float32)
+    return img_binary
+
+
+def upsample_image(img, zoom_factor):
+    return zoom(img, zoom_factor, order=3)  # Cubic interpolation
+
+
+def z_to_img(z, model, vf, device=torch.device("cpu"), sigma=1.5, zoom_factor=3):
+    z = torch.from_numpy(z).float().unsqueeze(0).to(device)  # Add batch dimension
+    model.eval()
+    with torch.no_grad():
+        sample = model.decode(z)
+        # Remove batch and channel dimensions
+        img = sample.squeeze().squeeze().cpu().numpy()
+        # Flip the image
+        img = img[::-1, :]
+        # Take the left half of the image and resymmetrize
+        img = img[:, : img.shape[1] // 2]
+        img = np.concatenate((img, img[:, ::-1]), axis=1)
+
+    # Apply Gaussian blur to smoothen the image
+    img_smoothed = gaussian_blur(img, sigma=sigma)
+    # Upsample the image before thresholding
+    img_upsampled = upsample_image(img_smoothed, zoom_factor=zoom_factor)
+
+    # Apply volume fraction control or default thresholding
+    if vf is None:
+        # Default binary thresholding
+        img_binary = (img_upsampled >= 0.5).astype(np.float32)
+    else:
+        img_binary = apply_volume_fraction(img_upsampled, vf)
+
+    return img_binary
 
 
 def img_to_gamma_expression(img, config):
