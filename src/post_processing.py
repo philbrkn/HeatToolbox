@@ -16,11 +16,11 @@ class PostProcessingModule:
         # If environment variable PYVISTA_OFF_SCREEN is set to true save a png
         # otherwise create interactive plot
 
-        pv.start_xvfb(wait=0.1)
+        # pv.start_xvfb(wait=0.1)
 
     def postprocess_results(self, U, msh, gamma):
         q, T = U.sub(0).collapse(), U.sub(1).collapse()
-        norm_q, norm_T = la.norm(q.x), la.norm(T.x)
+        # norm_q, norm_T = la.Norm(q.x), la.Norm(T.x)
         V1, _ = U.function_space.sub(1).collapse()
         global_top, global_geom, global_ct, global_vals = self.gather_mesh_on_rank0(
             msh, V1, T
@@ -29,8 +29,8 @@ class PostProcessingModule:
 
         viz = self.config.visualize
         if self.rank == 0:
-            print(f"(D) Norm of flux coefficient vector (monolithic, direct): {norm_q}")
-            print(f"(D) Norm of temp coefficient vector (monolithic, direct): {norm_T}")
+            # print(f"(D) Norm of flux coefficient vector (monolithic, direct): {norm_q}")
+            # print(f"(D) Norm of temp coefficient vector (monolithic, direct): {norm_T}")
 
             if "gamma" in viz and global_gamma is not None:
                 self.plot_scalar_field(

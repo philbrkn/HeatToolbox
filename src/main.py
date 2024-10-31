@@ -12,7 +12,7 @@ from petsc4py import PETSc
 from mesh_generator import MeshGenerator
 from vae_module import load_vae_model, VAE, Flatten, UnFlatten
 from image_processing import z_to_img
-from optimization_module import OptimizationModule
+from optimization_module import BayesianModule, CMAESModule
 from post_processing import PostProcessingModule
 from solver_module import Solver
 
@@ -45,11 +45,11 @@ class SimulationConfig:
         self.SOURCE_HEIGHT = self.LENGTH * 0.25
         self.mask_extrusion = True
 
-        # Set the resolution of the mesh
-        if args.res is not None:
-            self.RESOLUTION = args.res
+        # Set the resolution of the mesh as a divider of LENGTH
+        if args.res is not None and args.res > 0:
+            self.RESOLUTION = self.LENGTH / args.res
         else:
-            self.RESOLUTION = self.LENGTH / 12  # refinement study
+            self.RESOLUTION = self.LENGTH / 12  # default value
             # self.RESOLUTION = self.LENGTH / 5  # to get quick profiles
 
         # material properties
@@ -76,6 +76,9 @@ class SimulationConfig:
                     raise ValueError("Source positions must be between 0 and 1 (normalized).")
                 self.source_positions.append(pos)
                 self.Q_sources.append(PETSc.ScalarType(Q))
+            # Sort the sources by position
+            combined_sources = sorted(zip(self.source_positions, self.Q_sources))
+            self.source_positions, self.Q_sources = list(zip(*combined_sources))
         else:
             # Default to a single source at the center
             self.source_positions = [0.5]
@@ -103,14 +106,13 @@ class SimulationConfig:
         if "none" in self.visualize and len(self.visualize) > 1:
             raise ValueError("Cannot combine 'none' with other visualization options.")
 
+        self.optim = args.optim
+        self.optimizer = args.optimizer
+        self.latent = args.latent
+        self.blank = args.blank
 
-def main():
-    # Parse command-line arguments
-    args = parse_arguments()
 
-    # Initialize configuration
-    config = SimulationConfig(args)
-
+def main(config):
     # Load VAE model
     comm = MPI.COMM_WORLD
     rank = MPI.COMM_WORLD.rank
@@ -128,10 +130,15 @@ def main():
     # Create solver instance
     solver = Solver(msh, facet_markers, config)
 
-    if args.optim:
+    if config.optim:
         # Run optimization
-        optimizer = OptimizationModule(solver, model, torch.device("cpu"), rank, config)
-        best_z_list = optimizer.optimize(init_points=10, n_iter=100)
+        if config.optimizer == "cmaes":
+            optimizer = CMAESModule(solver, model, torch.device("cpu"), rank, config)
+            best_z_list = optimizer.optimize(n_iter=100)  # Adjust iterations as needed
+        elif config.optimizer == "bayesian":
+            optimizer = BayesianModule(solver, model, torch.device("cpu"), rank, config)
+            best_z_list = optimizer.optimize(init_points=10, n_iter=100)
+
         latent_vectors = best_z_list
         # Optional: Save the best_z to a file for future solving
         if rank == 0:
@@ -143,6 +150,7 @@ def main():
             # Load best latent vectors from file if available
             try:
                 best_z_list = np.load("best_latent_vector.npy", allow_pickle=True)
+                print("Opening best vector")
                 # print shape:
                 # Ensure it's a list of arrays
                 latent_vectors = best_z_list
@@ -160,7 +168,7 @@ def main():
     if rank == 0:
         img_list = []
         for z in latent_vectors:
-            if args.blank:
+            if config.blank:
                 img = np.zeros((128, 128))
             else:
                 # Ensure z is reshaped correctly if needed
@@ -195,6 +203,12 @@ def parse_arguments():
     # Command-line arguments to determine the modes
     parser = argparse.ArgumentParser()
     parser.add_argument("--optim", action="store_true", help="Run optimization.")
+    parser.add_argument(
+        "--optimizer",
+        choices=["cmaes", "bayesian"],
+        default="bayesian",
+        help="Choose between 'cmaes' or 'bayesian' optimization (default: bayesian)."
+    )
     parser.add_argument(
         "--latent",
         nargs=4,
@@ -257,4 +271,10 @@ def plot_image_list(img_list):
 
 
 if __name__ == "__main__":
-    main()
+    # Parse command-line arguments
+    args = parse_arguments()
+
+    # Initialize configuration
+    config = SimulationConfig(args)
+
+    main(config)
