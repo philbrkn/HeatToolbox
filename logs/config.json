@@ -1,0 +1,27 @@
+{
+    "optim": true,
+    "latent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "optimizer": "cmaes",
+    "symmetry": false,
+    "blank": false,
+    "sources": [
+        0.25,
+        40.0,
+        0.5,
+        60.0,
+        0.75,
+        80.0
+    ],
+    "res": null,
+    "visualize": [
+        "gamma",
+        "temperature"
+    ],
+    "vf": 0.2,
+    "plot_mode": "screenshot"
+}

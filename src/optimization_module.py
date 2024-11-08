@@ -1,7 +1,9 @@
+# optimization_module.py
+
 # from bayes_opt import BayesianOptimization
-import PIL
-from PIL import Image
-from solver_module import Solver
+# import PIL
+# from PIL import Image
+# from solver_module import Solver
 import numpy as np
 from image_processing import z_to_img
 
@@ -10,9 +12,9 @@ from bayes_opt import BayesianOptimization
 from cmaes import CMA
 
 
-
 class CMAESModule:
-    def __init__(self, solver, model, device, rank, config):
+    def __init__(self, solver, model, device, rank, config, logger=None):
+        self.logger = logger
         self.model = model
         self.device = device
         self.rank = rank
@@ -41,14 +43,15 @@ class CMAESModule:
         # Initial mean and sigma for the latent vectors
         mean = np.zeros(4 * self.N_sources)  # Assuming 4 latent variables per source
         sigma = 0.5  # Standard deviation
-
         optimizer = CMA(mean=mean, sigma=sigma)
 
         for generation in range(n_iter):
             solutions = []
             for _ in range(optimizer.population_size):
                 x = optimizer.ask()  # Generate a new solution (latent vector)
-                latent_vectors = [x[i * 4: (i + 1) * 4] for i in range(self.N_sources)]  # Split latent vectors per source
+                latent_vectors = [
+                    x[i * 4 : (i + 1) * 4] for i in range(self.N_sources)
+                ]  # Split latent vectors per source
                 value = self.evaluate(latent_vectors)  # Evaluate the latent vectors
                 solutions.append((x, value))  # Append solution and its value
 
@@ -56,16 +59,27 @@ class CMAESModule:
 
             if self.rank == 0:
                 best_solution = min(solutions, key=lambda s: s[1])
+                generation_data = {
+                    "best_value": best_solution[1],
+                    "best_solution": best_solution[
+                        0
+                    ].tolist(),  # Convert numpy array to list
+                }
+                if self.logger:
+                    self.logger.log_generation_data(generation_data)
                 print(f"Generation {generation}, Best value: {best_solution[1]}")
 
         # Extract best latent vectors after optimization
         best_latent_vector = optimizer.ask()
-        best_z_list = [best_latent_vector[i * 4: (i + 1) * 4] for i in range(self.N_sources)]
+        best_z_list = [
+            best_latent_vector[i * 4 : (i + 1) * 4] for i in range(self.N_sources)
+        ]
         return best_z_list
 
 
 class BayesianModule:
-    def __init__(self, solver, model, device, rank, config):
+    def __init__(self, solver, model, device, rank, config, logger=None):
+        self.logger = logger
         self.model = model
         self.device = device
         self.rank = rank
@@ -123,6 +137,17 @@ class BayesianModule:
             f=self.evaluate, pbounds=pbounds, random_state=1
         )
         optimizer.maximize(init_points=init_points, n_iter=n_iter)
+
+        # Log each iteration's results
+
+        for i, res in enumerate(optimizer.res):
+            generation_data = {
+                "iteration": i,
+                "target": res["target"],
+                "params": res["params"],
+            }
+            if self.logger:
+                self.logger.log_generation_data(i, generation_data)
 
         # Extract best latent vectors
         best_params = optimizer.max["params"]

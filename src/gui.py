@@ -6,6 +6,7 @@ from vae_module import VAE, Flatten, UnFlatten
 import traceback
 
 from main import SimulationConfig, main
+from utils import generate_command_line
 
 
 class SimulationConfigGUI:
@@ -23,128 +24,142 @@ class SimulationConfigGUI:
             "sources": [],  # List to hold source entries
             "res": tk.DoubleVar(),
             "visualize": {},  # Dictionary to hold visualization options
-            "vf": tk.DoubleVar(value=0.2),
-            "ssh_mode": tk.BooleanVar(),
-            "interactive_viz": tk.BooleanVar(),
+            "vf_enabled": tk.BooleanVar(value=True),
+            "vf_value": tk.DoubleVar(value=0.2),
+            "plot_mode": tk.StringVar(value="screenshot"),  # 'screenshot' or 'interactive'
         }
 
         # Visualization options
-        self.visualize_options = ["gamma", "temperature", "flux", "profiles", "all", "pregamma"]
+        self.visualize_options = ["gamma", "temperature", "flux", "profiles", "pregamma"]
 
         # Create the GUI components
         self.create_widgets()
 
     def create_widgets(self):
-        # Optimization option
+        # Optimization Section
+        optimization_frame = ttk.LabelFrame(self.root, text="Optimization Options")
+        optimization_frame.grid(row=0, column=0, padx=10, pady=5, sticky="nsew")
+
+        # Material Topology Section
+        material_frame = ttk.LabelFrame(self.root, text="Material Topologies")
+        material_frame.grid(row=0, column=1, padx=10, pady=5, sticky="nsew")
+
+        # Solving Section
+        solving_frame = ttk.LabelFrame(self.root, text="Solving Options")
+        solving_frame.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
+
+        # Visualization Section
+        visualization_frame = ttk.LabelFrame(self.root, text="Visualization Options")
+        visualization_frame.grid(row=1, column=1, padx=10, pady=5, sticky="nsew")
+
+        # Buttons Section
+        button_frame = tk.Frame(self.root)
+        button_frame.grid(row=2, column=0, columnspan=2, pady=10)
+
+        # Optimization Section
         tk.Checkbutton(
-            self.root,
+            optimization_frame,
             text="Run Optimization",
             variable=self.options["optim"],
             command=self.toggle_optimizer,
         ).grid(row=0, column=0, sticky="w")
 
-        # Optimizer choice (Dropdown) - initially hidden
-        self.optimizer_label = tk.Label(self.root, text="Select Optimizer")
+        self.optimizer_label = tk.Label(optimization_frame, text="Select Optimizer")
         self.optimizer_label.grid(row=1, column=0, sticky="w")
-        self.optimizer_label.grid_remove()  # Hide it initially
+        self.optimizer_label.grid_remove()
 
         self.optimizer_menu = tk.OptionMenu(
-            self.root, self.options["optimizer"], "bayesian", "cmaes"
+            optimization_frame, self.options["optimizer"], "bayesian", "cmaes"
         )
         self.optimizer_menu.grid(row=1, column=1)
-        self.optimizer_menu.grid_remove()  # Hide it initially
+        self.optimizer_menu.grid_remove()
 
-        # Latent values input
-        tk.Label(self.root, text="Latent Values (z1, z2, z3, z4)").grid(
-            row=2, column=0, sticky="w"
+        # Material Topology Section
+        tk.Label(material_frame, text="Latent Values (z1, z2, z3, z4)").grid(
+            row=0, column=0, sticky="w"
         )
-        latent_frame = tk.Frame(self.root)
-        latent_frame.grid(row=2, column=1, columnspan=4)
+        latent_frame = tk.Frame(material_frame)
+        latent_frame.grid(row=0, column=1, columnspan=4)
         for i in range(4):
             tk.Entry(
                 latent_frame, textvariable=self.options["latent"][i], width=5
             ).grid(row=0, column=i)
 
-        # Symmetry option
         tk.Checkbutton(
-            self.root, text="Enable Symmetry", variable=self.options["symmetry"]
-        ).grid(row=3, column=0, sticky="w")
+            material_frame, text="Enable Symmetry", variable=self.options["symmetry"]
+        ).grid(row=1, column=0, sticky="w")
 
-        # Blank option
         tk.Checkbutton(
-            self.root, text="Run with Blank Image", variable=self.options["blank"]
+            material_frame, text="Run with Blank Image", variable=self.options["blank"]
+        ).grid(row=2, column=0, sticky="w")
+
+        tk.Label(material_frame, text="Sources (Position, Heat)").grid(
+            row=3, column=0, sticky="w"
+        )
+        self.sources_frame = tk.Frame(material_frame)
+        self.sources_frame.grid(row=3, column=1, columnspan=4, sticky="w")
+
+        tk.Button(
+            material_frame, text="Add Source", command=self.add_source_row
         ).grid(row=4, column=0, sticky="w")
 
-        # Sources input
-        tk.Label(self.root, text="Sources (Position, Heat)").grid(
-            row=5, column=0, sticky="w"
+        # Solving Section
+        tk.Label(solving_frame, text="Mesh Resolution: Length / [] ").grid(
+            row=0, column=0, sticky="w"
         )
-        self.sources_frame = tk.Frame(self.root)
-        self.sources_frame.grid(row=5, column=1, columnspan=4, sticky="w")
-
-        # Add Source Button
-        tk.Button(
-            self.root, text="Add Source", command=self.add_source_row
-        ).grid(row=6, column=0, sticky="w")
-
-        # Resolution input (as a divider of LENGTH)
-        tk.Label(self.root, text="Mesh Resolution: Length / [] ").grid(
-            row=7, column=0, sticky="w"
-        )
-        tk.Entry(self.root, textvariable=self.options["res"], width=10).grid(
-            row=7, column=1
+        tk.Entry(solving_frame, textvariable=self.options["res"], width=10).grid(
+            row=0, column=1
         )
 
-        # Visualization options
-        tk.Label(self.root, text="Visualization Options").grid(
-            row=8, column=0, sticky="nw"
+        tk.Checkbutton(
+            solving_frame,
+            text="Enable Volume Fraction Control",
+            variable=self.options["vf_enabled"],
+            command=self.toggle_volume_fraction,
+        ).grid(row=1, column=0, sticky="w")
+
+        tk.Label(solving_frame, text="Volume Fraction").grid(
+            row=2, column=0, sticky="w"
         )
-        self.visualize_frame = tk.Frame(self.root)
-        self.visualize_frame.grid(row=8, column=1, sticky="w")
+        self.vf_entry = tk.Entry(solving_frame, textvariable=self.options["vf_value"], width=10)
+        self.vf_entry.grid(row=2, column=1)
+        self.toggle_volume_fraction()
+
+        # Visualization Section
+        tk.Label(visualization_frame, text="Visualization Options").grid(
+            row=0, column=0, sticky="nw"
+        )
+        self.visualize_frame = tk.Frame(visualization_frame)
+        self.visualize_frame.grid(row=0, column=1, sticky="w")
 
         for option in self.visualize_options:
-            self.options["visualize"][option] = tk.BooleanVar(
-                value=(option == "all")
-            )
+            self.options["visualize"][option] = tk.BooleanVar()
             tk.Checkbutton(
                 self.visualize_frame, text=option, variable=self.options["visualize"][option]
             ).pack(anchor="w")
 
-        # Volume Fraction input
-        tk.Label(self.root, text="Volume Fraction").grid(
-            row=9, column=0, sticky="w"
-        )
-        tk.Entry(self.root, textvariable=self.options["vf"], width=10).grid(
-            row=9, column=1
-        )
+        tk.Label(visualization_frame, text="Plotting Mode").grid(row=1, column=0, sticky="w")
 
-        # SSH Mode option
-        tk.Checkbutton(
-            self.root,
-            text="SSH Mode",
-            variable=self.options["ssh_mode"],
-            command=self.update_visualization_options,
-        ).grid(row=10, column=0, sticky="w")
+        tk.Radiobutton(
+            visualization_frame,
+            text="Save Screenshots",
+            variable=self.options["plot_mode"],
+            value="screenshot"
+        ).grid(row=1, column=1, sticky="w")
 
-        # Interactive Visualization option
-        tk.Checkbutton(
-            self.root,
-            text="Interactive Visualization",
-            variable=self.options["interactive_viz"],
-            command=self.update_visualization_options,
-        ).grid(row=11, column=0, sticky="w")
+        tk.Radiobutton(
+            visualization_frame,
+            text="Interactive Plotting",
+            variable=self.options["plot_mode"],
+            value="interactive"
+        ).grid(row=2, column=1, sticky="w")
 
-        # Submit and Generate buttons
-        button_frame = tk.Frame(self.root)
-        button_frame.grid(row=12, column=0, columnspan=2, pady=10)
-
-        # "Run Simulation" button
+        # Buttons Section
         self.run_button = tk.Button(
             button_frame, text="Run Simulation", command=self.run_simulation
         )
         self.run_button.pack(side="left", padx=5)
 
-        # "Generate Command" button
         self.generate_button = tk.Button(
             button_frame, text="Generate Command", command=self.generate_command
         )
@@ -181,13 +196,6 @@ class SimulationConfigGUI:
         source_row["frame"].destroy()
         self.options["sources"].remove(source_row)
 
-    def update_visualization_options(self):
-        # Ensure mutual exclusivity between SSH Mode and Interactive Visualization
-        if self.options["ssh_mode"].get():
-            self.options["interactive_viz"].set(False)
-        elif self.options["interactive_viz"].get():
-            self.options["ssh_mode"].set(False)
-
     def run_simulation(self):
         try:
             # Disable the "Generate Command" button while running the simulation
@@ -219,7 +227,7 @@ class SimulationConfigGUI:
             args = self.get_args()
 
             # Generate the command-line command
-            command = self.generate_command_line(args)
+            command = generate_command_line(args)
 
             # Print the command in the terminal
             print(f"Generated Command: {command}")
@@ -245,9 +253,11 @@ class SimulationConfigGUI:
         # Pass resolution as the divider input
         args.res = self.options["res"].get() if self.options["res"].get() > 0 else None
         args.visualize = self.get_visualize_options()
-        args.vf = self.options["vf"].get()
-        args.ssh_mode = self.options["ssh_mode"].get()
-        args.interactive_viz = self.options["interactive_viz"].get()
+        if self.options["vf_enabled"].get():
+            args.vf = self.options["vf_value"].get()
+        else:
+            args.vf = None  # Disable volume fraction control
+        args.plot_mode = self.options["plot_mode"].get()
 
         return args
 
@@ -273,35 +283,9 @@ class SimulationConfigGUI:
         for option, var in self.options["visualize"].items():
             if var.get():
                 selected_options.append(option)
-        if "all" in selected_options and len(selected_options) > 1:
-            selected_options.remove("all")
         if "none" in selected_options and len(selected_options) > 1:
             raise ValueError("Cannot combine 'none' with other visualization options.")
         return selected_options
-
-    def generate_command_line(self, args):
-        command = "python src/main.py"
-
-        if args.optim:
-            command += " --optim"
-            if args.optimizer:
-                command += f" --optimizer {args.optimizer}"
-        if args.symmetry:
-            command += " --symmetry"
-        if args.blank:
-            command += " --blank"
-        if args.latent and any(args.latent):
-            command += f" --latent {' '.join(map(str, args.latent))}"
-        if args.sources:
-            command += f" --sources {' '.join(map(str, args.sources))}"
-        if args.res:
-            command += f" --res {args.res}"
-        if args.visualize:
-            command += f" --visualize {' '.join(args.visualize)}"
-        if args.vf is not None:
-            command += f" --vf {args.vf}"
-
-        return command
 
     def toggle_optimizer(self):
         """Toggle the visibility of the optimizer selection based on the 'Run Optimization' checkbox."""
@@ -311,6 +295,12 @@ class SimulationConfigGUI:
         else:
             self.optimizer_label.grid_remove()  # Hide the optimizer label
             self.optimizer_menu.grid_remove()   # Hide the optimizer menu
+
+    def toggle_volume_fraction(self):
+        if self.options["vf_enabled"].get():
+            self.vf_entry.config(state="normal")
+        else:
+            self.vf_entry.config(state="disabled")
 
 
 if __name__ == "__main__":

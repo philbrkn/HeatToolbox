@@ -8,17 +8,20 @@ import numpy as np
 from petsc4py import PETSc
 
 # import modules
-# from logging_module import LoggingModule
 from mesh_generator import MeshGenerator
 from vae_module import load_vae_model, VAE, Flatten, UnFlatten
 from image_processing import z_to_img
 from optimization_module import BayesianModule, CMAESModule
 from post_processing import PostProcessingModule
 from solver_module import Solver
+from logging_module import LoggingModule
+# from utils import generate_command_line
 
 
 class SimulationConfig:
     def __init__(self, args):
+        self.args = args
+
         # Physical properties
         self.C = PETSc.ScalarType(1.0)  # Slip parameter for fully diffusive boundaries
         self.T_ISO = PETSc.ScalarType(0.0)  # Isothermal temperature, K
@@ -28,13 +31,10 @@ class SimulationConfig:
         self.KNUDSEN = 1  # Knudsen number, adjust as necessary
 
         # Volume fraction
-        if args.vf < 0:
+        if args.vf is None:
             self.vol_fraction = None
-        elif args.vf:
-            self.vol_fraction = args.vf
         else:
-            self.vol_fraction = 0.2  # Default to 20%
-
+            self.vol_fraction = args.vf
         # Geometric properties
         self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN  # Characteristic length, L
         # Base rectangle:
@@ -67,13 +67,16 @@ class SimulationConfig:
                 )
             # Group the list into pairs
             sources_pairs = [
-                (args.sources[i], args.sources[i + 1]) for i in range(0, len(args.sources), 2)
+                (args.sources[i], args.sources[i + 1])
+                for i in range(0, len(args.sources), 2)
             ]
             self.source_positions = []
             self.Q_sources = []
             for pos, Q in sources_pairs:
                 if pos < 0 or pos > 1:
-                    raise ValueError("Source positions must be between 0 and 1 (normalized).")
+                    raise ValueError(
+                        "Source positions must be between 0 and 1 (normalized)."
+                    )
                 self.source_positions.append(pos)
                 self.Q_sources.append(PETSc.ScalarType(Q))
             # Sort the sources by position
@@ -110,6 +113,7 @@ class SimulationConfig:
         self.optimizer = args.optimizer
         self.latent = args.latent
         self.blank = args.blank
+        self.plot_mode = args.plot_mode
 
 
 def main(config):
@@ -117,6 +121,9 @@ def main(config):
     comm = MPI.COMM_WORLD
     rank = MPI.COMM_WORLD.rank
     model = load_vae_model(rank)
+
+    # Initialize logging module
+    logger = LoggingModule(config)
 
     # Mesh generation
     mesh_generator = MeshGenerator(config)
@@ -133,10 +140,14 @@ def main(config):
     if config.optim:
         # Run optimization
         if config.optimizer == "cmaes":
-            optimizer = CMAESModule(solver, model, torch.device("cpu"), rank, config)
+            optimizer = CMAESModule(
+                solver, model, torch.device("cpu"), rank, config, logger=logger
+            )
             best_z_list = optimizer.optimize(n_iter=100)  # Adjust iterations as needed
         elif config.optimizer == "bayesian":
-            optimizer = BayesianModule(solver, model, torch.device("cpu"), rank, config)
+            optimizer = BayesianModule(
+                solver, model, torch.device("cpu"), rank, config, logger=logger
+            )
             best_z_list = optimizer.optimize(init_points=10, n_iter=100)
 
         latent_vectors = best_z_list
@@ -157,7 +168,9 @@ def main(config):
             except FileNotFoundError:
                 # If no file exists, use default latent vectors
                 # One latent vector per source
-                latent_vectors = [np.array([0.8019, 1.0, -0.5918, 0.4979])] * len(config.source_positions)
+                latent_vectors = [np.array([0.8019, 1.0, -0.5918, 0.4979])] * len(
+                    config.source_positions
+                )
                 print("No saved latent vectors found. Using default latent vectors.")
         else:
             latent_vectors = None
@@ -184,7 +197,7 @@ def main(config):
     img_list = MPI.COMM_WORLD.bcast(img_list, root=0)
 
     if "pregamma" in config.visualize:
-        plot_image_list(img_list)
+        plot_image_list(img_list, config)
 
     # Solve the image using the solver
     avg_temp_global = solver.solve_image(img_list)
@@ -198,6 +211,23 @@ def main(config):
         post_processor = PostProcessingModule(rank, config)
         post_processor.postprocess_results(solver.U, solver.msh, solver.gamma)
 
+    if config.optim:
+        # After optimization completes
+        final_results = {
+            "average_temperature": avg_temp_global,  # Replace with actual metric
+            "best_latent_vector": best_z_list  # Best solution from the optimizer
+        }
+        if logger:
+            logger.log_results(final_results)
+    else:
+        # Results if running without optimization
+        results = {
+            "average_temperature": avg_temp_global,
+            "runtime": time2 - time1
+        }
+        if logger:
+            logger.log_results(results)
+
 
 def parse_arguments():
     # Command-line arguments to determine the modes
@@ -207,7 +237,7 @@ def parse_arguments():
         "--optimizer",
         choices=["cmaes", "bayesian"],
         default="bayesian",
-        help="Choose between 'cmaes' or 'bayesian' optimization (default: bayesian)."
+        help="Choose between 'cmaes' or 'bayesian' optimization (default: bayesian).",
     )
     parser.add_argument(
         "--latent",
@@ -239,8 +269,7 @@ def parse_arguments():
         "--visualize",
         nargs="*",
         type=str,
-        default=["all"],
-        choices=["none", "gamma", "temperature", "flux", "all", "pregamma"],
+        choices=["gamma", "temperature", "flux", "profiles", "pregamma"],
         help=(
             "Specify what to visualize. Options: "
             "'none' (no visualization), 'gamma', 'temperature', 'flux', 'profiles', 'all' "
@@ -251,23 +280,32 @@ def parse_arguments():
         "--vf",
         type=float,
         default=0.2,
-        help=("Set the desired volume fraction (default: 0.2)."
-              "Negative means no volume fraction control."),
+        help=(
+            "Set the desired volume fraction (default: 0.2)."
+            "Negative means no volume fraction control."
+        ),
     )
-
+    parser.add_argument(
+        "--plot-mode",
+        choices=["screenshot", "interactive"],
+        default="screenshot",
+        help="Choose between 'screenshot' (save plots) or 'interactive' (display plots)."
+    )
     return parser.parse_args()
 
 
 # plot image list function
-def plot_image_list(img_list):
+def plot_image_list(img_list, config):
     import matplotlib.pyplot as plt
 
     fig, axs = plt.subplots(1, len(img_list), figsize=(15, 5))
     for i, img in enumerate(img_list):
         axs[i].imshow(img, cmap="gray")
         axs[i].axis("off")
-    # save to a file
-    plt.savefig("image_list.png")
+    if config.plot_mode == 'screenshot':
+        plt.savefig("image_list.png")
+    else:
+        plt.show()
 
 
 if __name__ == "__main__":
@@ -276,5 +314,6 @@ if __name__ == "__main__":
 
     # Initialize configuration
     config = SimulationConfig(args)
+    # Save the command-line command and configurations
 
     main(config)
