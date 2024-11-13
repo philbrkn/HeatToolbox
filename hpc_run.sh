@@ -12,7 +12,7 @@ cp -r $HOME/BTE-NO $TMPDIR/
 cd $TMPDIR/BTE-NO
 
 # Run application. use timeout to properly close script
-timeout 7.9h python src/main.py --latent-method random --sources 0.5 50.0 --res 12.0 --vf 0.2
+timeout 1.9ch python src/main.py --optim --optimizer cmaes --latent-method preloaded --sources 0.5 50.0 --res 12.0 --vf 0.2
 # Outputting everything to file. useful info is in log file
 
 # Copy required files back

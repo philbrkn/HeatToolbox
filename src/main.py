@@ -103,7 +103,10 @@ class SimulationConfig:
             self.mask_extrusion = False
 
         # Parse visualize argument
-        self.visualize = args.visualize
+        if args.visualize is None:
+            self.visualize = []
+        else:
+            self.visualize = args.visualize
         # set plot mode only if it exists
         self.plot_mode = args.plot_mode if hasattr(args, "plot_mode") else None
         self.optim = args.optim

@@ -1,12 +1,15 @@
 # post_processing.py
 
 import numpy as np
-import pyvista as pv
 from dolfinx import fem, la, plot, geometry
 import matplotlib.pyplot as plt
 import ufl
-from mpi4py import MPI
+# from mpi4py import MPI
 import os
+try:
+    import pyvista as pv
+except ImportError:
+    pv = None
 
 class PostProcessingModule:
     def __init__(self, rank, config, logger=None):
