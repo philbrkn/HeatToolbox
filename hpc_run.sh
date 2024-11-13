@@ -1,20 +1,19 @@
 #!/bin/bash
-#PBS -l walltime=08:00:00
-#PBS -l select=1:ncpus=20:mem=12gb:ngpus=1:gpu_type=RTX6000
+#PBS -l select=1:ncpus=4:mem=8gb
+#PBS -l walltime=02:00:00
 
 module load tools/prod
 eval "$(~/miniforge3/bin/conda shell.bash hook)"
-conda activate fenics2018
+conda activate fenicsx_torch
   
 # Copy input file to $TMPDIR
-cp -r $HOME/GAOpt $TMPDIR/
+cp -r $HOME/BTE-NO $TMPDIR/
 
-cd $TMPDIR/GAOpt
-# cd $PBS_O_WORKDIR/GAOpt
+cd $TMPDIR/BTE-NO
 
 # Run application. use timeout to properly close script
-timeout 7.9h python optim_main.py  > logs/printoutputflux
+timeout 7.9h python src/main.py --latent-method random --sources 0.5 50.0 --res 12.0 --vf 0.2
 # Outputting everything to file. useful info is in log file
 
 # Copy required files back
-cp $TMPDIR/GAOpt/logs/* $HOME/GAOpt/logs/
+cp $TMPDIR/BTE-NO/logs/* $HOME/BTE-NO/logs/

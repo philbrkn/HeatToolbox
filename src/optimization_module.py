@@ -8,73 +8,100 @@ import numpy as np
 from image_processing import z_to_img
 
 # external optimizers:
-from bayes_opt import BayesianOptimization
-from cmaes import CMA
+# implement: only import if you want to use them
+try:
+    from bayes_opt import BayesianOptimization
+except ImportError:
+    BayesianOptimization = None
+import cma
 
 
 class CMAESModule:
-    def __init__(self, solver, model, device, rank, config, logger=None):
-        self.logger = logger
+    def __init__(self, solver, model, device, config, logger=None):
+        """
+        Initialize the CMAESModule.
+
+        Parameters:
+        - solver: An instance of your solver class that can evaluate a solution.
+        - model: The VAE model used for decoding latent vectors to images.
+        - device: The device (CPU or GPU) to run computations on.
+        - config: The simulation configuration containing settings and parameters.
+        - logger: Optional logger instance for logging optimization progress.
+        """
+        self.solver = solver
         self.model = model
         self.device = device
-        self.rank = rank
-        self.solver = solver
         self.config = config
-        self.N_sources = len(config.source_positions)
+        self.logger = logger
 
-    def evaluate(self, latent_vectors):
-        if self.rank == 0:
-            img_list = []
-            for z in latent_vectors:
-                img = z_to_img(z.reshape(1, -1), self.model, self.config.vol_fraction)
-                # Apply symmetry if enabled
-                if self.config.symmetry:
-                    img = img[:, : img.shape[1] // 2]
-                img_list.append(img)
+        # Initialize CMA-ES parameters
+        self.init_z = np.zeros(self.config.latent_size)  # Initial latent vector
+        self.sigma0 = 0.5  # Initial standard deviation
+
+    def evaluate_candidate(self, z):
+        """
+        Evaluate a candidate solution.
+
+        Parameters:
+        - z: The latent vector representing the candidate solution.
+
+        Returns:
+        - fitness: The fitness value of the candidate (e.g., average temperature).
+        """
+        # Decode the latent vector to an image
+        if self.config.blank:
+            img = np.zeros((128, 128))
         else:
-            img_list = None
+            img = self.model.decode(torch.tensor(z, dtype=torch.float32).unsqueeze(0)).cpu().detach().numpy()[0, 0]
 
-        # Solve the images
-        obj = self.solver.solve_image(img_list)
-        # Return the objective function value (minimize objective)
-        return obj
+        # Solve the problem using the solver with the generated image
+        fitness = self.solver.solve_image([img])
+
+        return fitness
 
     def optimize(self, n_iter=100):
-        # Initial mean and sigma for the latent vectors
-        mean = np.zeros(4 * self.N_sources)  # Assuming 4 latent variables per source
-        sigma = 0.5  # Standard deviation
-        optimizer = CMA(mean=mean, sigma=sigma)
+        """
+        Run the CMA-ES optimization.
+
+        Parameters:
+        - n_iter: Number of iterations to run the optimization.
+
+        Returns:
+        - best_z: The best latent vector found during optimization.
+        """
+        # Initialize CMA-ES optimizer
+        es = cma.CMAEvolutionStrategy(self.init_z, self.sigma0)
 
         for generation in range(n_iter):
-            solutions = []
-            for _ in range(optimizer.population_size):
-                x = optimizer.ask()  # Generate a new solution (latent vector)
-                latent_vectors = [
-                    x[i * 4: (i + 1) * 4] for i in range(self.N_sources)
-                ]  # Split latent vectors per source
-                value = self.evaluate(latent_vectors)  # Evaluate the latent vectors
-                solutions.append((x, value))  # Append solution and its value
+            # Ask for candidate solutions
+            candidate_solutions = es.ask()
 
-            optimizer.tell(solutions)  # Update optimizer
+            # Evaluate each candidate solution
+            fitnesses = []
+            for z in candidate_solutions:
+                fitness = self.evaluate_candidate(z)
+                fitnesses.append(fitness)
 
-            if self.rank == 0:
-                best_solution = min(solutions, key=lambda s: s[1])
-                generation_data = {
-                    "best_value": best_solution[1],
-                    "best_solution": best_solution[
-                        0
-                    ].tolist(),  # Convert numpy array to list
-                }
-                if self.logger:
-                    self.logger.log_generation_data(generation, generation_data)
-                print(f"Generation {generation}, Best value: {best_solution[1]}")
+            # Tell CMA-ES the fitnesses of the candidates
+            es.tell(candidate_solutions, fitnesses)
 
-        # Extract best latent vectors after optimization
-        best_latent_vector = optimizer.ask()
-        best_z_list = [
-            best_latent_vector[i * 4: (i + 1) * 4] for i in range(self.N_sources)
-        ]
-        return best_z_list
+            # Logging and displaying progress
+            es.disp()
+            if self.logger:
+                self.logger.log_generation_data(generation, {'fitnesses': fitnesses})
+
+        # Get the best solution found
+        result = es.result
+        best_z = result.xbest  # Best latent vector
+        best_fitness = result.fbest  # Best fitness value
+
+        if self.logger:
+            self.logger.log_results({
+                'best_z': best_z.tolist(),
+                'best_fitness': best_fitness
+            })
+
+        return best_z
 
 
 class BayesianModule:
