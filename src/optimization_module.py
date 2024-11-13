@@ -87,11 +87,13 @@ class CMAESModule:
 
             # Evaluate each candidate solution
             fitnesses = []
-            # Split latent vectors per source
-            for i in range(self.N_sources):
-                latent_vectors = np.array(candidate_solutions[i * self.z_dim: (i + 1) * self.z_dim])
-            fitness = self.evaluate_candidate(latent_vectors)
-            fitnesses.append(fitness)
+            for x in candidate_solutions:
+                # Split latent vectors per source
+                latent_vectors = [
+                    x[i * self.z_dim: (i + 1) * self.z_dim] for i in range(self.N_sources)
+                ]  # Split latent vectors per source
+                fitness = self.evaluate_candidate(latent_vectors)
+                fitnesses.append(fitness)
 
             # Tell CMA-ES the fitnesses of the candidates
             es.tell(candidate_solutions, fitnesses)
