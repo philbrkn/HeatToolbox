@@ -16,7 +16,8 @@ def load_vae_model(rank):
     if rank == 0:
         model = VAE()
         # model = torch.load("./model/model", map_location=torch.device("cpu"))
-        model = torch.load("VAEs/models/128latent4epochs200Alldict", map_location=torch.device("cpu"))
+        model_path = "VAEs/models/128latent4epochs200Alldict"
+        model.load_state_dict(torch.load(model_path, map_location=device))
         model.eval()
     else:
         model = None

@@ -18,7 +18,9 @@ class SimulationConfigGUI:
         self.options = {
             "optim": tk.BooleanVar(),
             "optimizer": tk.StringVar(value="cmaes"),  # Default is bayesian
-            "latent": [tk.DoubleVar() for _ in range(4)],
+            "latent_size": tk.IntVar(value=4),  # New: latent vector size
+            "latent_method": tk.StringVar(value="preloaded"),  # New: latent vector method
+            "latent": [],  # Update: will be initialized based on latent size
             "symmetry": tk.BooleanVar(),
             "blank": tk.BooleanVar(),
             "sources": [],  # List to hold source entries
@@ -27,7 +29,10 @@ class SimulationConfigGUI:
             "vf_enabled": tk.BooleanVar(value=True),
             "vf_value": tk.DoubleVar(value=0.2),
             "plot_mode": tk.StringVar(value="screenshot"),  # 'screenshot' or 'interactive'
+            "logging_enabled": tk.BooleanVar(value=True),  # Default is logging enabled
         }
+
+        self.options["latent"] = [tk.DoubleVar() for _ in range(4)]
 
         # Visualization options
         self.visualize_options = ["gamma", "temperature", "flux", "profiles", "pregamma"]
@@ -75,33 +80,52 @@ class SimulationConfigGUI:
         self.optimizer_menu.grid_remove()
 
         # Material Topology Section
-        tk.Label(material_frame, text="Latent Values (z1, z2, z3, z4)").grid(
-            row=0, column=0, sticky="w"
-        )
-        latent_frame = tk.Frame(material_frame)
-        latent_frame.grid(row=0, column=1, columnspan=4)
-        for i in range(4):
-            tk.Entry(
-                latent_frame, textvariable=self.options["latent"][i], width=5
-            ).grid(row=0, column=i)
+        # Add latent size option
+        tk.Label(material_frame, text="Latent Size").grid(row=0, column=0, sticky="w")
+        tk.OptionMenu(
+            material_frame,
+            self.options["latent_size"],
+            2, 4, 8, 16,
+            command=self.update_latent_size  # Callback to update latent variables
+        ).grid(row=0, column=1, sticky="w")
 
+        # Add latent method option
+        tk.Label(material_frame, text="Latent Method").grid(row=1, column=0, sticky="w")
+        tk.OptionMenu(
+            material_frame,
+            self.options["latent_method"],
+            "manual", "random", "preloaded",
+            command=self.update_latent_method  # Callback to update latent entry fields
+        ).grid(row=1, column=1, sticky="w")
+
+        # Latent Values Entry (will be updated based on latent size and method)
+        self.latent_frame = tk.Frame(material_frame)
+        self.latent_frame.grid(row=2, column=0, columnspan=2, sticky="w")
+        self.update_latent_entries()  # Initialize latent entries
+
+        # "Enable Symmetry" Checkbutton (moved to row 3)
         tk.Checkbutton(
             material_frame, text="Enable Symmetry", variable=self.options["symmetry"]
-        ).grid(row=1, column=0, sticky="w")
+        ).grid(row=3, column=0, sticky="w")
 
+        # "Run with Blank Image" Checkbutton (moved to row 4)
         tk.Checkbutton(
             material_frame, text="Run with Blank Image", variable=self.options["blank"]
-        ).grid(row=2, column=0, sticky="w")
+        ).grid(row=4, column=0, sticky="w")
 
+        # "Sources (Position, Heat)" Label (moved to row 5)
         tk.Label(material_frame, text="Sources (Position, Heat)").grid(
-            row=3, column=0, sticky="w"
+            row=5, column=0, sticky="w"
         )
-        self.sources_frame = tk.Frame(material_frame)
-        self.sources_frame.grid(row=3, column=1, columnspan=4, sticky="w")
 
+        # Sources Frame (moved to row 6)
+        self.sources_frame = tk.Frame(material_frame)
+        self.sources_frame.grid(row=6, column=1, columnspan=4, sticky="w")
+
+        # "Add Source" Button (moved to row 7)
         tk.Button(
             material_frame, text="Add Source", command=self.add_source_row
-        ).grid(row=4, column=0, sticky="w")
+        ).grid(row=7, column=0, sticky="w")
 
         # Solving Section
         tk.Label(solving_frame, text="Mesh Resolution: Length / [] ").grid(
@@ -124,6 +148,13 @@ class SimulationConfigGUI:
         self.vf_entry = tk.Entry(solving_frame, textvariable=self.options["vf_value"], width=10)
         self.vf_entry.grid(row=2, column=1)
         self.toggle_volume_fraction()
+
+        # Logging Toggle
+        tk.Checkbutton(
+            solving_frame,
+            text="Enable Logging",
+            variable=self.options["logging_enabled"],
+        ).grid(row=3, column=0, sticky="w")
 
         # Visualization Section
         tk.Label(visualization_frame, text="Visualization Options").grid(
@@ -253,7 +284,6 @@ class SimulationConfigGUI:
 
         args = Args()
         args.optim = self.options["optim"].get()
-        args.latent = [val.get() for val in self.options["latent"]]
         args.optimizer = self.options["optimizer"].get()
         args.symmetry = self.options["symmetry"].get()
         args.blank = self.options["blank"].get()
@@ -267,6 +297,13 @@ class SimulationConfigGUI:
             args.vf = None  # Disable volume fraction control
         if args.visualize:
             args.plot_mode = self.options["plot_mode"].get()
+        args.latent_size = self.options["latent_size"].get()
+        args.latent_method = self.options["latent_method"].get()
+        if args.latent_method == "manual":
+            args.latent = [val.get() for val in self.options["latent"]]
+        else:
+            args.latent = None  # Latent vector will be handled based on method
+        args.no_logging = not self.options["logging_enabled"].get()
 
         return args
 
@@ -320,6 +357,38 @@ class SimulationConfigGUI:
             self.plot_mode_frame.grid()  # Show the plotting mode options
         else:
             self.plot_mode_frame.grid_remove()  # Hide the plotting mode options
+
+    def update_latent_size(self, *args):
+        """Update the latent variables and entries when the latent size changes."""
+        size = self.options["latent_size"].get()
+        self.options["latent"] = [tk.DoubleVar() for _ in range(size)]
+        self.update_latent_entries()
+
+    def update_latent_method(self, *args):
+        """Update the visibility of latent entries based on the selected method."""
+        self.update_latent_entries()
+
+    def update_latent_entries(self):
+        """Create or update the latent entries based on the latent size and method."""
+        # Clear the current latent entries
+        for widget in self.latent_frame.winfo_children():
+            widget.destroy()
+
+        method = self.options["latent_method"].get()
+        if method == "manual":
+            tk.Label(self.latent_frame, text="Latent Values").grid(row=0, column=0, sticky="w")
+            latent_values_frame = tk.Frame(self.latent_frame)
+            latent_values_frame.grid(row=0, column=1, columnspan=self.options["latent_size"].get())
+            for i in range(self.options["latent_size"].get()):
+                tk.Entry(
+                    latent_values_frame,
+                    textvariable=self.options["latent"][i],
+                    width=5
+                ).grid(row=0, column=i)
+        elif method == "random":
+            tk.Label(self.latent_frame, text="Latent vector will be randomly generated").grid(row=0, column=0, sticky="w")
+        elif method == "preloaded":
+            tk.Label(self.latent_frame, text="Latent vector will be loaded from 'best_latent_vector.npy'").grid(row=0, column=0, sticky="w")
 
 
 if __name__ == "__main__":

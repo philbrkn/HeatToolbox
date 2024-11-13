@@ -6,17 +6,23 @@ from dolfinx import fem, la, plot, geometry
 import matplotlib.pyplot as plt
 import ufl
 from mpi4py import MPI
-
+import os
 
 class PostProcessingModule:
-    def __init__(self, rank, config):
+    def __init__(self, rank, config, logger=None):
         self.rank = rank
         self.config = config
+        self.logger = logger
 
         # If environment variable PYVISTA_OFF_SCREEN is set to true save a png
         # otherwise create interactive plot
 
         # pv.start_xvfb(wait=0.1)
+        # Set off-screen mode for PyVista if plot_mode is "screenshot"
+        # if config.plot_mode == "screenshot":
+        #     pv.OFF_SCREEN = True  # Enable PyVista off-screen rendering
+        # else:
+        #     pv.OFF_SCREEN = False  # Enable interactive PyVista plotting
 
     def postprocess_results(self, U, msh, gamma):
         q, T = U.sub(0).collapse(), U.sub(1).collapse()
@@ -95,7 +101,13 @@ class PostProcessingModule:
         ax.set_xlabel("Position (normalized)")
         ax.set_ylabel("Temperature (T)")
         ax.legend()
-        plt.show()
+        if self.config.plot_mode == "screenshot":
+            if self.logger:
+                self.logger.save_image(fig, "temperature_profiles.png")
+            else:
+                plt.savefig("temperature_profiles.png")
+        else:
+            plt.show()
 
         # PLOT FLUX PROFILES #
         q_x_vals_horiz *= -1  # flip the sign of the flux
@@ -108,7 +120,13 @@ class PostProcessingModule:
         axs[0].set_ylabel("Heat flux vertical [W/m^2]")
         axs[1].set_xlabel("Position (normalized)")
         axs[1].set_ylabel("Heat flux horizontal [W/m^2]")
-        plt.show()
+        if self.config.plot_mode == "screenshot":
+            if self.logger:
+                self.logger.save_image(fig, "temperature_profiles.png")
+            else:
+                plt.savefig("temperature_profiles.png")
+        else:
+            plt.show()
 
         # PLOT CURL AND EFF CONDUCTIVITY PROFILES #
         fig, axs = plt.subplots(1, 2, figsize=(10, 4))
@@ -117,7 +135,13 @@ class PostProcessingModule:
         axs[0].plot(x_vals, curl_vals_horiz, color='red', label="Curl(q) - Horizontal Line")
         axs[0].plot(y_vals, curl_vals_vert, color='blue', label="Curl(q) - Vertical Line")
         axs[1].plot(y_vals, eff_cond_vals, color='blue', label="Effective conductivity - Vertical Line")
-        plt.show()
+        if self.config.plot_mode == "screenshot":
+            if self.logger:
+                self.logger.save_image(fig, "temperature_profiles.png")
+            else:
+                plt.savefig("temperature_profiles.png") 
+        else:
+            plt.show()
 
     def gather_mesh_on_rank0(self, mesh, V, function, root=0):
         """
@@ -203,15 +227,24 @@ class PostProcessingModule:
         plotter = pv.Plotter(off_screen=True)
         plotter.add_mesh(grid, cmap="coolwarm", show_edges=show_edges, clim=clim)
         plotter.view_xy()
-        # if pv.OFF_SCREEN:
-        print("Printing offscreen")
-        plotter.screenshot(
-            "2D_function_warp.png",
-            transparent_background=False,
-            window_size=[1000, 1000],
-        )
-        # else:
-        #     plotter.show()
+        if self.config.plot_mode == "screenshot":
+            if self.logger:
+                filepath = os.path.join(self.logger.log_dir, f"{field_name}_field.png")
+                plotter.screenshot(
+                    filepath,
+                    transparent_background=False,
+                    window_size=[1000, 1000],
+                )
+            else:
+                plotter.screenshot(
+                    f"{field_name}_field.png",
+                    transparent_background=False,
+                    window_size=[1000, 1000],
+                )
+        else:
+            print("Plotting the scalar field interactively.")
+            # Display interactively if interactive mode
+            plotter.show()
 
     def plot_vector_field(self, q, msh):
         gdim = msh.geometry.dim

@@ -106,12 +106,17 @@ class SimulationConfig:
         self.visualize = args.visualize
         if "none" in self.visualize and len(self.visualize) > 1:
             raise ValueError("Cannot combine 'none' with other visualization options.")
-
+        # set plot mode only if it exists
+        self.plot_mode = args.plot_mode if hasattr(args, "plot_mode") else None
         self.optim = args.optim
         self.optimizer = args.optimizer
         self.latent = args.latent
         self.blank = args.blank
-        self.plot_mode = args.plot_mode
+
+        self.latent_size = args.latent_size  # New: size of the latent vector
+        self.latent_method = args.latent_method  # New: method to obtain the latent vector
+
+        self.logging_enabled = not args.no_logging  # Logging is enabled unless --no-logging is used
 
 
 def main(config):
@@ -121,7 +126,10 @@ def main(config):
     model = load_vae_model(rank)
 
     # Initialize logging module
-    logger = LoggingModule(config)
+    if config.logging_enabled:
+        logger = LoggingModule(config)
+    else:
+        logger = None
 
     # Mesh generation
     mesh_generator = MeshGenerator(config)
@@ -156,20 +164,28 @@ def main(config):
     # Run solving based on provided latent vector
     else:
         if rank == 0:
-            # Load best latent vectors from file if available
-            try:
-                best_z_list = np.load("best_latent_vector.npy", allow_pickle=True)
-                print("Opening best vector")
-                # print shape:
-                # Ensure it's a list of arrays
-                latent_vectors = best_z_list
-            except FileNotFoundError:
-                # If no file exists, use default latent vectors
-                # One latent vector per source
-                latent_vectors = [np.array([0.8019, 1.0, -0.5918, 0.4979])] * len(
-                    config.source_positions
-                )
-                print("No saved latent vectors found. Using default latent vectors.")
+            # Handle latent vector based on the selected method
+            latent_vectors = []
+            if config.latent_method == "manual":
+                # Use the latent vector provided in args.latent
+                z = np.array(config.latent)
+                if len(z) != config.latent_size:
+                    raise ValueError(f"Expected latent vector of size {config.latent_size}, got {len(z)}.")
+                latent_vectors = [z] * len(config.source_positions)
+            elif config.latent_method == "random":
+                # Generate random latent vectors
+                for _ in range(len(config.source_positions)):
+                    z = np.random.randn(config.latent_size)
+                    latent_vectors.append(z)
+            elif config.latent_method == "preloaded":
+                # Load latent vectors from file
+                try:
+                    best_z_list = np.load("best_latent_vector.npy", allow_pickle=True)
+                    print("Opening best vector from file")
+                    latent_vectors = best_z_list
+                except FileNotFoundError:
+                    raise FileNotFoundError("No saved latent vectors found. Please provide a valid file.")
+
         else:
             latent_vectors = None
         # Broadcast the latent_vectors list to all ranks
@@ -195,7 +211,7 @@ def main(config):
     img_list = MPI.COMM_WORLD.bcast(img_list, root=0)
 
     if "pregamma" in config.visualize:
-        plot_image_list(img_list, config)
+        plot_image_list(img_list, config, logger=logger)
 
     # Solve the image using the solver
     avg_temp_global = solver.solve_image(img_list)
@@ -206,7 +222,7 @@ def main(config):
 
     # Optional Post-processing
     if "none" not in config.visualize:
-        post_processor = PostProcessingModule(rank, config)
+        post_processor = PostProcessingModule(rank, config, logger=logger)
         post_processor.postprocess_results(solver.U, solver.msh, solver.gamma)
 
     if config.optim:
@@ -289,19 +305,44 @@ def parse_arguments():
         default="screenshot",
         help="Choose between 'screenshot' (save plots) or 'interactive' (display plots)."
     )
+    parser.add_argument(
+        "--latent-size",
+        type=int,
+        choices=[2, 4, 8, 16],
+        default=4,
+        help="Size of the latent vector (2, 4, 8, or 16). Default is 4."
+    )
+    parser.add_argument(
+        "--latent-method",
+        choices=["manual", "random", "preloaded"],
+        default="manual",
+        help="How to obtain the latent vector: 'manual', 'random', or 'preloaded'. Default is 'manual'."
+    )
+    parser.add_argument(
+        "--no-logging",
+        action="store_true",
+        help="Disable logging.",
+    )
     return parser.parse_args()
 
 
 # plot image list function
-def plot_image_list(img_list, config):
+def plot_image_list(img_list, config, logger=None):
     import matplotlib.pyplot as plt
 
     fig, axs = plt.subplots(1, len(img_list), figsize=(15, 5))
-    for i, img in enumerate(img_list):
-        axs[i].imshow(img, cmap="gray")
-        axs[i].axis("off")
+    if len(img_list) == 1:
+        axs.imshow(img_list[0], cmap="gray")
+        axs.axis("off")
+    else:
+        for i, img in enumerate(img_list):
+            axs[i].imshow(img, cmap="gray")
+            axs[i].axis("off")
     if config.plot_mode == 'screenshot':
-        plt.savefig("image_list.png")
+        if logger:
+            logger.save_image(fig, "image_list.png")
+        else:
+            plt.savefig("image_list.png")
     else:
         plt.show()
 
