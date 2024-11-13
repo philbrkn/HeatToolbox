@@ -17,7 +17,7 @@ import cma
 
 
 class CMAESModule:
-    def __init__(self, solver, model, device, config, logger=None):
+    def __init__(self, solver, model, device, rank, config, logger=None):
         """
         Initialize the CMAESModule.
 
@@ -33,12 +33,15 @@ class CMAESModule:
         self.device = device
         self.config = config
         self.logger = logger
+        self.rank = rank
 
+        self.N_sources = len(config.source_positions)
+        self.z_dim = config.latent_size
         # Initialize CMA-ES parameters
-        self.init_z = np.zeros(self.config.latent_size)  # Initial latent vector
+        self.init_z = np.zeros(self.z_dim * self.N_sources)  # Initial latent vector
         self.sigma0 = 0.5  # Initial standard deviation
 
-    def evaluate_candidate(self, z):
+    def evaluate_candidate(self, latent_vectors):
         """
         Evaluate a candidate solution.
 
@@ -49,13 +52,19 @@ class CMAESModule:
         - fitness: The fitness value of the candidate (e.g., average temperature).
         """
         # Decode the latent vector to an image
-        if self.config.blank:
-            img = np.zeros((128, 128))
+        if self.rank == 0:
+            img_list = []
+            for z in latent_vectors:
+                img = z_to_img(z.reshape(1, -1), self.model, self.config.vol_fraction)
+                # Apply symmetry if enabled
+                if self.config.symmetry:
+                    img = img[:, : img.shape[1] // 2]
+                img_list.append(img)
         else:
-            img = self.model.decode(torch.tensor(z, dtype=torch.float32).unsqueeze(0)).cpu().detach().numpy()[0, 0]
+            img_list = None
 
         # Solve the problem using the solver with the generated image
-        fitness = self.solver.solve_image([img])
+        fitness = self.solver.solve_image(img_list)
 
         return fitness
 
@@ -78,17 +87,26 @@ class CMAESModule:
 
             # Evaluate each candidate solution
             fitnesses = []
-            for z in candidate_solutions:
-                fitness = self.evaluate_candidate(z)
-                fitnesses.append(fitness)
+            # Split latent vectors per source
+            for i in range(self.N_sources):
+                latent_vectors = np.array(candidate_solutions[i * self.z_dim: (i + 1) * self.z_dim])
+            fitness = self.evaluate_candidate(latent_vectors)
+            fitnesses.append(fitness)
 
             # Tell CMA-ES the fitnesses of the candidates
             es.tell(candidate_solutions, fitnesses)
+            best_solution = min(fitnesses, key=lambda s: s[1])
+            generation_data = {
+                "best_value": best_solution[1],
+                "best_solution": best_solution[
+                    0
+                ].tolist(),  # Convert numpy array to list
+            }
 
             # Logging and displaying progress
             es.disp()
             if self.logger:
-                self.logger.log_generation_data(generation, {'fitnesses': fitnesses})
+                self.logger.log_generation_data(generation_data)
 
         # Get the best solution found
         result = es.result

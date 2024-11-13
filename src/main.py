@@ -104,8 +104,6 @@ class SimulationConfig:
 
         # Parse visualize argument
         self.visualize = args.visualize
-        if "none" in self.visualize and len(self.visualize) > 1:
-            raise ValueError("Cannot combine 'none' with other visualization options.")
         # set plot mode only if it exists
         self.plot_mode = args.plot_mode if hasattr(args, "plot_mode") else None
         self.optim = args.optim
