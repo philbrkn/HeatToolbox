@@ -50,7 +50,7 @@ class CMAESModule:
             for _ in range(optimizer.population_size):
                 x = optimizer.ask()  # Generate a new solution (latent vector)
                 latent_vectors = [
-                    x[i * 4 : (i + 1) * 4] for i in range(self.N_sources)
+                    x[i * 4: (i + 1) * 4] for i in range(self.N_sources)
                 ]  # Split latent vectors per source
                 value = self.evaluate(latent_vectors)  # Evaluate the latent vectors
                 solutions.append((x, value))  # Append solution and its value
@@ -66,13 +66,13 @@ class CMAESModule:
                     ].tolist(),  # Convert numpy array to list
                 }
                 if self.logger:
-                    self.logger.log_generation_data(generation_data)
+                    self.logger.log_generation_data(generation, generation_data)
                 print(f"Generation {generation}, Best value: {best_solution[1]}")
 
         # Extract best latent vectors after optimization
         best_latent_vector = optimizer.ask()
         best_z_list = [
-            best_latent_vector[i * 4 : (i + 1) * 4] for i in range(self.N_sources)
+            best_latent_vector[i * 4: (i + 1) * 4] for i in range(self.N_sources)
         ]
         return best_z_list
 

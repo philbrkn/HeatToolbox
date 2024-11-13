@@ -1,0 +1,17 @@
+{
+    "optim": true,
+    "latent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "optimizer": "cmaes",
+    "symmetry": false,
+    "blank": false,
+    "sources": null,
+    "res": 12.0,
+    "visualize": [],
+    "vf": 0.2,
+    "plot_mode": "screenshot"
+}

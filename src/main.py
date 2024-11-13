@@ -104,8 +104,6 @@ class SimulationConfig:
 
         # Parse visualize argument
         self.visualize = args.visualize
-        if "all" in self.visualize and len(self.visualize) > 1:
-            self.visualize.remove("all")
         if "none" in self.visualize and len(self.visualize) > 1:
             raise ValueError("Cannot combine 'none' with other visualization options.")
 

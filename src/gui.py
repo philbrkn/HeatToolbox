@@ -17,12 +17,12 @@ class SimulationConfigGUI:
         # Command-line equivalent options
         self.options = {
             "optim": tk.BooleanVar(),
-            "optimizer": tk.StringVar(value="bayesian"),  # Default is bayesian
+            "optimizer": tk.StringVar(value="cmaes"),  # Default is bayesian
             "latent": [tk.DoubleVar() for _ in range(4)],
             "symmetry": tk.BooleanVar(),
             "blank": tk.BooleanVar(),
             "sources": [],  # List to hold source entries
-            "res": tk.DoubleVar(),
+            "res": tk.DoubleVar(value=12),
             "visualize": {},  # Dictionary to hold visualization options
             "vf_enabled": tk.BooleanVar(value=True),
             "vf_value": tk.DoubleVar(value=0.2),
@@ -135,20 +135,28 @@ class SimulationConfigGUI:
         for option in self.visualize_options:
             self.options["visualize"][option] = tk.BooleanVar()
             tk.Checkbutton(
-                self.visualize_frame, text=option, variable=self.options["visualize"][option]
+                self.visualize_frame,
+                text=option,
+                variable=self.options["visualize"][option],
+                command=self.update_plot_mode_visibility  # Attach callback
             ).pack(anchor="w")
 
         tk.Label(visualization_frame, text="Plotting Mode").grid(row=1, column=0, sticky="w")
 
+        # Plotting Mode Section (initially hidden)
+        self.plot_mode_frame = tk.Frame(visualization_frame)
+        self.plot_mode_frame.grid(row=1, column=1, sticky="w")
+        self.plot_mode_frame.grid_remove()  # Hide initially
+
         tk.Radiobutton(
-            visualization_frame,
+            self.plot_mode_frame,
             text="Save Screenshots",
             variable=self.options["plot_mode"],
             value="screenshot"
         ).grid(row=1, column=1, sticky="w")
 
         tk.Radiobutton(
-            visualization_frame,
+            self.plot_mode_frame,
             text="Interactive Plotting",
             variable=self.options["plot_mode"],
             value="interactive"
@@ -257,7 +265,8 @@ class SimulationConfigGUI:
             args.vf = self.options["vf_value"].get()
         else:
             args.vf = None  # Disable volume fraction control
-        args.plot_mode = self.options["plot_mode"].get()
+        if args.visualize:
+            args.plot_mode = self.options["plot_mode"].get()
 
         return args
 
@@ -301,6 +310,16 @@ class SimulationConfigGUI:
             self.vf_entry.config(state="normal")
         else:
             self.vf_entry.config(state="disabled")
+
+    def update_plot_mode_visibility(self):
+        """Show or hide the plot mode options based on visualization selections."""
+        # Check if any visualization option is selected
+        any_selected = any(var.get() for var in self.options["visualize"].values())
+
+        if any_selected:
+            self.plot_mode_frame.grid()  # Show the plotting mode options
+        else:
+            self.plot_mode_frame.grid_remove()  # Hide the plotting mode options
 
 
 if __name__ == "__main__":

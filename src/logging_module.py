@@ -13,6 +13,18 @@ class LoggingModule:
         self.config = config
         self.log_dir = "logs"
 
+        # Generate a unique directory name based on date, time, optimizer, and source count
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        optimizer = config.optimizer if hasattr(config, "optimizer") else "unknown"
+        num_sources = (
+            len(config.source_positions)
+            if hasattr(config, "source_positions")
+            else "unknown"
+        )
+
+        # Create a directory for logs, e.g., logs/20240101_123456_optimizer_cmaes_sources_3
+        self.log_dir = f"logs/{timestamp}_optimizer_{optimizer}_sources_{num_sources}"
+
         # Create a directory for logs if it doesn’t exist
         if self.rank == 0:
             os.makedirs(self.log_dir, exist_ok=True)
