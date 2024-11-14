@@ -14,6 +14,7 @@ try:
 except ImportError:
     BayesianOptimization = None
 import cma
+from mpi4py import MPI
 
 
 class CMAESModule:
@@ -34,6 +35,9 @@ class CMAESModule:
         self.config = config
         self.logger = logger
         self.rank = rank
+
+        self.comm = MPI.COMM_WORLD
+        self.size = self.comm.Get_size()  # Total number of MPI processes
 
         self.N_sources = len(config.source_positions)
         self.z_dim = config.latent_size
