@@ -97,18 +97,23 @@ class CMAESModule:
 
             # Tell CMA-ES the fitnesses of the candidates
             es.tell(candidate_solutions, fitnesses)
-            best_solution = min(fitnesses, key=lambda s: s[1])
+
+            # Pair each candidate solution with its fitness
+            results = list(zip(candidate_solutions, fitnesses))
+
+            # Find the candidate with the minimum fitness
+            best_solution, min_fitness = min(results, key=lambda s: s[1])
+
+            # Prepare generation data for logging
             generation_data = {
-                "best_value": best_solution[1],
-                "best_solution": best_solution[
-                    0
-                ].tolist(),  # Convert numpy array to list
+                "best_value": min_fitness,
+                "best_solution": best_solution.tolist(),  # Convert numpy array to list
             }
 
             # Logging and displaying progress
             es.disp()
             if self.logger:
-                self.logger.log_generation_data(generation_data)
+                self.logger.log_generation_data(generation, generation_data)
 
         # Get the best solution found
         result = es.result

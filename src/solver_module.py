@@ -181,14 +181,14 @@ class Solver:
             L.scale(-1)
 
             # Apply boundary conditions
-            fem.petsc.apply_lifting(L, [jacobian], [[self.bc0]], x0=[self.U.vector], scale=1)
-            fem.petsc.set_bc(L, [self.bc0], self.U.vector, 1.0)
+            fem.petsc.apply_lifting(L, [jacobian], [[self.bc0]], x0=[self.U.x.petsc_vec], alpha=1)
+            fem.petsc.set_bc(L, [self.bc0], self.U.x.petsc_vec, 1.0)
             L.ghostUpdate(
                 addv=PETSc.InsertMode.INSERT_VALUES, mode=PETSc.ScatterMode.FORWARD
             )
 
             # Solve linear problem
-            solver.solve(L, du.vector)
+            solver.solve(L, du.x.petsc_vec)
             du.x.scatter_forward()
 
             # Update solution
@@ -196,7 +196,7 @@ class Solver:
             i += 1
 
             # Check convergence
-            correction_norm = du.vector.norm(0)
+            correction_norm = du.x.petsc_vec.norm(0)
             if correction_norm < 1e-5:
                 break
 
