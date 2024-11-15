@@ -6,6 +6,7 @@ from mpi4py import MPI
 import argparse
 import numpy as np
 from petsc4py import PETSc
+import dolfinx.io
 
 # import modules
 from mesh_generator import MeshGenerator
@@ -127,25 +128,26 @@ def main(config):
     model = load_vae_model(rank)
 
     # Initialize logging module
-    if config.logging_enabled:
-        logger = LoggingModule(config)
-    else:
-        logger = None
+    logger = LoggingModule(config) if config.logging_enabled else None
 
     # Mesh generation
     mesh_generator = MeshGenerator(config)
-    if config.symmetry:
-        msh, cell_markers, facet_markers = mesh_generator.sym_create_mesh()
-    else:
-        msh, cell_markers, facet_markers = mesh_generator.create_mesh()
-
     time1 = MPI.Wtime()
 
     # Create solver instance
+    # solver = Solver(msh, facet_markers, config)
+    if config.symmetry:
+        msh, cell_markers, facet_markers = mesh_generator.sym_create_mesh()
+    else:
+        # msh, cell_markers, facet_markers = mesh_generator.create_mesh()
+        msh, cell_markers, facet_markers = dolfinx.io.gmshio.read_from_msh("domain_with_extrusions.msh", MPI.COMM_SELF)
+    print("test)")
     solver = Solver(msh, facet_markers, config)
 
+    print("Starting CMA-ES optimization...")
     if config.optim:
         # Run optimization
+        optimizer = None
         if config.optimizer == "cmaes":
             optimizer = CMAESModule(
                 solver, model, torch.device("cpu"), rank, config, logger=logger
@@ -164,56 +166,44 @@ def main(config):
 
     # Run solving based on provided latent vector
     else:
-        if rank == 0:
-            # Handle latent vector based on the selected method
-            latent_vectors = []
-            if config.latent_method == "manual":
-                # Use the latent vector provided in args.latent
-                z = np.array(config.latent)
-                if len(z) != config.latent_size:
-                    raise ValueError(f"Expected latent vector of size {config.latent_size}, got {len(z)}.")
-                latent_vectors = [z] * len(config.source_positions)
-            elif config.latent_method == "random":
-                # Generate random latent vectors
-                for _ in range(len(config.source_positions)):
-                    z = np.random.randn(config.latent_size)
-                    latent_vectors.append(z)
-            elif config.latent_method == "preloaded":
-                # Load latent vectors from file
-                try:
-                    best_z_list = np.load("best_latent_vector.npy", allow_pickle=True)
-                    print("Opening best vector from file")
-                    latent_vectors = best_z_list
-                except FileNotFoundError:
-                    raise FileNotFoundError("No saved latent vectors found. Please provide a valid file.")
-
-        else:
-            latent_vectors = None
-        # Broadcast the latent_vectors list to all ranks
-        latent_vectors = comm.bcast(latent_vectors, root=0)
+        # Handle latent vector based on the selected method
+        latent_vectors = []
+        if config.latent_method == "manual":
+            # Use the latent vector provided in args.latent
+            z = np.array(config.latent)
+            if len(z) != config.latent_size:
+                raise ValueError(f"Expected latent vector of size {config.latent_size}, got {len(z)}.")
+            latent_vectors = [z] * len(config.source_positions)
+        elif config.latent_method == "random":
+            # Generate random latent vectors
+            for _ in range(len(config.source_positions)):
+                z = np.random.randn(config.latent_size)
+                latent_vectors.append(z)
+        elif config.latent_method == "preloaded":
+            # Load latent vectors from file
+            try:
+                best_z_list = np.load("best_latent_vector.npy", allow_pickle=True)
+                print("Opening best vector from file")
+                latent_vectors = best_z_list
+            except FileNotFoundError:
+                raise FileNotFoundError("No saved latent vectors found. Please provide a valid file.")
 
     # Generate image from latent vector
-    if rank == 0:
-        img_list = []
-        for z in latent_vectors:
-            if config.blank:
-                img = np.zeros((128, 128))
-            else:
-                # Ensure z is reshaped correctly if needed
-                img = z_to_img(z.reshape(1, -1), model, config.vol_fraction)
-            img_list.append(img)
+    img_list = []
+    for z in latent_vectors:
+        if config.blank:
+            img = np.zeros((128, 128))
+        else:
+            # Ensure z is reshaped correctly if needed
+            img = z_to_img(z.reshape(1, -1), model, config.vol_fraction)
+        img_list.append(img)
 
-        # Apply symmetry to each image if enabled
-        if config.symmetry:
-            img_list = [img[:, : img.shape[1] // 2] for img in img_list]
-    else:
-        img_list = None
-
-    img_list = MPI.COMM_WORLD.bcast(img_list, root=0)
+    # Apply symmetry to each image if enabled
+    if config.symmetry:
+        img_list = [img[:, : img.shape[1] // 2] for img in img_list]
 
     if "pregamma" in config.visualize:
         plot_image_list(img_list, config, logger=logger)
-
     # Solve the image using the solver
     avg_temp_global = solver.solve_image(img_list)
     time2 = MPI.Wtime()

@@ -127,7 +127,8 @@ class Solver:
 
         temp_form = fem.form(T * ufl.dx)
         temp_local = fem.assemble_scalar(temp_form)
-        temp_global = self.msh.comm.allreduce(temp_local, op=MPI.SUM)
+        # temp_global = self.msh.comm.allreduce(temp_local, op=MPI.SUM)
+        temp_global = temp_local
         area = self.config.L_X * self.config.L_Y + self.config.SOURCE_WIDTH * self.config.SOURCE_HEIGHT
         avg_temp_global = temp_global / area
         return avg_temp_global
@@ -201,7 +202,6 @@ class Solver:
                 break
 
     def perform_mesh_checks(self):
-        rank = MPI.COMM_WORLD.rank
         # Check measures over specific boundaries
         checks = [
             # ("source line", self.ds_top, self.config.SOURCE_WIDTH),

@@ -55,18 +55,14 @@ class CMAESModule:
         Returns:
         - fitness: The fitness value of the candidate (e.g., average temperature).
         """
-        # Decode the latent vector to an image
-        if self.rank == 0:
-            img_list = []
-            for z in latent_vectors:
-                img = z_to_img(z.reshape(1, -1), self.model, self.config.vol_fraction)
-                # Apply symmetry if enabled
-                if self.config.symmetry:
-                    img = img[:, : img.shape[1] // 2]
-                img_list.append(img)
-        else:
-            img_list = None
-
+        # Decode the latent vector to an image only in the root process
+        img_list = []
+        for z in latent_vectors:
+            img = z_to_img(z.reshape(1, -1), self.model, self.config.vol_fraction)
+            # Apply symmetry if enabled
+            if self.config.symmetry:
+                img = img[:, : img.shape[1] // 2]
+            img_list.append(img)
         # Solve the problem using the solver with the generated image
         fitness = self.solver.solve_image(img_list)
 
@@ -83,52 +79,82 @@ class CMAESModule:
         - best_z: The best latent vector found during optimization.
         """
         # Initialize CMA-ES optimizer
-        es = cma.CMAEvolutionStrategy(self.init_z, self.sigma0)
-
+        if self.rank == 0:
+            es = cma.CMAEvolutionStrategy(self.init_z, self.sigma0)
+        else:
+            es = None
+        
         for generation in range(n_iter):
-            # Ask for candidate solutions
-            candidate_solutions = es.ask()
+            if self.rank == 0:
+                # Ask for candidate solutions
+                candidate_solutions = es.ask()
+            else:
+                candidate_solutions = None
 
-            # Evaluate each candidate solution
-            fitnesses = []
-            for x in candidate_solutions:
+            candidate_solutions = self.comm.bcast(candidate_solutions, root=0)
+
+            # Determine the workload for each process
+            num_candidates = len(candidate_solutions)
+            counts = [num_candidates // self.size] * self.size
+            for i in range(num_candidates % self.size):
+                counts[i] += 1
+            offsets = np.cumsum([0] + counts[:-1])
+
+            # Each process selects its subset of candidate solutions
+            start = offsets[self.rank]
+            end = offsets[self.rank] + counts[self.rank]
+            local_candidates = candidate_solutions[start:end]
+
+            # Each process evaluates its local candidates
+            local_fitnesses = []
+
+            for x in local_candidates:
                 # Split latent vectors per source
                 latent_vectors = [
                     x[i * self.z_dim: (i + 1) * self.z_dim] for i in range(self.N_sources)
                 ]  # Split latent vectors per source
                 fitness = self.evaluate_candidate(latent_vectors)
-                fitnesses.append(fitness)
+                local_fitnesses.append(fitness)
 
-            # Tell CMA-ES the fitnesses of the candidates
-            es.tell(candidate_solutions, fitnesses)
+            all_fitness = self.comm.gather(local_fitnesses, root=0)
 
-            # Pair each candidate solution with its fitness
-            results = list(zip(candidate_solutions, fitnesses))
+            if self.rank == 0:
+                fitnesses = [fitness for sublist in all_fitness for fitness in sublist]
+                # Tell CMA-ES the fitnesses of the candidates
+                es.tell(candidate_solutions, fitnesses)
 
-            # Find the candidate with the minimum fitness
-            best_solution, min_fitness = min(results, key=lambda s: s[1])
+                # Pair each candidate solution with its fitness
+                results = list(zip(candidate_solutions, fitnesses))
 
-            # Prepare generation data for logging
-            generation_data = {
-                "best_value": min_fitness,
-                "best_solution": best_solution.tolist(),  # Convert numpy array to list
-            }
+                # Find the candidate with the minimum fitness
+                best_solution, min_fitness = min(results, key=lambda s: s[1])
 
-            # Logging and displaying progress
-            es.disp()
+                # Prepare generation data for logging
+                generation_data = {
+                    "best_value": min_fitness,
+                    "best_solution": best_solution.tolist(),  # Convert numpy array to list
+                }
+
+                # Logging and displaying progress
+                es.disp()
+                if self.logger:
+                    self.logger.log_generation_data(generation, generation_data)
+
+        # After optim, get the best solution found
+        if self.rank == 0:
+            result = es.result
+            best_z = result.xbest  # Best latent vector
+            best_fitness = result.fbest  # Best fitness value
+
             if self.logger:
-                self.logger.log_generation_data(generation, generation_data)
+                self.logger.log_results({
+                    'best_z': best_z.tolist(),
+                    'best_fitness': best_fitness
+                })
+        else:
+            best_z = None
 
-        # Get the best solution found
-        result = es.result
-        best_z = result.xbest  # Best latent vector
-        best_fitness = result.fbest  # Best fitness value
-
-        if self.logger:
-            self.logger.log_results({
-                'best_z': best_z.tolist(),
-                'best_fitness': best_fitness
-            })
+        best_z = self.comm.bcast(best_z, root=0)
 
         return best_z
 
