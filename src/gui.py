@@ -6,7 +6,6 @@ from vae_module import VAE, Flatten, UnFlatten
 import traceback
 
 from main import SimulationConfig, main
-from utils import generate_command_line
 
 
 class SimulationConfigGUI:

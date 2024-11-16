@@ -137,7 +137,6 @@ class Solver:
         residual = fem.form(F)
         J = ufl.derivative(F, self.U, self.dU)
         jacobian = fem.form(J)
-
         # Create matrix and vector
         A = dolfinx.fem.petsc.create_matrix(jacobian)
         L = dolfinx.fem.petsc.create_vector(residual)

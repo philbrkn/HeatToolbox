@@ -16,16 +16,7 @@ class PostProcessingModule:
         self.rank = rank
         self.config = config
         self.logger = logger
-
-        # If environment variable PYVISTA_OFF_SCREEN is set to true save a png
-        # otherwise create interactive plot
-
-        # pv.start_xvfb(wait=0.1)
-        # Set off-screen mode for PyVista if plot_mode is "screenshot"
-        # if config.plot_mode == "screenshot":
-        #     pv.OFF_SCREEN = True  # Enable PyVista off-screen rendering
-        # else:
-        #     pv.OFF_SCREEN = False  # Enable interactive PyVista plotting
+        self.is_off_screen = self.config.plot_mode == "screenshot"
 
     def postprocess_results(self, U, msh, gamma):
         q, T = U.sub(0).collapse(), U.sub(1).collapse()
@@ -104,7 +95,7 @@ class PostProcessingModule:
         ax.set_xlabel("Position (normalized)")
         ax.set_ylabel("Temperature (T)")
         ax.legend()
-        if self.config.plot_mode == "screenshot":
+        if self.is_off_screen:
             if self.logger:
                 self.logger.save_image(fig, "temperature_profiles.png")
             else:
@@ -125,9 +116,9 @@ class PostProcessingModule:
         axs[1].set_ylabel("Heat flux horizontal [W/m^2]")
         if self.config.plot_mode == "screenshot":
             if self.logger:
-                self.logger.save_image(fig, "temperature_profiles.png")
+                self.logger.save_image(fig, "flux_profiles.png")
             else:
-                plt.savefig("temperature_profiles.png")
+                plt.savefig("flux_profiles.png")
         else:
             plt.show()
 
@@ -140,9 +131,9 @@ class PostProcessingModule:
         axs[1].plot(y_vals, eff_cond_vals, color='blue', label="Effective conductivity - Vertical Line")
         if self.config.plot_mode == "screenshot":
             if self.logger:
-                self.logger.save_image(fig, "temperature_profiles.png")
+                self.logger.save_image(fig, "curl_and_cond_profiles.png")
             else:
-                plt.savefig("temperature_profiles.png") 
+                plt.savefig("curl_and_cond_profiles.png")
         else:
             plt.show()
 
@@ -227,10 +218,10 @@ class PostProcessingModule:
         grid.set_active_scalars(field_name)
 
         # Plot the scalar field
-        plotter = pv.Plotter(off_screen=True)
+        plotter = pv.Plotter(off_screen=self.is_off_screen)
         plotter.add_mesh(grid, cmap="coolwarm", show_edges=show_edges, clim=clim)
         plotter.view_xy()
-        if self.config.plot_mode == "screenshot":
+        if self.is_off_screen:
             if self.logger:
                 filepath = os.path.join(self.logger.log_dir, f"{field_name}_field.png")
                 plotter.screenshot(
@@ -264,12 +255,29 @@ class PostProcessingModule:
         ).real
         V_grid.point_data["u"] = Esh_values
 
-        plotter = pv.Plotter()
+        plotter = pv.Plotter(off_screen=self.is_off_screen)
         plotter.add_text("magnitude", font_size=12, color="black")
         plotter.add_mesh(V_grid.copy(), show_edges=False)
         plotter.view_xy()
         plotter.link_views()
-        plotter.show()
+        if self.is_off_screen:
+            if self.logger:
+                filepath = os.path.join(self.logger.log_dir, "flux_field.png")
+                plotter.screenshot(
+                    filepath,
+                    transparent_background=False,
+                    window_size=[1000, 1000],
+                )
+            else:
+                plotter.screenshot(
+                    "flux_field.png",
+                    transparent_background=False,
+                    window_size=[1000, 1000],
+                )
+        else:
+            print("Plotting the vector field interactively.")
+            # Display interactively if interactive mode
+            plotter.show()
 
     def get_temperature_line(
         self,

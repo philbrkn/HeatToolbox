@@ -4,7 +4,7 @@ import json
 import datetime
 from mpi4py import MPI
 
-from utils import generate_command_line
+from gui.helpers import generate_command_line
 
 
 class LoggingModule:

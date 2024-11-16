@@ -135,16 +135,22 @@ def main(config):
     time1 = MPI.Wtime()
 
     # Create solver instance
-    # solver = Solver(msh, facet_markers, config)
-    if config.symmetry:
-        msh, cell_markers, facet_markers = mesh_generator.sym_create_mesh()
+    if rank == 0:
+        if config.symmetry:
+            msh, cell_markers, facet_markers = mesh_generator.sym_create_mesh()
+        else:
+            msh, cell_markers, facet_markers = mesh_generator.create_mesh()
     else:
-        # msh, cell_markers, facet_markers = mesh_generator.create_mesh()
-        msh, cell_markers, facet_markers = dolfinx.io.gmshio.read_from_msh("domain_with_extrusions.msh", MPI.COMM_SELF)
-    print("test)")
-    solver = Solver(msh, facet_markers, config)
+        msh = None
+        cell_markers = None
+        facet_markers = None
+    print("BEFORE COMM")      
+    comm.barrier()
+    print("AFTER COMM") 
+    msh, cell_markers, facet_markers = dolfinx.io.gmshio.read_from_msh("domain_with_extrusions.msh", MPI.COMM_SELF, gdim=2)
 
-    print("Starting CMA-ES optimization...")
+    # create solver instance
+    solver = Solver(msh, facet_markers, config)
     if config.optim:
         # Run optimization
         optimizer = None
