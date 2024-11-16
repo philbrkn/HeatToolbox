@@ -16,6 +16,7 @@ from optimization_module import BayesianModule, CMAESModule
 from post_processing import PostProcessingModule
 from solver_module import Solver
 from logging_module import LoggingModule
+
 # from utils import generate_command_line
 
 
@@ -116,69 +117,112 @@ class SimulationConfig:
         self.blank = args.blank
 
         self.latent_size = args.latent_size  # New: size of the latent vector
-        self.latent_method = args.latent_method  # New: method to obtain the latent vector
+        self.latent_method = (
+            args.latent_method
+        )  # New: method to obtain the latent vector
 
-        self.logging_enabled = not args.no_logging  # Logging is enabled unless --no-logging is used
+        self.logging_enabled = (
+            not args.no_logging
+        )  # Logging is enabled unless --no-logging is used
 
 
-def main(config):
-    # Load VAE model
-    comm = MPI.COMM_WORLD
-    rank = MPI.COMM_WORLD.rank
-    model = load_vae_model(rank)
+class SimulationController:
+    def __init__(self, config):
+        self.config = config
+        self.logger = LoggingModule(config) if config.logging_enabled else None
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.rank
+        self.model = load_vae_model(self.rank)
 
-    # Initialize logging module
-    logger = LoggingModule(config) if config.logging_enabled else None
+    def run_simulation(self):
+        # Mesh generation
+        mesh_generator = MeshGenerator(self.config)
+        time1 = MPI.Wtime()
 
-    # Mesh generation
-    mesh_generator = MeshGenerator(config)
-    time1 = MPI.Wtime()
-
-    # Create solver instance
-    if rank == 0:
-        if config.symmetry:
-            msh, cell_markers, facet_markers = mesh_generator.sym_create_mesh()
+        # Create solver instance
+        if self.rank == 0:
+            if config.symmetry:
+                msh, cell_markers, facet_markers = mesh_generator.sym_create_mesh()
+            else:
+                msh, cell_markers, facet_markers = mesh_generator.create_mesh()
         else:
-            msh, cell_markers, facet_markers = mesh_generator.create_mesh()
-    else:
-        msh = None
-        cell_markers = None
-        facet_markers = None
-    print("BEFORE COMM")      
-    comm.barrier()
-    print("AFTER COMM") 
-    msh, cell_markers, facet_markers = dolfinx.io.gmshio.read_from_msh("domain_with_extrusions.msh", MPI.COMM_SELF, gdim=2)
+            msh = None
+            cell_markers = None
+            facet_markers = None
 
-    # create solver instance
-    solver = Solver(msh, facet_markers, config)
-    if config.optim:
-        # Run optimization
-        optimizer = None
-        if config.optimizer == "cmaes":
-            optimizer = CMAESModule(
-                solver, model, torch.device("cpu"), rank, config, logger=logger
+        # Broadcast mesh data to all processes
+        self.comm.barrier()
+        msh, cell_markers, facet_markers = dolfinx.io.gmshio.read_from_msh(
+            "domain_with_extrusions.msh", MPI.COMM_SELF, gdim=2
+        )
+
+        # create solver instance
+        solver = Solver(msh, facet_markers, self.config)
+
+        if config.optim:
+            # Run optimization
+            optimizer = None
+            if config.optimizer == "cmaes":
+                optimizer = CMAESModule(
+                    solver,
+                    self.model,
+                    torch.device("cpu"),
+                    self.rank,
+                    config,
+                    logger=self.logger,
+                )
+                best_z_list = optimizer.optimize(
+                    n_iter=100
+                )  # Adjust iterations as needed
+            elif config.optimizer == "bayesian":
+                optimizer = BayesianModule(
+                    solver,
+                    self.model,
+                    torch.device("cpu"),
+                    self.rank,
+                    config,
+                    logger=self.logger,
+                )
+                best_z_list = optimizer.optimize(init_points=10, n_iter=100)
+
+            latent_vectors = best_z_list
+            # Optional: Save the best_z to a file for future solving
+            if self.rank == 0:
+                np.save("best_latent_vector.npy", best_z_list)
+        else:
+            latent_vectors = self.get_latent_vectors()
+
+        # Generate image from latent vector
+        img_list = self.generate_images(latent_vectors)
+
+        if "pregamma" in config.visualize:
+            self.plot_image_list(img_list, config, logger=self.logger)
+
+        avg_temp_global = solver.solve_image(img_list)
+        time2 = MPI.Wtime()
+        if self.rank == 0:
+            print(f"Average temperature: {avg_temp_global} K")
+            print(f"Time taken to solve: {time2 - time1:.3f} seconds")
+
+        # Check if visualize list is not empty
+        if self.config.visualize:
+            post_processor = PostProcessingModule(
+                self.rank, self.config, logger=self.logger
             )
-            best_z_list = optimizer.optimize(n_iter=100)  # Adjust iterations as needed
-        elif config.optimizer == "bayesian":
-            optimizer = BayesianModule(
-                solver, model, torch.device("cpu"), rank, config, logger=logger
-            )
-            best_z_list = optimizer.optimize(init_points=10, n_iter=100)
+            post_processor.postprocess_results(solver.U, solver.msh, solver.gamma)
 
-        latent_vectors = best_z_list
-        # Optional: Save the best_z to a file for future solving
-        if rank == 0:
-            np.save("best_latent_vector.npy", best_z_list)
+        self.log_final_results(avg_temp_global, time2 - time1, latent_vectors)
 
-    # Run solving based on provided latent vector
-    else:
+    def get_latent_vectors(self):
         # Handle latent vector based on the selected method
         latent_vectors = []
         if config.latent_method == "manual":
             # Use the latent vector provided in args.latent
             z = np.array(config.latent)
             if len(z) != config.latent_size:
-                raise ValueError(f"Expected latent vector of size {config.latent_size}, got {len(z)}.")
+                raise ValueError(
+                    f"Expected latent vector of size {config.latent_size}, got {len(z)}."
+                )
             latent_vectors = [z] * len(config.source_positions)
         elif config.latent_method == "random":
             # Generate random latent vectors
@@ -192,52 +236,59 @@ def main(config):
                 print("Opening best vector from file")
                 latent_vectors = best_z_list
             except FileNotFoundError:
-                raise FileNotFoundError("No saved latent vectors found. Please provide a valid file.")
+                raise FileNotFoundError(
+                    "No saved latent vectors found. Please provide a valid file."
+                )
+        return latent_vectors
 
-    # Generate image from latent vector
-    img_list = []
-    for z in latent_vectors:
-        if config.blank:
-            img = np.zeros((128, 128))
+    def generate_images(self, latent_vectors):
+        # Generate image from latent vector
+        img_list = []
+        for z in latent_vectors:
+            if config.blank:
+                img = np.zeros((128, 128))
+            else:
+                # Ensure z is reshaped correctly if needed
+                img = z_to_img(z.reshape(1, -1), self.model, config.vol_fraction)
+            img_list.append(img)
+
+        # Apply symmetry to each image if enabled
+        if self.config.symmetry:
+            img_list = [img[:, : img.shape[1] // 2] for img in img_list]
+
+        return img_list
+
+    def plot_image_list(self, img_list, config, logger=None):
+        import matplotlib.pyplot as plt
+
+        fig, axs = plt.subplots(1, len(img_list), figsize=(15, 5))
+        if len(img_list) == 1:
+            axs.imshow(img_list[0], cmap="gray")
+            axs.axis("off")
         else:
-            # Ensure z is reshaped correctly if needed
-            img = z_to_img(z.reshape(1, -1), model, config.vol_fraction)
-        img_list.append(img)
+            for i, img in enumerate(img_list):
+                axs[i].imshow(img, cmap="gray")
+                axs[i].axis("off")
+        if config.plot_mode == "screenshot":
+            if logger:
+                logger.save_image(fig, "image_list.png")
+            else:
+                plt.savefig("image_list.png")
+        else:
+            plt.show()
 
-    # Apply symmetry to each image if enabled
-    if config.symmetry:
-        img_list = [img[:, : img.shape[1] // 2] for img in img_list]
-
-    if "pregamma" in config.visualize:
-        plot_image_list(img_list, config, logger=logger)
-    # Solve the image using the solver
-    avg_temp_global = solver.solve_image(img_list)
-    time2 = MPI.Wtime()
-    if rank == 0:
-        print(f"Average temperature: {avg_temp_global} K")
-        print(f"Time taken to solve: {time2 - time1:.3f} seconds")
-
-    # Optional Post-processing
-    if "none" not in config.visualize:
-        post_processor = PostProcessingModule(rank, config, logger=logger)
-        post_processor.postprocess_results(solver.U, solver.msh, solver.gamma)
-
-    if config.optim:
-        # After optimization completes
-        final_results = {
-            "average_temperature": avg_temp_global,  # Replace with actual metric
-            "best_latent_vector": best_z_list  # Best solution from the optimizer
-        }
-        if logger:
-            logger.log_results(final_results)
-    else:
-        # Results if running without optimization
-        results = {
-            "average_temperature": avg_temp_global,
-            "runtime": time2 - time1
-        }
-        if logger:
-            logger.log_results(results)
+    def log_final_results(self, avg_temp_global, runtime, latent_vectors):
+        if self.config.optim:
+            final_results = {
+                "average_temperature": avg_temp_global,
+                "best_latent_vector": latent_vectors,
+            }
+            if self.logger:
+                self.logger.log_results(final_results)
+        else:
+            results = {"average_temperature": avg_temp_global, "runtime": runtime}
+            if self.logger:
+                self.logger.log_results(results)
 
 
 def parse_arguments():
@@ -300,20 +351,20 @@ def parse_arguments():
         "--plot-mode",
         choices=["screenshot", "interactive"],
         default="screenshot",
-        help="Choose between 'screenshot' (save plots) or 'interactive' (display plots)."
+        help="Choose between 'screenshot' (save plots) or 'interactive' (display plots).",
     )
     parser.add_argument(
         "--latent-size",
         type=int,
         choices=[2, 4, 8, 16],
         default=4,
-        help="Size of the latent vector (2, 4, 8, or 16). Default is 4."
+        help="Size of the latent vector (2, 4, 8, or 16). Default is 4.",
     )
     parser.add_argument(
         "--latent-method",
         choices=["manual", "random", "preloaded"],
         default="manual",
-        help="How to obtain the latent vector: 'manual', 'random', or 'preloaded'. Default is 'manual'."
+        help="How to obtain the latent vector: 'manual', 'random', or 'preloaded'. Default is 'manual'.",
     )
     parser.add_argument(
         "--no-logging",
@@ -323,33 +374,10 @@ def parse_arguments():
     return parser.parse_args()
 
 
-# plot image list function
-def plot_image_list(img_list, config, logger=None):
-    import matplotlib.pyplot as plt
-
-    fig, axs = plt.subplots(1, len(img_list), figsize=(15, 5))
-    if len(img_list) == 1:
-        axs.imshow(img_list[0], cmap="gray")
-        axs.axis("off")
-    else:
-        for i, img in enumerate(img_list):
-            axs[i].imshow(img, cmap="gray")
-            axs[i].axis("off")
-    if config.plot_mode == 'screenshot':
-        if logger:
-            logger.save_image(fig, "image_list.png")
-        else:
-            plt.savefig("image_list.png")
-    else:
-        plt.show()
-
-
 if __name__ == "__main__":
     # Parse command-line arguments
     args = parse_arguments()
 
-    # Initialize configuration
     config = SimulationConfig(args)
-    # Save the command-line command and configurations
-
-    main(config)
+    controller = SimulationController(config)
+    controller.run_simulation()
