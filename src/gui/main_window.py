@@ -9,15 +9,23 @@ from .visualization_frame import VisualizationFrame
 from .sources_frame import SourcesFrame
 from .hpc_frame import HPCFrame
 
-from main import SimulationConfig, main
+from sim_config import SimulationConfig
+from main import SimulationController
 from .helpers import (generate_command_line, parse_sources, get_visualize_options,
                       generate_hpc_script)
+import subprocess
 
 
 class SimulationConfigGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Simulation Configuration")
+        # Set the GUI window to appear in front of all apps
+        self.root.lift()
+        self.root.attributes("-topmost", True)
+        self.root.update()  # Apply the change immediately
+        self.root.attributes("-topmost", False)  # Allow other windows to take focus later
+
         self.options = self.initialize_options()
 
         # Initialize frames
@@ -67,7 +75,7 @@ class SimulationConfigGUI:
 
     def add_buttons(self):
         button_frame = tk.Frame(self.root)
-        button_frame.grid(row=3, column=0, columnspan=2, pady=10)
+        button_frame.grid(row=4, column=0, columnspan=2, pady=10)
 
         tk.Button(
             button_frame, text="Run Simulation", command=self.run_simulation
@@ -78,6 +86,9 @@ class SimulationConfigGUI:
         tk.Button(
             button_frame, text="Generate HPC Script", command=self.generate_hpc_script
         ).pack(side="left", padx=5)
+        tk.Button(
+            button_frame, text="Submit to HPC", command=self.submit_to_hpc
+        ).pack(side="left", padx=5)
 
     def run_simulation(self):
         try:
@@ -86,9 +97,10 @@ class SimulationConfigGUI:
 
             # Initialize SimulationConfig with the extracted args
             config = SimulationConfig(args)
+            sim = SimulationController(config)
 
             # Run the simulation
-            main(config)
+            sim.run_simulation()
 
         except Exception as e:
             traceback.print_exc()
@@ -163,5 +175,97 @@ class SimulationConfigGUI:
         args.parallelize = self.options["parallelize"].get()
         args.mpiprocs = self.options["mpiprocs"].get()
         args.total_procs = args.mpiprocs * args.nodes if args.parallelize else None
-
+        args.conda_env_path = self.options["conda_env_path"].get()
+        args.conda_env_name = self.options["conda_env_name"].get()
         return args
+
+    def submit_to_hpc(self):
+        try:
+            # Extract options and generate the HPC script
+            args = self.get_args()
+            hpc_script = generate_hpc_script(args)
+
+            # Save the HPC script locally
+            with open("hpc_run.sh", "w") as f:
+                f.write(hpc_script)
+
+            # Transfer files to HPC
+            self.transfer_files_to_hpc()
+
+            # Submit the job on the HPC
+            self.submit_job_on_hpc()
+
+            messagebox.showinfo("HPC Job Submitted", "The job has been submitted to the HPC.")
+
+        except Exception as e:
+            traceback.print_exc()
+            messagebox.showerror("Error", str(e))
+
+    def submit_job_on_hpc(self):
+        hpc_user = "pt721"
+        hpc_host = "login.cx3.hpc.ic.ac.uk"
+        hpc_remote_path = "~/BTE-NO"
+        password = self.get_password(prompt="Enter HPC password for file transfer")
+
+        try:
+            # SSH command with environment setup for qsub
+            ssh_command = [
+                "sshpass", "-p", password,
+                "ssh", f"{hpc_user}@{hpc_host}",
+                "bash -l -c 'cd ~/BTE-NO && qsub hpc_run.sh'"
+            ]
+
+            # Run the command
+            result = subprocess.run(ssh_command, check=True, text=True, capture_output=True)
+
+            # Extract the job ID from the result
+            job_id = result.stdout.strip()
+            messagebox.showinfo("Success", f"Job submitted successfully!\nJob ID: {job_id}")
+
+        except subprocess.CalledProcessError as e:
+            messagebox.showerror("Error", f"Job submission failed.\n{e.stderr}")
+
+        except Exception as e:
+            messagebox.showerror("Unexpected Error", f"An unexpected error occurred: {str(e)}")
+
+    def transfer_files_to_hpc(self):
+        local_path = "."
+        hpc_user = "pt721"
+        hpc_host = "login.cx3.hpc.ic.ac.uk"
+        hpc_remote_path = "~/BTE-NO"
+
+        # Get password
+        password = self.get_password(prompt="Enter HPC password for file transfer")
+
+        # Use subprocess with `sshpass` for password-based file transfer
+        import subprocess
+        rsync_command = [
+            "sshpass", "-p", password,
+            "rsync", "-avz", "--progress",
+            f"{local_path}/src",
+            f"{local_path}/hpc_run.sh",
+            f"{hpc_user}@{hpc_host}:{hpc_remote_path}"
+        ]
+        subprocess.run(rsync_command, check=True)
+
+    def get_password(self, prompt="Enter HPC Password"):
+        """Prompt the user to enter their HPC password."""
+        password_window = tk.Toplevel(self.root)
+        password_window.title(prompt)
+
+        tk.Label(password_window, text=prompt).pack(pady=5)
+
+        password_var = tk.StringVar()
+        password_entry = tk.Entry(password_window, show="*", textvariable=password_var)
+        password_entry.pack(pady=5)
+        password_entry.focus_set()
+
+        def on_submit():
+            password_window.destroy()
+
+        tk.Button(password_window, text="Submit", command=on_submit).pack(pady=5)
+
+        # Wait for the user to enter the password
+        password_window.wait_window()
+
+        return password_var.get()

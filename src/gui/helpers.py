@@ -35,7 +35,15 @@ def generate_hpc_script(args):
     command = generate_command_line(args)
 
     # Add timeout before walltime
-    script_timeout = args.timeout if args.timeout else round(0.98*args.walltime, 2)
+    # convert args.timeout, which is in HH:MM:SS, to H.[MM/60+SS/3600]
+    if args.timeout:
+        timeout_parts = list(map(int, args.timeout.split(":")))
+        script_timeout = timeout_parts[0] + timeout_parts[1] / 60 + timeout_parts[2] / 3600
+        script_timeout = round(script_timeout, 2)
+    else:
+        timeout_parts = list(map(int, args.walltime.split(":")))
+        script_timeout = timeout_parts[0] + timeout_parts[1] / 60 + timeout_parts[2] / 3600
+        script_timeout = round(0.98 * script_timeout, 2)
     timeout_line = f"timeout {script_timeout} {command}"
 
     # If parallelization is enabled, use mpirun
