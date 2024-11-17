@@ -80,7 +80,7 @@ class SimulationController:
             latent_vectors = best_z_list
             # Optional: Save the best_z to a file for future solving
             if self.rank == 0:
-                self.logger.save_optimized_latent_vectors(latent_vectors)
+                np.save("best_latent_vector.npy", best_z_list)
         else:
             latent_vectors = self.get_latent_vectors()
 
@@ -102,6 +102,8 @@ class SimulationController:
                 self.rank, self.config, logger=self.logger
             )
             post_processor.postprocess_results(solver.U, solver.msh, solver.gamma)
+
+        self.log_final_results(avg_temp_global, time2 - time1, latent_vectors)
 
     def get_latent_vectors(self):
         # Handle latent vector based on the selected method
@@ -167,16 +169,107 @@ class SimulationController:
         else:
             plt.show()
 
+    def log_final_results(self, avg_temp_global, runtime, latent_vectors):
+        if self.config.optim:
+            final_results = {
+                "average_temperature": avg_temp_global,
+                "best_latent_vector": latent_vectors,
+            }
+            if self.logger:
+                self.logger.log_results(final_results)
+        else:
+            results = {"average_temperature": avg_temp_global, "runtime": runtime}
+            if self.logger:
+                self.logger.log_results(results)
+
 
 def parse_arguments():
     # Command-line arguments to determine the modes
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, required=True, help="Path to the configuration JSON file.")
+    parser.add_argument("--optim", action="store_true", help="Run optimization.")
+    parser.add_argument(
+        "--optimizer",
+        choices=["cmaes", "bayesian"],
+        default="bayesian",
+        help="Choose between 'cmaes' or 'bayesian' optimization (default: bayesian).",
+    )
+    parser.add_argument(
+        "--latent",
+        nargs=4,
+        type=float,
+        default=None,
+        help="Specify z values (z1, z2, z3, z4) for 'solve' mode.",
+    )
+    parser.add_argument(
+        "--symmetry",
+        action="store_true",
+        help="Enable left-right symmetry in the domain.",
+    )
+    parser.add_argument("--blank", action="store_true", help="Run with a blank image.")
+    parser.add_argument(
+        "--sources",
+        nargs="*",
+        type=float,
+        default=None,
+        help="List of source positions and heat source values as pairs, e.g., --sources 0.5 80 0.75 40",
+    )
+    parser.add_argument(
+        "--res",
+        type=float,
+        default=None,
+        help="Set the mesh resolution (default: LENGTH / 12).",
+    )
+    parser.add_argument(
+        "--visualize",
+        nargs="*",
+        type=str,
+        choices=["gamma", "temperature", "flux", "profiles", "pregamma"],
+        help=(
+            "Specify what to visualize. Options: "
+            "'none' (no visualization), 'gamma', 'temperature', 'flux', 'profiles', 'all' "
+            "(default: all). Multiple options can be specified."
+        ),
+    )
+    parser.add_argument(
+        "--vf",
+        type=float,
+        default=0.2,
+        help=(
+            "Set the desired volume fraction (default: 0.2)."
+            "Negative means no volume fraction control."
+        ),
+    )
+    parser.add_argument(
+        "--plot-mode",
+        choices=["screenshot", "interactive"],
+        default="screenshot",
+        help="Choose between 'screenshot' (save plots) or 'interactive' (display plots).",
+    )
+    parser.add_argument(
+        "--latent-size",
+        type=int,
+        choices=[2, 4, 8, 16],
+        default=4,
+        help="Size of the latent vector (2, 4, 8, or 16). Default is 4.",
+    )
+    parser.add_argument(
+        "--latent-method",
+        choices=["manual", "random", "preloaded"],
+        default="manual",
+        help="How to obtain the latent vector: 'manual', 'random', or 'preloaded'. Default is 'manual'.",
+    )
+    parser.add_argument(
+        "--no-logging",
+        action="store_true",
+        help="Disable logging.",
+    )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
+    # Parse command-line arguments
     args = parse_arguments()
-    config = SimulationConfig(args.config)
+
+    config = SimulationConfig(args)
     controller = SimulationController(config)
     controller.run_simulation()

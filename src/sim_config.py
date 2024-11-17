@@ -1,108 +1,90 @@
+import json
+import os
 from petsc4py import PETSc
 import numpy as np
 
 
 class SimulationConfig:
-    def __init__(self, args):
-        self.args = args
+    def __init__(self, config_path):
+        # Load configurations from JSON file
+        with open(config_path, "r") as f:
+            config = json.load(f)
+
+        self.config = config  # Store the entire config for later use
 
         # Physical properties
-        self.C = PETSc.ScalarType(1.0)  # Slip parameter for fully diffusive boundaries
-        self.T_ISO = PETSc.ScalarType(0.0)  # Isothermal temperature, K
-        self.Q_L = PETSc.ScalarType(80)  # Line heat source, W/m
+        self.C = PETSc.ScalarType(1.0)  # Slip parameter
+        self.T_ISO = PETSc.ScalarType(0.0)
+        self.Q_L = PETSc.ScalarType(80)
 
-        self.MEAN_FREE_PATH = 0.439e-6  # Characteristic length, adjust as necessary
-        self.KNUDSEN = 1  # Knudsen number, adjust as necessary
+        self.MEAN_FREE_PATH = 0.439e-6
+        self.KNUDSEN = 1
 
         # Volume fraction
-        if args.vf is None:
-            self.vol_fraction = None
-        else:
-            self.vol_fraction = args.vf
+        self.vol_fraction = (
+            config.get("vf_value", 0.2) if config.get("vf_enabled", True) else None
+        )
+
         # Geometric properties
-        self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN  # Characteristic length, L
-        # Base rectangle:
+        self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN
         self.L_X = 25 * self.LENGTH
         self.L_Y = 12.5 * self.LENGTH
-        # Source rectangle:
         self.SOURCE_WIDTH = self.LENGTH
         self.SOURCE_HEIGHT = self.LENGTH * 0.25
-        self.mask_extrusion = True
+        self.mask_extrusion = not config.get("blank", False)
+        self.blank = config.get("blank", False)
 
-        # Set the resolution of the mesh as a divider of LENGTH
-        if args.res is not None and args.res > 0:
-            self.RESOLUTION = self.LENGTH / args.res
-        else:
-            self.RESOLUTION = self.LENGTH / 12  # default value
-            # self.RESOLUTION = self.LENGTH / 5  # to get quick profiles
+        # Mesh resolution
+        res = config.get("res", 12.0)
+        self.RESOLUTION = self.LENGTH / res if res > 0 else self.LENGTH / 12
 
-        # material properties
-        self.ELL_SI = PETSc.ScalarType(
-            self.MEAN_FREE_PATH / np.sqrt(5)
-        )  # Non-local length, m
+        # Material properties
+        self.ELL_SI = PETSc.ScalarType(self.MEAN_FREE_PATH / np.sqrt(5))
         self.ELL_DI = PETSc.ScalarType(196e-8)
-        self.KAPPA_SI = PETSc.ScalarType(141.0)  # W/mK, thermal conductivity
+        self.KAPPA_SI = PETSc.ScalarType(141.0)
         self.KAPPA_DI = PETSc.ScalarType(600.0)
 
-        if args.sources is not None:
-            if len(args.sources) % 2 != 0:
-                raise ValueError(
-                    "Each source must have a position and a heat value. Please provide pairs of values."
-                )
-            # Group the list into pairs
-            sources_pairs = [
-                (args.sources[i], args.sources[i + 1])
-                for i in range(0, len(args.sources), 2)
-            ]
-            self.source_positions = []
-            self.Q_sources = []
-            for pos, Q in sources_pairs:
-                if pos < 0 or pos > 1:
-                    raise ValueError(
-                        "Source positions must be between 0 and 1 (normalized)."
-                    )
-                self.source_positions.append(pos)
-                self.Q_sources.append(PETSc.ScalarType(Q))
-            # Sort the sources by position
-            combined_sources = sorted(zip(self.source_positions, self.Q_sources))
-            self.source_positions, self.Q_sources = list(zip(*combined_sources))
-        else:
-            # Default to a single source at the center
-            self.source_positions = [0.5]
-            self.Q_sources = [PETSc.ScalarType(self.Q_L)]
+        # Sources
+        self.sources = config.get("sources", [0.5, self.Q_L])
+        self.process_sources()
 
-        # Cannot be symmetry and two sources:
-        if len(self.source_positions) > 1 and args.symmetry:
-            raise ValueError("Cannot have both symmetry and two sources.")
+        # Symmetry
+        self.symmetry = config.get("symmetry", False)
+        if self.symmetry:
+            self.L_X /= 2
+            self.SOURCE_WIDTH /= 2
 
-        # symmetry in geometry
-        if args.symmetry:
-            self.L_X = self.L_X / 2
-            self.SOURCE_WIDTH = self.SOURCE_WIDTH / 2
-            self.symmetry = True  # Enable or disable symmetry
-        else:
-            self.symmetry = False
+        # Visualization
+        self.visualize = config.get("visualize", [])
+        self.plot_mode = config.get("plot_mode", "screenshot")
 
-        if args.blank:
-            self.mask_extrusion = False
+        # Optimization parameters
+        self.optim = config.get("optim", False)
+        self.optimizer = config.get("optimizer", "cmaes")
+        self.latent = config.get("latent", None)
+        self.latent_size = config.get("latent_size", 4)
+        self.latent_method = config.get("latent_method", "preloaded")
 
-        # Parse visualize argument
-        if args.visualize is None:
-            self.visualize = []
-        else:
-            self.visualize = args.visualize
-        # set plot mode only if it exists
-        self.plot_mode = args.plot_mode if hasattr(args, "plot_mode") else None
-        self.optim = args.optim
-        self.optimizer = args.optimizer
-        self.latent = args.latent
-        self.blank = args.blank
+        # Logging
+        self.logging_enabled = config.get("logging_enabled", True)
+        self.log_name = config.get("log_name", None)  # New: user-defined log name
+        self.log_dir = os.path.join("logs", self.log_name)
+        # Ensure the log directory  exists
+        if not os.path.exists(self.log_dir):
+            os.makedirs(self.log_dir, exist_ok=True)
 
-        self.latent_size = args.latent_size  # New: size of the latent vector
-        self.latent_method = (
-            args.latent_method
-        )  # New: method to obtain the latent vector
-
-        self.logging_enabled = (
-            not args.no_logging
-        )  # Logging is enabled unless --no-logging is used
+    def process_sources(self):
+        sources = self.sources
+        if len(sources) % 2 != 0:
+            raise ValueError("Each source must have a position and a heat value.")
+        source_pairs = [(sources[i], sources[i + 1]) for i in range(0, len(sources), 2)]
+        self.source_positions = []
+        self.Q_sources = []
+        for pos, Q in source_pairs:
+            if pos < 0 or pos > 1:
+                raise ValueError("Source positions must be between 0 and 1.")
+            self.source_positions.append(pos)
+            self.Q_sources.append(PETSc.ScalarType(Q))
+        # Sort sources
+        combined_sources = sorted(zip(self.source_positions, self.Q_sources))
+        self.source_positions, self.Q_sources = list(zip(*combined_sources))

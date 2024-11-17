@@ -83,7 +83,7 @@ class CMAESModule:
             es = cma.CMAEvolutionStrategy(self.init_z, self.sigma0)
         else:
             es = None
-        
+
         for generation in range(n_iter):
             if self.rank == 0:
                 # Ask for candidate solutions
@@ -111,7 +111,8 @@ class CMAESModule:
             for x in local_candidates:
                 # Split latent vectors per source
                 latent_vectors = [
-                    x[i * self.z_dim: (i + 1) * self.z_dim] for i in range(self.N_sources)
+                    x[i * self.z_dim : (i + 1) * self.z_dim]
+                    for i in range(self.N_sources)
                 ]  # Split latent vectors per source
                 fitness = self.evaluate_candidate(latent_vectors)
                 local_fitnesses.append(fitness)
@@ -138,19 +139,12 @@ class CMAESModule:
                 # Logging and displaying progress
                 es.disp()
                 if self.logger:
-                    self.logger.log_generation_data(generation, generation_data)
+                    self.logger.log_optimization_results(generation, generation_data)
 
         # After optim, get the best solution found
         if self.rank == 0:
             result = es.result
             best_z = result.xbest  # Best latent vector
-            best_fitness = result.fbest  # Best fitness value
-
-            if self.logger:
-                self.logger.log_results({
-                    'best_z': best_z.tolist(),
-                    'best_fitness': best_fitness
-                })
         else:
             best_z = None
 

@@ -38,6 +38,9 @@ class SolvingFrame(ttk.LabelFrame):
             variable=self.options["logging_enabled"],
         ).grid(row=3, column=0, sticky="w")
 
+        tk.Label(self, text="Log File Name").grid(row=4, column=0, sticky="w")
+        tk.Entry(self, textvariable=self.options["log_name"], width=20).grid(row=4, column=1, sticky="w")
+
     def toggle_volume_fraction(self):
         if self.options["vf_enabled"].get():
             self.vf_entry.config(state="normal")
