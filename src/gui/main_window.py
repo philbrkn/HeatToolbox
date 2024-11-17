@@ -75,7 +75,7 @@ class SimulationConfigGUI:
 
     def add_buttons(self):
         button_frame = tk.Frame(self.root)
-        button_frame.grid(row=4, column=0, columnspan=2, pady=10)
+        button_frame.grid(row=3, column=0, columnspan=2, pady=10)
 
         tk.Button(
             button_frame, text="Run Simulation", command=self.run_simulation
@@ -84,10 +84,7 @@ class SimulationConfigGUI:
             button_frame, text="Generate Command", command=self.generate_command
         ).pack(side="left", padx=5)
         tk.Button(
-            button_frame, text="Generate HPC Script", command=self.generate_hpc_script
-        ).pack(side="left", padx=5)
-        tk.Button(
-            button_frame, text="Submit to HPC", command=self.submit_to_hpc
+            button_frame, text="Transfer and submit to HPC", command=self.submit_to_hpc
         ).pack(side="left", padx=5)
 
     def run_simulation(self):
@@ -242,6 +239,7 @@ class SimulationConfigGUI:
         rsync_command = [
             "sshpass", "-p", password,
             "rsync", "-avz", "--progress",
+            "--exclude-from", f"{local_path}/hpc_exclude.txt",
             f"{local_path}/src",
             f"{local_path}/hpc_run.sh",
             f"{hpc_user}@{hpc_host}:{hpc_remote_path}"

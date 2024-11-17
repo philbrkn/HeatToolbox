@@ -33,7 +33,7 @@ class SimulationController:
 
         # Create solver instance
         if self.rank == 0:
-            if config.symmetry:
+            if self.config.symmetry:
                 msh, cell_markers, facet_markers = mesh_generator.sym_create_mesh()
             else:
                 msh, cell_markers, facet_markers = mesh_generator.create_mesh()
@@ -51,28 +51,28 @@ class SimulationController:
         # create solver instance
         solver = Solver(msh, facet_markers, self.config)
 
-        if config.optim:
+        if self.config.optim:
             # Run optimization
             optimizer = None
-            if config.optimizer == "cmaes":
+            if self.config.optimizer == "cmaes":
                 optimizer = CMAESModule(
                     solver,
                     self.model,
                     torch.device("cpu"),
                     self.rank,
-                    config,
+                    self.config,
                     logger=self.logger,
                 )
                 best_z_list = optimizer.optimize(
                     n_iter=100
                 )  # Adjust iterations as needed
-            elif config.optimizer == "bayesian":
+            elif self.config.optimizer == "bayesian":
                 optimizer = BayesianModule(
                     solver,
                     self.model,
                     torch.device("cpu"),
                     self.rank,
-                    config,
+                    self.config,
                     logger=self.logger,
                 )
                 best_z_list = optimizer.optimize(init_points=10, n_iter=100)
@@ -87,8 +87,8 @@ class SimulationController:
         # Generate image from latent vector
         img_list = self.generate_images(latent_vectors)
 
-        if "pregamma" in config.visualize:
-            self.plot_image_list(img_list, config, logger=self.logger)
+        if "pregamma" in self.config.visualize:
+            self.plot_image_list(img_list, self.config, logger=self.logger)
 
         avg_temp_global = solver.solve_image(img_list)
         time2 = MPI.Wtime()
@@ -108,20 +108,20 @@ class SimulationController:
     def get_latent_vectors(self):
         # Handle latent vector based on the selected method
         latent_vectors = []
-        if config.latent_method == "manual":
+        if self.config.latent_method == "manual":
             # Use the latent vector provided in args.latent
-            z = np.array(config.latent)
-            if len(z) != config.latent_size:
+            z = np.array(self.config.latent)
+            if len(z) != self.config.latent_size:
                 raise ValueError(
-                    f"Expected latent vector of size {config.latent_size}, got {len(z)}."
+                    f"Expected latent vector of size {self.config.latent_size}, got {len(z)}."
                 )
-            latent_vectors = [z] * len(config.source_positions)
-        elif config.latent_method == "random":
+            latent_vectors = [z] * len(self.config.source_positions)
+        elif self.config.latent_method == "random":
             # Generate random latent vectors
-            for _ in range(len(config.source_positions)):
-                z = np.random.randn(config.latent_size)
+            for _ in range(len(self.config.source_positions)):
+                z = np.random.randn(self.config.latent_size)
                 latent_vectors.append(z)
-        elif config.latent_method == "preloaded":
+        elif self.config.latent_method == "preloaded":
             # Load latent vectors from file
             try:
                 best_z_list = np.load("best_latent_vector.npy", allow_pickle=True)
@@ -137,11 +137,11 @@ class SimulationController:
         # Generate image from latent vector
         img_list = []
         for z in latent_vectors:
-            if config.blank:
+            if self.config.blank:
                 img = np.zeros((128, 128))
             else:
                 # Ensure z is reshaped correctly if needed
-                img = z_to_img(z.reshape(1, -1), self.model, config.vol_fraction)
+                img = z_to_img(z.reshape(1, -1), self.model, self.config.vol_fraction)
             img_list.append(img)
 
         # Apply symmetry to each image if enabled
