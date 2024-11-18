@@ -84,24 +84,24 @@ class SimulationController:
         else:
             latent_vectors = self.get_latent_vectors()
 
-        # Generate image from latent vector
-        img_list = self.generate_images(latent_vectors)
+            # Generate image from latent vector
+            img_list = self.generate_images(latent_vectors)
 
-        if "pregamma" in self.config.visualize:
-            self.plot_image_list(img_list, self.config, logger=self.logger)
+            if "pregamma" in self.config.visualize:
+                self.plot_image_list(img_list, self.config, logger=self.logger)
 
-        avg_temp_global = solver.solve_image(img_list)
-        time2 = MPI.Wtime()
-        if self.rank == 0:
-            print(f"Average temperature: {avg_temp_global} K")
-            print(f"Time taken to solve: {time2 - time1:.3f} seconds")
+            avg_temp_global = solver.solve_image(img_list)
+            time2 = MPI.Wtime()
+            if self.rank == 0:
+                print(f"Average temperature: {avg_temp_global} K")
+                print(f"Time taken to solve: {time2 - time1:.3f} seconds")
 
-        # Check if visualize list is not empty
-        if self.config.visualize:
-            post_processor = PostProcessingModule(
-                self.rank, self.config, logger=self.logger
-            )
-            post_processor.postprocess_results(solver.U, solver.msh, solver.gamma)
+            # Check if visualize list is not empty
+            if self.config.visualize:
+                post_processor = PostProcessingModule(
+                    self.rank, self.config, logger=self.logger
+                )
+                post_processor.postprocess_results(solver.U, solver.msh, solver.gamma)
 
     def get_latent_vectors(self):
         # Handle latent vector based on the selected method

@@ -32,9 +32,9 @@ class HPCFrame(ttk.LabelFrame):
         row += 1
 
         # Timeout
-        tk.Label(self, text="Timeout (HH:MM:SS)").grid(row=row, column=0, sticky="w")
-        tk.Entry(self, textvariable=self.options["timeout"], width=10).grid(row=row, column=1, sticky="w")
-        row += 1
+        # tk.Label(self, text="Timeout (HH:MM:SS)").grid(row=row, column=0, sticky="w")
+        # tk.Entry(self, textvariable=self.options["timeout"], width=10).grid(row=row, column=1, sticky="w")
+        # row += 1
 
         # Parallelization Toggle
         tk.Checkbutton(
@@ -48,6 +48,7 @@ class HPCFrame(ttk.LabelFrame):
         # MPI Processes per Node
         self.mpiprocs_label = tk.Label(self, text="MPI Processes per Node (mpiprocs)")
         self.mpiprocs_entry = tk.Entry(self, textvariable=self.options["mpiprocs"], width=10)#.grid(row=row, column=1, sticky="w")
+        row += 1
 
         # Conda Environment Path
         tk.Label(self, text="Conda Environment Path").grid(row=row, column=0, sticky="w")

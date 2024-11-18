@@ -26,7 +26,6 @@ def initialize_options():
         "ncpus": tk.IntVar(value=4),
         "mem": tk.IntVar(value=8),
         "walltime": tk.StringVar(value="03:00:00"),
-        "timeout": tk.StringVar(),
         "parallelize": tk.BooleanVar(value=False),
         "mpiprocs": tk.IntVar(value=4),
         "conda_env_path": tk.StringVar(value="~/miniforge3/bin/conda"),
@@ -34,7 +33,13 @@ def initialize_options():
         "log_name": tk.StringVar(value=""),
         "hpc_user": tk.StringVar(value="pt721"),
         "hpc_host": tk.StringVar(value="login.cx3.hpc.ic.ac.uk"),
-        "hpc_dir": tk.StringVar(value="~/BTE-NO")
+        "hpc_dir": tk.StringVar(value="~/BTE-NO"),
+        # CMAES
+        "popsize": tk.IntVar(value=8),  # New parameter for population size
+        "bounds_lower": tk.DoubleVar(value=-2.5),  # New lower bound for CMA-ES
+        "bounds_upper": tk.DoubleVar(value=2.5),  # New upper bound for CMA-ES
+        "n_iter": tk.IntVar(value=100),  # New parameter for the number of iterations
+        # "timeout": tk.StringVar(),
     }
 
 
@@ -59,7 +64,7 @@ def get_config_dict(options):
         "ncpus": options["ncpus"].get(),
         "mem": options["mem"].get(),
         "walltime": options["walltime"].get(),
-        "timeout": options["timeout"].get(),
+        # "timeout": options["timeout"].get(),
         "parallelize": options["parallelize"].get(),
         "mpiprocs": options["mpiprocs"].get(),
         "conda_env_path": options["conda_env_path"].get(),
@@ -67,7 +72,10 @@ def get_config_dict(options):
         "log_name": options["log_name"].get(),
         "hpc_user": options["hpc_user"].get(),
         "hpc_host": options["hpc_host"].get(),
-        "hpc_dir": options["hpc_dir"].get()
+        "hpc_dir": options["hpc_dir"].get(),
+        "popsize": options["popsize"].get(),  # New parameter
+        "bounds": [options["bounds_lower"].get(), options["bounds_upper"].get()],  # New parameter
+        "n_iter": options["n_iter"].get(),  # New parameter
     }
 
 

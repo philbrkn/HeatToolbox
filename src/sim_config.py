@@ -31,7 +31,9 @@ class SimulationConfig:
 
         # Volume fraction
         self.vol_fraction = (
-            self.config.get("vf_value", 0.2) if self.config.get("vf_enabled", True) else None
+            self.config.get("vf_value", 0.2)
+            if self.config.get("vf_enabled", True)
+            else None
         )
 
         # Geometric properties
@@ -73,6 +75,10 @@ class SimulationConfig:
         self.latent = self.config.get("latent", None)
         self.latent_size = self.config.get("latent_size", 4)
         self.latent_method = self.config.get("latent_method", "preloaded")
+        self.walltime = self.config.get("walltime", "03:00:00")
+        self.popsize = self.config.get("popsize", 8)
+        self.bounds = self.config.get("bounds", [-2.5, 2.5])
+        self.n_iter = self.config.get("n_iter", 100)
 
         # Logging
         self.logging_enabled = self.config.get("logging_enabled", True)

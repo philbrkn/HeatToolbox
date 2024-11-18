@@ -51,6 +51,12 @@ class CMAESModule:
         if self.rank == 0:
             os.makedirs(self.cma_log_dir, exist_ok=True)
 
+        timeout_parts = list(map(int, config.walltime.split(":")))
+        self.timeout = (
+            timeout_parts[0]*3600 + timeout_parts[1] * 60 + timeout_parts[2]
+        )
+        self.timeout *= 0.98  # Use 98% of walltime as timeout buffer
+
     def evaluate_candidate(self, latent_vectors):
         """
         Evaluate a candidate solution.
@@ -87,20 +93,19 @@ class CMAESModule:
         # Initialize CMA-ES optimizer
         if self.rank == 0:
             cma_options = {
-                # 'popsize': 3,
-                # 'bounds': [self.config.lower_bounds, self.config.upper_bounds],
                 'verb_filenameprefix': os.path.join(self.cma_log_dir, "outcma_"),
                 'verb_disp': 1,  # 100 #v verbosity: display console output every verb_disp iteration
                 'verb_log': 0,  # verbosity: write data to files every verb_log iteration
                 'verb_append': 1,  # initial evaluation counter, if append, do not overwrite output files
-                # 'maxfevals': 3,
-                # timeout='inf #v stop if timeout seconds are exceeded, the string "2.5 * 60**2" evaluates to 2 hours and 30 minutes'
+                'timeout': self.timeout,  # Stop after timeout seconds
+                'popsize': self.config.popsize,  # Population size
+                'bounds': self.config.bounds,  # Bounds
             }
             es = cma.CMAEvolutionStrategy(self.init_z, self.sigma0, cma_options)
         else:
             es = None
 
-        for generation in range(n_iter):
+        for generation in range(self.config.n_iter):
             start_time = MPI.Wtime()
             if self.rank == 0:
                 # Ask for candidate solutions
