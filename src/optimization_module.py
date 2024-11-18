@@ -15,6 +15,7 @@ except ImportError:
     BayesianOptimization = None
 import cma
 from mpi4py import MPI
+import os
 
 
 class CMAESModule:
@@ -44,6 +45,11 @@ class CMAESModule:
         # Initialize CMA-ES parameters
         self.init_z = np.zeros(self.z_dim * self.N_sources)  # Initial latent vector
         self.sigma0 = 0.5  # Initial standard deviation
+
+        # Directory for CMA logs
+        self.cma_log_dir = os.path.join(self.logger.log_dir, "cma_logs") if self.logger else "cma_logs"
+        if self.rank == 0:
+            os.makedirs(self.cma_log_dir, exist_ok=True)
 
     def evaluate_candidate(self, latent_vectors):
         """
@@ -80,11 +86,22 @@ class CMAESModule:
         """
         # Initialize CMA-ES optimizer
         if self.rank == 0:
-            es = cma.CMAEvolutionStrategy(self.init_z, self.sigma0)
+            cma_options = {
+                # 'popsize': 3,
+                # 'bounds': [self.config.lower_bounds, self.config.upper_bounds],
+                'verb_filenameprefix': os.path.join(self.cma_log_dir, "outcma_"),
+                'verb_disp': 1,  # 100 #v verbosity: display console output every verb_disp iteration
+                'verb_log': 0,  # verbosity: write data to files every verb_log iteration
+                'verb_append': 1,  # initial evaluation counter, if append, do not overwrite output files
+                # 'maxfevals': 3,
+                # timeout='inf #v stop if timeout seconds are exceeded, the string "2.5 * 60**2" evaluates to 2 hours and 30 minutes'
+            }
+            es = cma.CMAEvolutionStrategy(self.init_z, self.sigma0, cma_options)
         else:
             es = None
 
         for generation in range(n_iter):
+            start_time = MPI.Wtime()
             if self.rank == 0:
                 # Ask for candidate solutions
                 candidate_solutions = es.ask()
@@ -123,23 +140,26 @@ class CMAESModule:
                 fitnesses = [fitness for sublist in all_fitness for fitness in sublist]
                 # Tell CMA-ES the fitnesses of the candidates
                 es.tell(candidate_solutions, fitnesses)
+                # Log results for this generation
+                es.logger.add()  # Add generation data to the log files
 
                 # Pair each candidate solution with its fitness
                 results = list(zip(candidate_solutions, fitnesses))
 
                 # Find the candidate with the minimum fitness
                 best_solution, min_fitness = min(results, key=lambda s: s[1])
-
-                # Prepare generation data for logging
-                generation_data = {
-                    "best_value": min_fitness,
-                    "best_solution": best_solution.tolist(),  # Convert numpy array to list
-                }
+                generation_time = MPI.Wtime() - start_time  # Measure time for the generation
 
                 # Logging and displaying progress
                 es.disp()
                 if self.logger:
-                    self.logger.log_optimization_results(generation, generation_data)
+                    self.logger.log_generation_data(
+                        generation, {
+                            "best_value": min(fitnesses),
+                            "generation_time": generation_time,
+                            "population_size": len(candidate_solutions),
+                        }
+                    )
 
         # After optim, get the best solution found
         if self.rank == 0:

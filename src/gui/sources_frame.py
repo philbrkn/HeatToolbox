@@ -8,6 +8,7 @@ class SourcesFrame(tk.Frame):
         self.material_frame = material_frame
         self.grid(row=6, column=1, columnspan=4, sticky="w")
         self.create_widgets()
+        self.add_source_row()
 
     def create_widgets(self):
         tk.Label(self.material_frame, text="Sources (Position, Heat)").grid(
@@ -29,12 +30,12 @@ class SourcesFrame(tk.Frame):
 
         # Position Entry
         tk.Label(row_frame, text="Position:").pack(side="left")
-        position_var = tk.DoubleVar()
+        position_var = tk.DoubleVar(value=0.5)
         tk.Entry(row_frame, textvariable=position_var, width=5).pack(side="left")
 
         # Heat Value Entry
         tk.Label(row_frame, text="Heat:").pack(side="left")
-        heat_var = tk.DoubleVar()
+        heat_var = tk.DoubleVar(value=80)
         tk.Entry(row_frame, textvariable=heat_var, width=5).pack(side="left")
 
         # Remove Button

@@ -52,16 +52,12 @@ class LoggingModule:
             with open(hpc_script_path, "w") as f:
                 f.write(self.config.hpc_script_content)
 
-    def log_optimization_results(self, generation, data):
-        """Log optimization data during optimization."""
+    def log_generation_data(self, generation, data):
+        """Log generation data during optimization."""
         if self.rank == 0:
-            # Create optimization_results subdirectory if it doesn't exist
-            opt_results_dir = os.path.join(self.log_dir, "optimization_results")
-            os.makedirs(opt_results_dir, exist_ok=True)
-            # Save the generation data
-            results_file = os.path.join(opt_results_dir, f"generation_{generation}.json")
-            with open(results_file, "w") as f:
-                json.dump(data, f, indent=4)
+            with open(os.path.join(self.log_dir, "generation_data.txt"), "a") as f:
+                timestamp = datetime.datetime.now().isoformat()
+                f.write(f"{timestamp} - Generation {generation}: {data}\n")
 
     def save_optimized_latent_vectors(self, latent_vectors):
         """Save the best latent vectors from optimization."""

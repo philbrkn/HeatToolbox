@@ -57,7 +57,17 @@ class HPCFrame(ttk.LabelFrame):
         # Conda Environment Name
         tk.Label(self, text="Conda Environment Name").grid(row=row, column=0, sticky="w")
         tk.Entry(self, textvariable=self.options["conda_env_name"], width=20).grid(row=row, column=1, sticky="w")
+
+        row = 0
+        # HPC user, host, and directory
+        tk.Label(self, text="HPC User").grid(row=row, column=2, sticky="w")
+        tk.Entry(self, textvariable=self.options["hpc_user"], width=10).grid(row=row, column=3, sticky="w")
         row += 1
+        tk.Label(self, text="HPC Host").grid(row=row, column=2, sticky="w")
+        tk.Entry(self, textvariable=self.options["hpc_host"], width=10).grid(row=row, column=3, sticky="w")
+        row += 1
+        tk.Label(self, text="HPC Directory").grid(row=row, column=2, sticky="w")
+        tk.Entry(self, textvariable=self.options["hpc_dir"], width=10).grid(row=row, column=3, sticky="w")
 
         # Initially hide MPI options if parallelization is not enabled
         self.toggle_mpi_options()

@@ -1,29 +1,37 @@
-from datetime import datetime
 
+def generate_hpc_script(config, config_path):
+    """
+    Generate the HPC script based on a configuration dictionary.
 
-def generate_hpc_script(args, config_path):
+    Args:
+        config (dict): Configuration dictionary containing HPC and simulation parameters.
+        config_path (str): Path to the configuration JSON file.
+
+    Returns:
+        str: The content of the HPC script.
+    """
     # Start the script with the shebang and PBS directives
     script_lines = ["#!/bin/bash"]
 
     # Select resources
-    select_line = f"#PBS -l select={args.nodes}:ncpus={args.ncpus}:mem={args.mem}gb"
+    select_line = f"#PBS -l select={config['nodes']}:ncpus={config['ncpus']}:mem={config['mem']}gb"
 
     # If parallelization is enabled, add mpiprocs
-    if args.parallelize:
-        select_line += f":mpiprocs={args.mpiprocs}"
+    if config.get("parallelize", False):
+        select_line += f":mpiprocs={config['mpiprocs']}"
 
     script_lines.append(select_line)
 
     # Add walltime
-    script_lines.append(f"#PBS -l walltime={args.walltime}")
+    script_lines.append(f"#PBS -l walltime={config['walltime']}")
 
-    # Load necessary modules and activate conda environment
+    # Load necessary modules and activate the conda environment
     script_lines.extend(
         [
             "",
             "module load tools/prod",
-            f'eval "$({args.conda_env_path} shell.bash hook)"',
-            f"conda activate {args.conda_env_name}",
+            f'eval "$({config["conda_env_path"]} shell.bash hook)"',
+            f"conda activate {config['conda_env_name']}",
             "",
             "# Copy input file to $TMPDIR",
             "cp -r $HOME/BTE-NO $TMPDIR/",
@@ -33,24 +41,29 @@ def generate_hpc_script(args, config_path):
         ]
     )
 
-    # Generate the command line using your existing function
+    # Generate the command line using the config path
     command = f"python src/main.py --config {config_path}"
 
-    # Add timeout before walltime
-    # convert args.timeout, which is in HH:MM:SS, to H.[MM/60+SS/3600]
-    if args.timeout:
-        timeout_parts = list(map(int, args.timeout.split(":")))
-        script_timeout = timeout_parts[0] + timeout_parts[1] / 60 + timeout_parts[2] / 3600
-        script_timeout = round(script_timeout, 2)
+    # Calculate timeout in hours
+    if config.get("timeout"):
+        timeout_parts = list(map(int, config["timeout"].split(":")))
+        script_timeout = (
+            timeout_parts[0] + timeout_parts[1] / 60 + timeout_parts[2] / 3600
+        )
     else:
-        timeout_parts = list(map(int, args.walltime.split(":")))
-        script_timeout = timeout_parts[0] + timeout_parts[1] / 60 + timeout_parts[2] / 3600
-        script_timeout = round(0.98 * script_timeout, 2)
-    timeout_line = f"timeout {script_timeout}h {command}"
+        timeout_parts = list(map(int, config["walltime"].split(":")))
+        script_timeout = (
+            timeout_parts[0] + timeout_parts[1] / 60 + timeout_parts[2] / 3600
+        )
+        script_timeout *= 0.98  # Use 98% of walltime as timeout buffer
 
-    # If parallelization is enabled, use mpirun
-    if args.parallelize:
-        mpirun_command = f"mpirun -np {args.total_procs} {timeout_line}"
+    timeout_line = f"timeout {round(script_timeout, 2)}h {command}"
+
+    # Use mpirun if parallelization is enabled
+    if config.get("parallelize", False):
+        mpirun_command = (
+            f"mpirun -np {config['mpiprocs'] * config['nodes']} {timeout_line}"
+        )
         script_lines.append("# Run application with MPI")
         script_lines.append(mpirun_command)
     else:

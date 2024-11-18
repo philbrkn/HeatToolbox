@@ -62,10 +62,10 @@ class SimulationConfigGUI:
     def run_simulation(self):
         try:
             # Extracting the options
-            args = self.get_args()
+            config_dict = get_config_dict(self.options)
 
             # Initialize SimulationConfig with the extracted args
-            config = SimulationConfig(args)
+            config = SimulationConfig(config_dict)
             sim = SimulationController(config)
 
             # Run the simulation
@@ -79,41 +79,41 @@ class SimulationConfigGUI:
         try:
             # Generate HPC script
             config = get_config_dict(self.options)
-            script_content = generate_hpc_script(config)
-            log_dir = self.save_config_and_hpc_script(config, script_content)
+
+            log_name = self.options["log_name"].get() or "default_log"
+            log_dir = os.path.join("logs", log_name)
+            os.makedirs(log_dir, exist_ok=True)
+            save_config(self.options, log_dir)
+            config_path = os.path.join(log_dir, "config.json")
+
+            script_content = generate_hpc_script(config, config_path)
+            self.save_hpc_script(script_content, log_dir)
 
             # Prompt for password and submit the job
             password = prompt_password()
-            hpc_user = "pt721"
-            hpc_host = "login.cx3.hpc.ic.ac.uk"
-            job_id = submit_job(hpc_user, hpc_host, log_dir, password)
-
-            messagebox.showinfo("Success", f"Job submitted successfully! Job ID: {job_id}")
+            hpc_user = self.options["hpc_user"].get()
+            hpc_host = self.options["hpc_host"].get()
+            hpc_path = self.options["hpc_dir"].get()
+            submit_job(hpc_user, hpc_host, hpc_path, log_dir, password)
 
         except Exception as e:
             traceback.print_exc()
             messagebox.showerror("Error", str(e))
 
-    def save_config_and_hpc_script(self, config, hpc_script):
-        """Save the config and HPC script in the log directory."""
-        log_name = self.options["log_name"].get() or "default_log"
-        log_dir = os.path.join("logs", log_name)
-        os.makedirs(log_dir, exist_ok=True)
-
-        self.save_config(config, log_name)
-
+    def save_hpc_script(self, hpc_script, log_dir):
+        """Save the HPC script in the log directory."""
         # Save HPC script
         hpc_path = os.path.join(log_dir, "hpc_run.sh")
         with open(hpc_path, "w") as f:
             f.write(hpc_script)
 
-        return log_dir
-        
     def save_config(self):
-        save_config(self.options)
+        log_name = self.options["log_name"].get() or "default_log"
+        log_dir = os.path.join("logs", log_name)
+        os.makedirs(log_dir, exist_ok=True)
+        save_config(self.options, log_dir)
 
     def load_config(self):
         file_path = filedialog.askopenfilename(defaultextension=".json", filetypes=[("JSON files", "*.json")])
         if file_path:
             load_config(self.options, file_path)
-

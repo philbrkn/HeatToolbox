@@ -79,8 +79,8 @@ class SimulationController:
 
             latent_vectors = best_z_list
             # Optional: Save the best_z to a file for future solving
-            if self.rank == 0:
-                self.logger.save_optimized_latent_vectors(latent_vectors)
+            # if self.rank == 0:
+            #     self.logger.save_optimized_latent_vectors(latent_vectors)
         else:
             latent_vectors = self.get_latent_vectors()
 

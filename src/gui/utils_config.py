@@ -26,12 +26,15 @@ def initialize_options():
         "ncpus": tk.IntVar(value=4),
         "mem": tk.IntVar(value=8),
         "walltime": tk.StringVar(value="03:00:00"),
-        "timeout": tk.StringVar(value="2:55:00"),
+        "timeout": tk.StringVar(),
         "parallelize": tk.BooleanVar(value=False),
         "mpiprocs": tk.IntVar(value=4),
         "conda_env_path": tk.StringVar(value="~/miniforge3/bin/conda"),
         "conda_env_name": tk.StringVar(value="fenicsx_torch"),
         "log_name": tk.StringVar(value=""),
+        "hpc_user": tk.StringVar(value="pt721"),
+        "hpc_host": tk.StringVar(value="login.cx3.hpc.ic.ac.uk"),
+        "hpc_dir": tk.StringVar(value="~/BTE-NO")
     }
 
 
@@ -45,9 +48,9 @@ def get_config_dict(options):
         "latent": [val.get() for val in options["latent"]],
         "symmetry": options["symmetry"].get(),
         "blank": options["blank"].get(),
-        "sources": options["sources"],
+        "sources": parse_sources(options["sources"]),
         "res": options["res"].get(),
-        "visualize": options["visualize"],
+        "visualize": {k: v.get() for k, v in options["visualize"].items()},  # Convert BooleanVars to actual values
         "vf_enabled": options["vf_enabled"].get(),
         "vf_value": options["vf_value"].get(),
         "plot_mode": options["plot_mode"].get(),
@@ -62,14 +65,15 @@ def get_config_dict(options):
         "conda_env_path": options["conda_env_path"].get(),
         "conda_env_name": options["conda_env_name"].get(),
         "log_name": options["log_name"].get(),
+        "hpc_user": options["hpc_user"].get(),
+        "hpc_host": options["hpc_host"].get(),
+        "hpc_dir": options["hpc_dir"].get()
     }
 
 
-def save_config(options, log_name=None):
+def save_config(options, log_dir):
     """Save the current configuration to a JSON file."""
     config = get_config_dict(options)
-    log_name = log_name or config.get("log_name") or "default_log"
-    log_dir = os.path.join("logs", log_name)
     os.makedirs(log_dir, exist_ok=True)
     config_path = os.path.join(log_dir, "config.json")
     with open(config_path, "w") as f:
@@ -89,8 +93,32 @@ def set_options_from_config(options, config):
     """Update Tkinter options with values from a configuration."""
     for key, value in config.items():
         if key in options:
-            if isinstance(options[key], list):  # For "latent" and similar lists
-                for i, val in enumerate(value):
-                    options[key][i].set(val)
-            else:
+            if isinstance(options[key], list):  # Handle lists like "latent"
+                if isinstance(value, list):
+                    for i, val in enumerate(value):
+                        if i < len(options[key]) and hasattr(options[key][i], 'set'):
+                            options[key][i].set(val)
+                else:
+                    raise ValueError(f"Expected a list for key '{key}', but got {type(value)}.")
+            elif hasattr(options[key], 'set'):  # For Tkinter variables
                 options[key].set(value)
+            else:  # Handle non-Tkinter variables (e.g., plain dicts or other types)
+                options[key] = value
+
+
+def parse_sources(tk_sources_dict):
+    sources_list = []
+    for source in tk_sources_dict:
+        pos = source["position"].get()
+        heat = source["heat"].get()
+        if pos == "" or heat == "":
+            continue  # Skip empty entries
+        try:
+            pos = float(pos)
+            heat = float(heat)
+            if pos < 0 or pos > 1:
+                raise ValueError("Source positions must be between 0 and 1 (normalized).")
+            sources_list.extend([pos, heat])
+        except ValueError as e:
+            raise ValueError(f"Invalid source input: {e}")
+    return sources_list if sources_list else None

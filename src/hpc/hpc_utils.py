@@ -4,18 +4,22 @@ import tkinter as tk
 from tkinter import messagebox
 
 
-def submit_job(hpc_user, hpc_host, log_dir, password):
-    hpc_remote_path = "~/BTE-NO"
-
+def submit_job(hpc_user, hpc_host, hpc_path, log_dir, password):
+    local_base_path = "."
     # Transfer the log directory to the HPC
-    transfer_files_to_hpc(log_dir, remote_path, hpc_user, hpc_host, password)
+    transfer_files_to_hpc(
+        local_base_path, log_dir, hpc_user, hpc_host, hpc_path, password
+    )
 
     try:
         # SSH command with environment setup for qsub
         ssh_command = [
-            "sshpass", "-p", password,
-            "ssh", f"{hpc_user}@{hpc_host}",
-            f"bash -l -c 'cd {hpc_remote_path} && qsub {log_dir}/hpc_run.sh'"
+            "sshpass",
+            "-p",
+            password,
+            "ssh",
+            f"{hpc_user}@{hpc_host}",
+            f"bash -l -c 'cd {hpc_path} && qsub {log_dir}/hpc_run.sh'",
         ]
 
         # Run the command
@@ -28,25 +32,54 @@ def submit_job(hpc_user, hpc_host, log_dir, password):
     except subprocess.CalledProcessError as e:
         messagebox.showerror("Error", f"Job submission failed.\n{e.stderr}")
 
-    except Exception as e:
-        messagebox.showerror("Unexpected Error", f"An unexpected error occurred: {str(e)}")
 
+def transfer_files_to_hpc(
+    local_base_path, log_dir, hpc_user, hpc_host, hpc_remote_base_path, password
+):
+    """
+    Transfer files to HPC while maintaining the folder structure.
 
-def transfer_files_to_hpc(log_dir, remote_path, hpc_user, hpc_host, password):
-    local_path = "."
-    hpc_remote_path = "~/BTE-NO"
+    Args:
+        local_base_path (str): The local base path (e.g., "BTE-NO").
+        log_dir (str): The log directory to transfer (relative to the local base path, e.g., "logs/logfolderiwant").
+        hpc_user (str): HPC username.
+        hpc_host (str): HPC hostname.
+        hpc_remote_base_path (str): The remote base path on the HPC (e.g., "~/BTE-NO").
+        password (str): Password for HPC access.
+    """
+    # Ensure local paths exist
+    local_src_path = os.path.join(local_base_path, "src")
+    local_log_path = os.path.join(local_base_path, log_dir)
+    if not os.path.exists(local_src_path):
+        raise FileNotFoundError(f"Source directory not found: {local_src_path}")
+    if not os.path.exists(local_log_path):
+        raise FileNotFoundError(f"Log directory not found: {local_log_path}")
 
     # Use subprocess with `sshpass` for password-based file transfer
-    import subprocess
     rsync_command = [
-        "sshpass", "-p", password,
-        "rsync", "-avz", "--progress",
-        "--exclude-from", f"{local_path}/hpc_exclude.txt",
-        f"{local_path}/src",
-        f"{log_dir}/",
-        f"{hpc_user}@{hpc_host}:{hpc_remote_path}"
+        "sshpass",
+        "-p",
+        password,
+        "rsync",
+        "-avz",
+        "--progress",
+        "--relative",
+        "--exclude-from",
+        os.path.join(local_base_path, "hpc_exclude.txt"),
+        f"{local_src_path}/",  # Transfer the src directory
+        f"{local_log_path}/",  # Transfer the specific log directory
+        f"{hpc_user}@{hpc_host}:{hpc_remote_base_path}/",
     ]
-    subprocess.run(rsync_command, check=True)
+    print(rsync_command)
+
+    # Execute the command
+    try:
+        subprocess.run(rsync_command, check=True)
+        print(
+            f"Successfully transferred to {hpc_user}@{hpc_host}:{hpc_remote_base_path}"
+        )
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"File transfer failed: {e}")
 
 
 def prompt_password(prompt="Enter HPC Password"):

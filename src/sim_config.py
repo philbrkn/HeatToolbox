@@ -5,12 +5,21 @@ import numpy as np
 
 
 class SimulationConfig:
-    def __init__(self, config_path):
-        # Load configurations from JSON file
-        with open(config_path, "r") as f:
-            config = json.load(f)
+    def __init__(self, config):
+        """
+        Initialize the simulation configuration.
 
-        self.config = config  # Store the entire config for later use
+        Parameters:
+        - config (str or dict): Path to a JSON configuration file or a dictionary containing configuration data.
+        """
+        if isinstance(config, str):  # If a file path is provided
+            with open(config, "r") as f:
+                print("Loading config from file")
+                self.config = json.load(f)
+        elif isinstance(config, dict):  # If a dictionary is provided
+            self.config = config
+        else:
+            raise TypeError("Config must be either a file path (str) or a dictionary.")
 
         # Physical properties
         self.C = PETSc.ScalarType(1.0)  # Slip parameter
@@ -22,7 +31,7 @@ class SimulationConfig:
 
         # Volume fraction
         self.vol_fraction = (
-            config.get("vf_value", 0.2) if config.get("vf_enabled", True) else None
+            self.config.get("vf_value", 0.2) if self.config.get("vf_enabled", True) else None
         )
 
         # Geometric properties
@@ -31,11 +40,11 @@ class SimulationConfig:
         self.L_Y = 12.5 * self.LENGTH
         self.SOURCE_WIDTH = self.LENGTH
         self.SOURCE_HEIGHT = self.LENGTH * 0.25
-        self.mask_extrusion = not config.get("blank", False)
-        self.blank = config.get("blank", False)
+        self.mask_extrusion = not self.config.get("blank", False)
+        self.blank = self.config.get("blank", False)
 
         # Mesh resolution
-        res = config.get("res", 12.0)
+        res = self.config.get("res", 12.0)
         self.RESOLUTION = self.LENGTH / res if res > 0 else self.LENGTH / 12
 
         # Material properties
@@ -45,29 +54,29 @@ class SimulationConfig:
         self.KAPPA_DI = PETSc.ScalarType(600.0)
 
         # Sources
-        self.sources = config.get("sources", [0.5, self.Q_L])
+        self.sources = self.config.get("sources", [0.5, self.Q_L])
         self.process_sources()
 
         # Symmetry
-        self.symmetry = config.get("symmetry", False)
+        self.symmetry = self.config.get("symmetry", False)
         if self.symmetry:
             self.L_X /= 2
             self.SOURCE_WIDTH /= 2
 
         # Visualization
-        self.visualize = config.get("visualize", [])
-        self.plot_mode = config.get("plot_mode", "screenshot")
+        self.visualize = self.config.get("visualize", [])
+        self.plot_mode = self.config.get("plot_mode", "screenshot")
 
         # Optimization parameters
-        self.optim = config.get("optim", False)
-        self.optimizer = config.get("optimizer", "cmaes")
-        self.latent = config.get("latent", None)
-        self.latent_size = config.get("latent_size", 4)
-        self.latent_method = config.get("latent_method", "preloaded")
+        self.optim = self.config.get("optim", False)
+        self.optimizer = self.config.get("optimizer", "cmaes")
+        self.latent = self.config.get("latent", None)
+        self.latent_size = self.config.get("latent_size", 4)
+        self.latent_method = self.config.get("latent_method", "preloaded")
 
         # Logging
-        self.logging_enabled = config.get("logging_enabled", True)
-        self.log_name = config.get("log_name", None)  # New: user-defined log name
+        self.logging_enabled = self.config.get("logging_enabled", True)
+        self.log_name = self.config.get("log_name", None)  # New: user-defined log name
         self.log_dir = os.path.join("logs", self.log_name)
         # Ensure the log directory  exists
         if not os.path.exists(self.log_dir):
