@@ -92,10 +92,11 @@ class CMAESModule:
         """
         # Initialize CMA-ES optimizer
         if self.rank == 0:
+            on_hpc = self.config.hpc_enabled
             cma_options = {
                 'verb_filenameprefix': os.path.join(self.cma_log_dir, "outcma_"),
-                'verb_disp': 1,  # 100 #v verbosity: display console output every verb_disp iteration
-                'verb_log': 0,  # verbosity: write data to files every verb_log iteration
+                'verb_disp': 0 if on_hpc else 1,  # 100 #v verbosity: display console output every verb_disp iteration
+                'verb_log': 1 if on_hpc else 0,  # verbosity: write data to files every verb_log iteration
                 'verb_append': 1,  # initial evaluation counter, if append, do not overwrite output files
                 'timeout': self.timeout,  # Stop after timeout seconds
                 'popsize': self.config.popsize,  # Population size
@@ -170,12 +171,33 @@ class CMAESModule:
         if self.rank == 0:
             result = es.result
             best_z = result.xbest  # Best latent vector
+            self.save_cma_plots(es)  # Save CMA-ES plots
         else:
             best_z = None
 
         best_z = self.comm.bcast(best_z, root=0)
 
         return best_z
+
+    def save_cma_plots(self, es):
+        """
+        Generate and save plots from the CMA-ES optimization.
+
+        Parameters:
+        - es: The CMAEvolutionStrategy instance.
+        """
+        import matplotlib
+        matplotlib.use('Agg')  # Ensure we're using a non-interactive backend
+        import matplotlib.pyplot as plt
+
+        # Plot the data using cma's logger
+        cma.plot()
+
+        # Save the figure
+        plot_path = os.path.join(self.cma_log_dir, "cmaes_convergence.png")
+        cma.s.figsave(plot_path)  # Save all current figures to a file
+
+        print(f"CMA-ES convergence plot saved to {plot_path}")
 
 
 class BayesianModule:

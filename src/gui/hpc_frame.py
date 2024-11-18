@@ -20,16 +20,16 @@ class HPCFrame(ttk.LabelFrame):
 
         # HPC Options
         self.nodes_label = tk.Label(self, text="Number of Nodes:")
-        self.nodes_entry = tk.Entry(self, textvariable=self.options["nodes"], width=10)
+        self.nodes_entry = tk.Entry(self, textvariable=self.options["nodes"], width=5)
 
         self.ncpus_label = tk.Label(self, text="CPUs per Node (ncpus):")
-        self.ncpus_entry = tk.Entry(self, textvariable=self.options["ncpus"], width=10)
+        self.ncpus_entry = tk.Entry(self, textvariable=self.options["ncpus"], width=5)
 
         self.mem_label = tk.Label(self, text="Memory per Node (GB):")
-        self.mem_entry = tk.Entry(self, textvariable=self.options["mem"], width=10)
+        self.mem_entry = tk.Entry(self, textvariable=self.options["mem"], width=5)
 
         self.walltime_label = tk.Label(self, text="Walltime (HH:MM:SS):")
-        self.walltime_entry = tk.Entry(self, textvariable=self.options["walltime"], width=10)
+        self.walltime_entry = tk.Entry(self, textvariable=self.options["walltime"], width=5)
 
         self.parallelize_checkbutton = tk.Checkbutton(
             self,
@@ -73,16 +73,16 @@ class HPCFrame(ttk.LabelFrame):
             self.walltime_entry.grid(row=4, column=1, sticky="w")
             self.parallelize_checkbutton.grid(row=5, column=0, sticky="w")
             self.toggle_mpi_options()  # Show or hide MPI options based on the checkbox
-            self.conda_path_label.grid(row=6, column=0, sticky="w")
-            self.conda_path_entry.grid(row=6, column=1, sticky="w")
-            self.conda_name_label.grid(row=7, column=0, sticky="w")
-            self.conda_name_entry.grid(row=7, column=1, sticky="w")
-            self.hpc_user_label.grid(row=8, column=0, sticky="w")
-            self.hpc_user_entry.grid(row=8, column=1, sticky="w")
-            self.hpc_host_label.grid(row=9, column=0, sticky="w")
-            self.hpc_host_entry.grid(row=9, column=1, sticky="w")
-            self.hpc_dir_label.grid(row=10, column=0, sticky="w")
-            self.hpc_dir_entry.grid(row=10, column=1, sticky="w")
+            self.hpc_user_label.grid(row=1, column=2, sticky="w")
+            self.hpc_user_entry.grid(row=1, column=3, sticky="w")
+            self.hpc_host_label.grid(row=2, column=2, sticky="w")
+            self.hpc_host_entry.grid(row=2, column=3, sticky="w")
+            self.hpc_dir_label.grid(row=3, column=2, sticky="w")
+            self.hpc_dir_entry.grid(row=3, column=3, sticky="w")
+            self.conda_path_label.grid(row=4, column=2, sticky="w")
+            self.conda_path_entry.grid(row=4, column=3, sticky="w")
+            self.conda_name_label.grid(row=5, column=2, sticky="w")
+            self.conda_name_entry.grid(row=5, column=3, sticky="w")
         else:
             self.hide_hpc_options()
 
