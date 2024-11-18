@@ -10,48 +10,64 @@ class OptimizationFrame(ttk.LabelFrame):
         self.create_widgets()
 
     def create_widgets(self):
+        # Run Optimization Checkbox
         tk.Checkbutton(
             self,
             text="Run Optimization",
             variable=self.options["optim"],
-            command=self.toggle_optimizer_callback,
+            command=self.toggle_optimizer_options,
         ).grid(row=0, column=0, sticky="w")
 
+        # Optimizer Selection
         self.optimizer_label = tk.Label(self, text="Select Optimizer")
-        self.optimizer_label.grid(row=1, column=0, sticky="w")
-        self.optimizer_label.grid_remove()
-
         self.optimizer_menu = tk.OptionMenu(
             self, self.options["optimizer"], "bayesian", "cmaes"
         )
-        self.optimizer_menu.grid(row=1, column=1)
-        self.optimizer_menu.grid_remove()
-
-        # Timeout
-        # tk.Label(self, text="Timeout (s):").grid(row=0, column=0, sticky="e")
-        # tk.Entry(self, textvariable=self.options["timeout"]).grid(row=0, column=1, sticky="w")
 
         # Population Size
-        tk.Label(self, text="Population Size:").grid(row=2, column=0, sticky="e")
-        tk.Entry(self, textvariable=self.options["popsize"]).grid(row=2, column=1, sticky="w")
+        self.popsize_label = tk.Label(self, text="Population Size:")
+        self.popsize_entry = tk.Entry(self, textvariable=self.options["popsize"], width=10)
 
         # Bounds
-        tk.Label(self, text="Lower Bound:").grid(row=3, column=0, sticky="e")
-        tk.Entry(self, textvariable=self.options["bounds_lower"]).grid(row=3, column=1, sticky="w")
+        self.bounds_lower_label = tk.Label(self, text="Lower Bound:")
+        self.bounds_lower_entry = tk.Entry(self, textvariable=self.options["bounds_lower"], width=10)
 
-        tk.Label(self, text="Upper Bound:").grid(row=4, column=0, sticky="e")
-        tk.Entry(self, textvariable=self.options["bounds_upper"]).grid(row=4, column=1, sticky="w")
+        self.bounds_upper_label = tk.Label(self, text="Upper Bound:")
+        self.bounds_upper_entry = tk.Entry(self, textvariable=self.options["bounds_upper"], width=10)
 
         # Number of Iterations
-        tk.Label(self, text="Number of Iterations:").grid(row=5, column=0, sticky="e")
-        tk.Entry(self, textvariable=self.options["n_iter"]).grid(row=5, column=1, sticky="w")
+        self.n_iter_label = tk.Label(self, text="Number of Iterations:")
+        self.n_iter_entry = tk.Entry(self, textvariable=self.options["n_iter"], width=10)
 
-    def toggle_optimizer_callback(self):
-        """Toggle the visibility of the optimizer selection based
-        on the 'Run Optimization' checkbox."""
+        # Initially hide all optimizer-related options
+        self.hide_optimizer_options()
+
+    def toggle_optimizer_options(self):
+        """Show or hide optimizer options based on the Run Optimization checkbox."""
         if self.options["optim"].get():
-            self.optimizer_label.grid()  # Show the optimizer label
-            self.optimizer_menu.grid()  # Show the optimizer menu
+            # Show optimizer-related options
+            self.optimizer_label.grid(row=1, column=0, sticky="w")
+            self.optimizer_menu.grid(row=1, column=1, sticky="w")
+            self.popsize_label.grid(row=2, column=0, sticky="w")
+            self.popsize_entry.grid(row=2, column=1, sticky="w")
+            self.bounds_lower_label.grid(row=3, column=0, sticky="w")
+            self.bounds_lower_entry.grid(row=3, column=1, sticky="w")
+            self.bounds_upper_label.grid(row=4, column=0, sticky="w")
+            self.bounds_upper_entry.grid(row=4, column=1, sticky="w")
+            self.n_iter_label.grid(row=5, column=0, sticky="w")
+            self.n_iter_entry.grid(row=5, column=1, sticky="w")
         else:
-            self.optimizer_label.grid_remove()  # Hide the optimizer label
-            self.optimizer_menu.grid_remove()  # Hide the optimizer menu
+            self.hide_optimizer_options()
+
+    def hide_optimizer_options(self):
+        """Hide all optimizer-related options."""
+        self.optimizer_label.grid_remove()
+        self.optimizer_menu.grid_remove()
+        self.popsize_label.grid_remove()
+        self.popsize_entry.grid_remove()
+        self.bounds_lower_label.grid_remove()
+        self.bounds_lower_entry.grid_remove()
+        self.bounds_upper_label.grid_remove()
+        self.bounds_upper_entry.grid_remove()
+        self.n_iter_label.grid_remove()
+        self.n_iter_entry.grid_remove()

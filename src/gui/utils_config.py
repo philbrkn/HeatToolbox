@@ -39,6 +39,7 @@ def initialize_options():
         "bounds_lower": tk.DoubleVar(value=-2.5),  # New lower bound for CMA-ES
         "bounds_upper": tk.DoubleVar(value=2.5),  # New upper bound for CMA-ES
         "n_iter": tk.IntVar(value=100),  # New parameter for the number of iterations
+        "hpc_enabled": tk.BooleanVar(value=False),
         # "timeout": tk.StringVar(),
     }
 
@@ -76,6 +77,7 @@ def get_config_dict(options):
         "popsize": options["popsize"].get(),  # New parameter
         "bounds": [options["bounds_lower"].get(), options["bounds_upper"].get()],  # New parameter
         "n_iter": options["n_iter"].get(),  # New parameter
+        "hpc_enabled": options["hpc_enabled"].get(),
     }
 
 

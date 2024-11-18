@@ -88,6 +88,8 @@ class SimulationConfig:
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir, exist_ok=True)
 
+        self.hpc_enabled = self.config.get("hpc_enabled", True)
+
     def process_sources(self):
         sources = self.sources
         if len(sources) % 2 != 0:
