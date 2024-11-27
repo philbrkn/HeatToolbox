@@ -15,6 +15,7 @@ from hpc.script_generator import generate_hpc_script
 from .utils_config import initialize_options,  get_config_dict, save_config, load_config
 from hpc.hpc_utils import submit_job, prompt_password
 import os
+import json
 
 
 class SimulationConfigGUI:
@@ -52,10 +53,11 @@ class SimulationConfigGUI:
 
     def add_buttons(self):
         button_frame = tk.Frame(self.root)
-        button_frame.grid(row=3, column=0, columnspan=2, pady=10)
+        button_frame.grid(row=3, column=0, columnspan=3, pady=10)
 
         tk.Button(button_frame, text="Run Simulation", command=self.run_simulation).pack(side="left", padx=5)
         tk.Button(button_frame, text="Transfer and submit to HPC", command=self.submit_to_hpc).pack(side="left", padx=5)
+        tk.Button(button_frame, text="Visualize Best Result", command=self.visualize_best_result).pack(side="left", padx=5)
         tk.Button(button_frame, text="Save Config", command=self.save_config).pack(side="left", padx=5)
         tk.Button(button_frame, text="Load Config", command=self.load_config).pack(side="left", padx=5)
 
@@ -117,3 +119,57 @@ class SimulationConfigGUI:
         file_path = filedialog.askopenfilename(defaultextension=".json", filetypes=[("JSON files", "*.json")])
         if file_path:
             load_config(self.options, file_path)
+
+    def visualize_best_result(self):
+        """Load config, modify it, and run simulation on the best latent vector."""
+        # Ask the user to select a config file
+        file_path = filedialog.askopenfilename(
+            title="Select Configuration File",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+        )
+        if file_path:
+            try:
+                # Load the configuration from the selected file
+                with open(file_path, "r") as f:
+                    config = json.load(f)
+
+                # Modify the configuration in memory
+                config["optim"] = False
+                config["hpc_enabled"] = False
+                # Turn all visualization options on
+                if "visualize" in config:
+                    for key in config["visualize"]:
+                        config["visualize"][key] = True
+                else:
+                    config["visualize"] = {
+                        "gamma": True,
+                        "temperature": True,
+                        "flux": True,
+                        "profiles": True,
+                        "pregamma": True
+                    }
+
+                # Ensure we have the log directory
+                if "log_name" in config:
+                    log_dir = os.path.join("logs", config["log_name"])
+                else:
+                    messagebox.showerror("Error", "The configuration file must contain 'log_name'.")
+                    return
+                config["load_cma_result"] = True
+
+                # Update options in the GUI (optional, if we want to reflect changes)
+                # self.options = {}  # Reset options
+                # set_options_from_config(self.options, config)
+
+                # Create a SimulationConfig object
+                simulation_config = SimulationConfig(config)
+
+                # Create a SimulationController and run the simulation
+                controller = SimulationController(simulation_config)
+                controller.run_simulation()
+
+                # Inform the user
+                messagebox.showinfo("Success", "Simulation completed and visualizations saved.")
+
+            except Exception as e:
+                messagebox.showerror("Error", f"An error occurred: {e}")

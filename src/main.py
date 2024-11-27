@@ -6,6 +6,7 @@ from mpi4py import MPI
 import argparse
 import numpy as np
 import dolfinx.io
+import os
 
 # import modules
 from mesh_generator import MeshGenerator
@@ -16,6 +17,7 @@ from post_processing import PostProcessingModule
 from solver_module import Solver
 from logging_module import LoggingModule
 from sim_config import SimulationConfig
+from log_utils import read_last_latent_vector
 
 
 class SimulationController:
@@ -36,7 +38,7 @@ class SimulationController:
             if self.config.symmetry:
                 msh, cell_markers, facet_markers = mesh_generator.sym_create_mesh()
             else:
-                msh, cell_markers, facet_markers = mesh_generator.create_mesh()
+                mesh_generator.create_mesh()
         else:
             msh = None
             cell_markers = None
@@ -81,6 +83,28 @@ class SimulationController:
             # Optional: Save the best_z to a file for future solving
             # if self.rank == 0:
             #     self.logger.save_optimized_latent_vectors(latent_vectors)
+        elif self.config.load_cma_result:
+            # Load latent vectors from CMA-ES log file
+            latent_vectors = self.load_latent_vectors_from_cma_log()
+            print(latent_vectors)
+            # Proceed to generate images and solve
+            img_list = self.generate_images(latent_vectors)
+
+            if "pregamma" in self.config.visualize:
+                self.plot_image_list(img_list, self.config, logger=self.logger)
+
+            avg_temp_global = solver.solve_image(img_list)
+            time2 = MPI.Wtime()
+            if self.rank == 0:
+                print(f"Average temperature: {avg_temp_global} K")
+                print(f"Time taken to solve: {time2 - time1:.3f} seconds")
+
+            # Check if visualize list is not empty
+            if self.config.visualize:
+                post_processor = PostProcessingModule(
+                    self.rank, self.config, logger=self.logger
+                )
+                post_processor.postprocess_results(solver.U, solver.msh, solver.gamma)
         else:
             latent_vectors = self.get_latent_vectors()
 
@@ -167,11 +191,22 @@ class SimulationController:
         else:
             plt.show()
 
+    def load_latent_vectors_from_cma_log(self):
+        """Load the most recent CMA-ES result and update latent vectors."""
+        cma_log_file = os.path.join(self.config.log_dir, "cma_logs", "outcma_xrecentbest.dat")
+        z_dim = self.config.latent_size
+        num_sources = len(self.config.source_positions)
+        print(f"Zdim and num sources: {z_dim}, {num_sources}")
+        latent_vectors = read_last_latent_vector(cma_log_file, z_dim, num_sources)
+        return latent_vectors
+
 
 def parse_arguments():
     # Command-line arguments to determine the modes
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, required=True, help="Path to the configuration JSON file.")
+    parser.add_argument(
+        "--config", type=str, required=True, help="Path to the configuration JSON file."
+    )
     return parser.parse_args()
 
 

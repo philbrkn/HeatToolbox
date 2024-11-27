@@ -101,8 +101,8 @@ def img_list_to_gamma_expression(img_list, config):
                 gamma_values[in_extrusion] = 1.0
             else:
                 for x_pos in source_positions:
-                    x_min_extrusion = x_pos - config.SOURCE_WIDTH / 2
-                    x_max_extrusion = x_pos + config.SOURCE_WIDTH / 2
+                    x_min_extrusion = x_pos - 1.1 * config.SOURCE_WIDTH / 2
+                    x_max_extrusion = x_pos + 1.1 * config.SOURCE_WIDTH / 2
 
                     in_extrusion = np.logical_and(
                         np.logical_and(

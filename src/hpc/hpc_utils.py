@@ -5,6 +5,7 @@ from tkinter import messagebox
 
 
 def submit_job(hpc_user, hpc_host, hpc_path, log_dir, password):
+
     local_base_path = "."
     # Transfer the log directory to the HPC
     transfer_files_to_hpc(
@@ -12,18 +13,21 @@ def submit_job(hpc_user, hpc_host, hpc_path, log_dir, password):
     )
 
     try:
+        # Set the SSHPASS environment variable
+        env = os.environ.copy()
+        env['SSHPASS'] = password
+
         # SSH command with environment setup for qsub
         ssh_command = [
             "sshpass",
-            "-p",
-            password,
+            "-e",  # Use the password from the environment variable
             "ssh",
             f"{hpc_user}@{hpc_host}",
             f"bash -l -c 'cd {hpc_path} && qsub {log_dir}/hpc_run.sh'",
         ]
 
         # Run the command
-        result = subprocess.run(ssh_command, check=True, text=True, capture_output=True)
+        result = subprocess.run(ssh_command, check=True, text=True, capture_output=True, env=env)
 
         # Extract the job ID from the result
         job_id = result.stdout.strip()
@@ -55,11 +59,13 @@ def transfer_files_to_hpc(
     if not os.path.exists(local_log_path):
         raise FileNotFoundError(f"Log directory not found: {local_log_path}")
 
+    # Set the SSHPASS environment variable
+    env = os.environ.copy()
+    env['SSHPASS'] = password
+
     # Use subprocess with `sshpass` for password-based file transfer
     rsync_command = [
-        "sshpass",
-        "-p",
-        password,
+        "sshpass", "-e",
         "rsync",
         "-avz",
         "--progress",
@@ -74,7 +80,7 @@ def transfer_files_to_hpc(
 
     # Execute the command
     try:
-        subprocess.run(rsync_command, check=True)
+        subprocess.run(rsync_command, check=True, env=env)
         print(
             f"Successfully transferred to {hpc_user}@{hpc_host}:{hpc_remote_base_path}"
         )
@@ -83,26 +89,10 @@ def transfer_files_to_hpc(
 
 
 def prompt_password(prompt="Enter HPC Password"):
-    """Prompt the user to enter their HPC password."""
-    password_window = tk.Toplevel()
-    password_window.title(prompt)
-
-    tk.Label(password_window, text=prompt).pack(pady=5)
-
-    password_var = tk.StringVar()
-    password_entry = tk.Entry(password_window, show="*", textvariable=password_var)
-    password_entry.pack(pady=5)
-    password_entry.focus_set()
-
-    def on_submit():
-        password_window.destroy()
-
-    tk.Button(password_window, text="Submit", command=on_submit).pack(pady=5)
-
-    # Wait for the user to enter the password
-    password_window.wait_window()
-
-    return password_var.get()
+    """Prompt the user to enter their HPC password securely."""
+    import getpass
+    password = getpass.getpass(prompt + ": ")
+    return password
 
 
 def save_hpc_script(script_content, log_dir):

@@ -119,16 +119,16 @@ class MeshGenerator:
         gmsh.write("domain_with_extrusions.msh")
 
         # Convert to Dolfinx mesh
-        msh, cell_markers, facet_markers = io.gmshio.model_to_mesh(
-            gmsh.model,
-            comm=comm,
-            rank=rank,
-            gdim=2
-        )
+        # msh, cell_markers, facet_markers = io.gmshio.model_to_mesh(
+        #     gmsh.model,
+        #     comm=comm,
+        #     rank=rank,
+        #     gdim=2
+        # )
 
         gmsh.finalize()
 
-        return msh, cell_markers, facet_markers
+        # return msh, cell_markers, facet_markers
 
     def sym_create_mesh(self):
         comm = MPI.COMM_SELF

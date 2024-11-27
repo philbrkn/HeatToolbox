@@ -42,7 +42,7 @@ class SimulationConfig:
         self.L_Y = 12.5 * self.LENGTH
         self.SOURCE_WIDTH = self.LENGTH
         self.SOURCE_HEIGHT = self.LENGTH * 0.25
-        self.mask_extrusion = not self.config.get("blank", False)
+        self.mask_extrusion = True
         self.blank = self.config.get("blank", False)
 
         # Mesh resolution
@@ -89,6 +89,7 @@ class SimulationConfig:
             os.makedirs(self.log_dir, exist_ok=True)
 
         self.hpc_enabled = self.config.get("hpc_enabled", True)
+        self.load_cma_result = self.config.get("load_cma_result", False)
 
     def process_sources(self):
         sources = self.sources

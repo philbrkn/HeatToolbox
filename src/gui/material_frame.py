@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import os
 
 
 class MaterialFrame(ttk.LabelFrame):
@@ -10,8 +11,9 @@ class MaterialFrame(ttk.LabelFrame):
         self.create_widgets()
 
     def create_widgets(self):
-        # Latent Size
-        tk.Label(self, text="Latent Size").grid(row=0, column=0, sticky="w")
+        # Load CMA-ES Config Button  
+        row = 0
+        tk.Label(self, text="Latent Size").grid(row=row, column=0, sticky="w")
         tk.OptionMenu(
             self,
             self.options["latent_size"],
@@ -20,10 +22,11 @@ class MaterialFrame(ttk.LabelFrame):
             8,
             16,
             command=self.update_latent_size,
-        ).grid(row=0, column=1, sticky="w")
+        ).grid(row=row, column=1, sticky="w")
 
         # Latent Method
-        tk.Label(self, text="Latent Method").grid(row=1, column=0, sticky="w")
+        row += 1
+        tk.Label(self, text="Latent Method").grid(row=row, column=0, sticky="w")
         tk.OptionMenu(
             self,
             self.options["latent_method"],
@@ -31,26 +34,30 @@ class MaterialFrame(ttk.LabelFrame):
             "random",
             "preloaded",
             command=self.update_latent_method,
-        ).grid(row=1, column=1, sticky="w")
+        ).grid(row=row, column=1, sticky="w")
 
         # Latent Values Entry (will be updated based on latent size and method)
+        row += 1
         self.latent_frame = tk.Frame(self)
-        self.latent_frame.grid(row=2, column=0, columnspan=2, sticky="w")
+        self.latent_frame.grid(row=row, column=0, columnspan=2, sticky="w")
         self.update_latent_method()  # Initialize latent entries
 
+        row += 1
         # "Enable Symmetry" Checkbutton (moved to row 3)
         tk.Checkbutton(
             self, text="Enable Symmetry", variable=self.options["symmetry"]
-        ).grid(row=3, column=0, sticky="w")
+        ).grid(row=row, column=0, sticky="w")
 
+        row += 1
         # "Run with Blank Image" Checkbutton (moved to row 4)
         tk.Checkbutton(
             self, text="Run with Blank Image", variable=self.options["blank"]
-        ).grid(row=4, column=0, sticky="w")
+        ).grid(row=row, column=0, sticky="w")
 
+        row += 1
         # "Sources (Position, Heat)" Label (moved to row 5)
         tk.Label(self, text="Sources (Position, Heat)").grid(
-            row=5, column=0, sticky="w"
+            row=row, column=0, sticky="w"
         )
 
     def update_latent_size(self, *args):

@@ -40,6 +40,7 @@ def initialize_options():
         "bounds_upper": tk.DoubleVar(value=2.5),  # New upper bound for CMA-ES
         "n_iter": tk.IntVar(value=100),  # New parameter for the number of iterations
         "hpc_enabled": tk.BooleanVar(value=False),
+        "load_cmaes_config": tk.BooleanVar(value=False),
         # "timeout": tk.StringVar(),
     }
 
@@ -78,6 +79,7 @@ def get_config_dict(options):
         "bounds": [options["bounds_lower"].get(), options["bounds_upper"].get()],  # New parameter
         "n_iter": options["n_iter"].get(),  # New parameter
         "hpc_enabled": options["hpc_enabled"].get(),
+        "load_cmaes_config": options["load_cmaes_config"].get(),
     }
 
 
@@ -110,10 +112,26 @@ def set_options_from_config(options, config):
                             options[key][i].set(val)
                 else:
                     raise ValueError(f"Expected a list for key '{key}', but got {type(value)}.")
+            elif isinstance(options[key], dict):  # Handle dictionaries like "visualize"
+                if isinstance(value, dict):
+                    for subkey, subvalue in value.items():
+                        if subkey in options[key]:
+                            if hasattr(options[key][subkey], 'set'):
+                                options[key][subkey].set(subvalue)
+                            else:
+                                options[key][subkey] = subvalue
+                        else:
+                            # Handle new keys that might not exist in options
+                            options[key][subkey] = tk.BooleanVar(value=subvalue)
+                else:
+                    raise ValueError(f"Expected a dict for key '{key}', but got {type(value)}.")
             elif hasattr(options[key], 'set'):  # For Tkinter variables
                 options[key].set(value)
             else:  # Handle non-Tkinter variables (e.g., plain dicts or other types)
                 options[key] = value
+        else:
+            # Handle new keys that might not exist in options
+            options[key] = value
 
 
 def parse_sources(tk_sources_dict):

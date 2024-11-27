@@ -11,6 +11,7 @@ try:
 except ImportError:
     pv = None
 
+
 class PostProcessingModule:
     def __init__(self, rank, config, logger=None):
         self.rank = rank
@@ -223,7 +224,7 @@ class PostProcessingModule:
         plotter.view_xy()
         if self.is_off_screen:
             if self.logger:
-                filepath = os.path.join(self.logger.log_dir, f"{field_name}_field.png")
+                filepath = os.path.join(self.logger.log_dir, "visualization", f"{field_name}_field.png")
                 plotter.screenshot(
                     filepath,
                     transparent_background=False,
@@ -262,7 +263,7 @@ class PostProcessingModule:
         plotter.link_views()
         if self.is_off_screen:
             if self.logger:
-                filepath = os.path.join(self.logger.log_dir, "flux_field.png")
+                filepath = os.path.join(self.logger.log_dir, "visualization", "flux_field.png")
                 plotter.screenshot(
                     filepath,
                     transparent_background=False,
