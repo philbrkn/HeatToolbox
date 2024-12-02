@@ -22,9 +22,12 @@ def read_last_latent_vector(cma_log_file, z_dim, num_sources):
     if not data_lines:
         raise ValueError("No data lines found in the CMA-ES log file.")
 
-    last_line = data_lines[-1]
+    # Take the line with the best solution
+    # Need to find the minimum of the third column in the data_lines
+    best_line = min(data_lines, key=lambda x: float(x.strip().split()[2]))
+
     # Split the line into components
-    parts = last_line.strip().split()
+    parts = best_line.strip().split()
     # The latent vector starts from the 6th element (index 5)
     latent_values = [float(x) for x in parts[5:]]
 

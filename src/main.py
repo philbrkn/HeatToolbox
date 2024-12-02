@@ -14,7 +14,8 @@ from vae_module import load_vae_model, VAE, Flatten, UnFlatten
 from image_processing import z_to_img
 from optimization_module import BayesianModule, CMAESModule
 from post_processing import PostProcessingModule
-from solver_module import Solver
+from solver_module import GKESolver
+from solver_fourier_module import FourierSolver
 from logging_module import LoggingModule
 from sim_config import SimulationConfig
 from log_utils import read_last_latent_vector
@@ -51,7 +52,8 @@ class SimulationController:
         )
 
         # create solver instance
-        solver = Solver(msh, facet_markers, self.config)
+        solver = GKESolver(msh, facet_markers, self.config)
+        solver = FourierSolver(msh, facet_markers, self.config)
 
         if self.config.optim:
             # Run optimization
@@ -101,6 +103,11 @@ class SimulationController:
 
             # Check if visualize list is not empty
             if self.config.visualize:
+                import cma
+                cma_log_dir = os.path.join(self.config.log_dir, "cma_logs")
+                cma.plot(os.path.join(cma_log_dir, "outcma_"))
+                cma.s.figsave(os.path.join(cma_log_dir, 'convergence_plots.png'))
+
                 post_processor = PostProcessingModule(
                     self.rank, self.config, logger=self.logger
                 )

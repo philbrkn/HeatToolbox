@@ -171,7 +171,7 @@ class CMAESModule:
         if self.rank == 0:
             result = es.result
             best_z = result.xbest  # Best latent vector
-            self.save_cma_plots(es)  # Save CMA-ES plots
+            self.save_cma_plots()  # Save CMA-ES plots
         else:
             best_z = None
 
@@ -179,7 +179,7 @@ class CMAESModule:
 
         return best_z
 
-    def save_cma_plots(self, es):
+    def save_cma_plots(self):
         """
         Generate and save plots from the CMA-ES optimization.
 
@@ -191,7 +191,7 @@ class CMAESModule:
         import matplotlib.pyplot as plt
 
         # Plot the data using cma's logger
-        cma.plot()
+        cma.plot(os.path.join(self.cma_log_dir, "outcma_"))
 
         # Save the figure
         plot_path = os.path.join(self.cma_log_dir, "cmaes_convergence.png")

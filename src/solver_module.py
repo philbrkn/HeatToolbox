@@ -8,7 +8,7 @@ import basix.ufl
 import numpy as np
 
 
-class Solver:
+class GKESolver:
     def __init__(self, msh, facet_markers, config):
         self.msh = msh
         self.config = config

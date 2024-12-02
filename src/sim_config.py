@@ -27,7 +27,7 @@ class SimulationConfig:
         self.Q_L = PETSc.ScalarType(80)
 
         self.MEAN_FREE_PATH = 0.439e-6
-        self.KNUDSEN = 1
+        self.KNUDSEN = 0.001
 
         # Volume fraction
         self.vol_fraction = (
