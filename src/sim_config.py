@@ -27,7 +27,8 @@ class SimulationConfig:
         self.Q_L = PETSc.ScalarType(80)
 
         self.MEAN_FREE_PATH = 0.439e-6
-        self.KNUDSEN = 0.001
+        self.KNUDSEN = self.config.get("knudsen", 1)
+        self.solver_type = self.config.get("solver_type", "gke")
 
         # Volume fraction
         self.vol_fraction = (
@@ -37,7 +38,11 @@ class SimulationConfig:
         )
 
         # Geometric properties
-        self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN
+        # if solver type is fourier, set length manually to 1
+        if self.solver_type == "fourier":
+            self.LENGTH = 1
+        elif self.solver_type == "gke":
+            self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN
         self.L_X = 25 * self.LENGTH
         self.L_Y = 12.5 * self.LENGTH
         self.SOURCE_WIDTH = self.LENGTH

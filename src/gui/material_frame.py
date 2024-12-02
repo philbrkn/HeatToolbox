@@ -13,6 +13,24 @@ class MaterialFrame(ttk.LabelFrame):
     def create_widgets(self):
         # Load CMA-ES Config Button  
         row = 0
+        # select solver type, gke vs fourier
+        tk.Label(self, text="Solver Type").grid(row=row, column=0, sticky="w")
+        tk.OptionMenu(
+            self,
+            self.options["solver_type"],
+            "gke",
+            "fourier",
+        ).grid(row=row, column=1, sticky="w")
+
+        # write knudsen number
+        row += 1
+        tk.Label(self, text="Knudsen Number").grid(row=row, column=0, sticky="w")
+        tk.Entry(self, textvariable=self.options["knudsen"], width=10).grid(
+            row=row, column=1
+        )
+
+        # latent size
+        row += 1
         tk.Label(self, text="Latent Size").grid(row=row, column=0, sticky="w")
         tk.OptionMenu(
             self,
@@ -59,6 +77,7 @@ class MaterialFrame(ttk.LabelFrame):
         tk.Label(self, text="Sources (Position, Heat)").grid(
             row=row, column=0, sticky="w"
         )
+        self.row = row
 
     def update_latent_size(self, *args):
         """Update the latent variables and entries when the latent size changes."""

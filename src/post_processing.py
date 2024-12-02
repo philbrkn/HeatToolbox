@@ -19,21 +19,18 @@ class PostProcessingModule:
         self.logger = logger
         self.is_off_screen = self.config.plot_mode == "screenshot"
 
-    def postprocess_results(self, U, msh, gamma):
-        q, T = U.sub(0).collapse(), U.sub(1).collapse()
-        # norm_q, norm_T = la.Norm(q.x), la.Norm(T.x)
-        V1, _ = U.function_space.sub(1).collapse()
+    def postprocess_results(self, q, T, V, msh, gamma):
         global_top, global_geom, global_ct, global_vals = self.gather_mesh_on_rank0(
-            msh, V1, T
+            msh, V, T
         )
-        _, _, _, global_gamma = self.gather_mesh_on_rank0(msh, V1, gamma)
+        _, _, _, global_gamma = self.gather_mesh_on_rank0(msh, V, gamma)
 
         viz = self.config.visualize
         if self.rank == 0:
             # print(f"(D) Norm of flux coefficient vector (monolithic, direct): {norm_q}")
             # print(f"(D) Norm of temp coefficient vector (monolithic, direct): {norm_T}")
 
-            if "gamma" in viz and global_gamma is not None:
+            if viz["gamma"] and global_gamma is not None:
                 self.plot_scalar_field(
                     global_top,
                     global_ct,
@@ -43,7 +40,7 @@ class PostProcessingModule:
                     show_edges=False,
                 )
 
-            if "temperature" in viz and global_vals is not None:
+            if viz["temperature"] and global_vals is not None:
                 self.plot_scalar_field(
                     global_top,
                     global_ct,
@@ -55,9 +52,9 @@ class PostProcessingModule:
 
         # Code for flux plotting (only runs when not in parallel)
         if msh.comm.size == 1:
-            if "flux" in viz:
+            if viz["flux"]:
                 self.plot_vector_field(q, msh)
-            if "profiles" in viz:
+            if viz["profiles"]:
                 self.plot_profiles(q, T, msh)
         else:
             if self.rank == 0:

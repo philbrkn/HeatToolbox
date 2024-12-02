@@ -52,8 +52,12 @@ class SimulationController:
         )
 
         # create solver instance
-        solver = GKESolver(msh, facet_markers, self.config)
-        solver = FourierSolver(msh, facet_markers, self.config)
+        if self.config.solver_type == "gke":
+            solver = GKESolver(msh, facet_markers, self.config)
+        elif self.config.solver_type == "fourier":
+            solver = FourierSolver(msh, facet_markers, self.config)
+        else:
+            raise ValueError(f"Unknown solver type: {self.config.solver_type}")
 
         if self.config.optim:
             # Run optimization
@@ -92,7 +96,7 @@ class SimulationController:
             # Proceed to generate images and solve
             img_list = self.generate_images(latent_vectors)
 
-            if "pregamma" in self.config.visualize:
+            if self.config.visualize['pregamma']:
                 self.plot_image_list(img_list, self.config, logger=self.logger)
 
             avg_temp_global = solver.solve_image(img_list)
@@ -111,14 +115,22 @@ class SimulationController:
                 post_processor = PostProcessingModule(
                     self.rank, self.config, logger=self.logger
                 )
-                post_processor.postprocess_results(solver.U, solver.msh, solver.gamma)
+ 
+                if self.config.solver_type == "gke":
+                    q, T = solver.U.sub(0).collapse(), solver.U.sub(1).collapse()
+                    V1, _ = solver.U.function_space.sub(1).collapse()
+                elif self.config.solver_type == "fourier":
+                    q, T = None, solver.T
+                    V1 = solver.V
+
+                post_processor.postprocess_results(q, T, V1, solver.msh, solver.gamma)
         else:
             latent_vectors = self.get_latent_vectors()
 
             # Generate image from latent vector
             img_list = self.generate_images(latent_vectors)
-
-            if "pregamma" in self.config.visualize:
+            # check if pregamma key is true in the visualize dictinoary
+            if self.config.visualize['pregamma']:
                 self.plot_image_list(img_list, self.config, logger=self.logger)
 
             avg_temp_global = solver.solve_image(img_list)
@@ -132,7 +144,15 @@ class SimulationController:
                 post_processor = PostProcessingModule(
                     self.rank, self.config, logger=self.logger
                 )
-                post_processor.postprocess_results(solver.U, solver.msh, solver.gamma)
+                if self.config.solver_type == "gke":
+                    q, T = solver.U.sub(0).collapse(), solver.U.sub(1).collapse()
+                    V1, _ = solver.U.function_space.sub(1).collapse()
+                elif self.config.solver_type == "fourier":
+                    q, T = None, solver.T
+                    V1 = solver.V
+
+                post_processor.postprocess_results(q, T, V1, solver.msh, solver.gamma)
+
 
     def get_latent_vectors(self):
         # Handle latent vector based on the selected method

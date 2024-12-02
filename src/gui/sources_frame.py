@@ -6,22 +6,23 @@ class SourcesFrame(tk.Frame):
         super().__init__(parent)
         self.options = options
         self.material_frame = material_frame
-        self.grid(row=6, column=1, columnspan=4, sticky="w")
+        self.row = self.material_frame.row
+        self.grid(row=self.row+1, column=1, columnspan=4, sticky="w")
         self.create_widgets()
         self.add_source_row()
 
     def create_widgets(self):
         tk.Label(self.material_frame, text="Sources (Position, Heat)").grid(
-            row=5, column=0, sticky="w"
+            row=self.row, column=0, sticky="w"
         )
         self.sources_frame = tk.Frame(self.material_frame)
-        self.sources_frame.grid(row=6, column=1, columnspan=4, sticky="w")
+        self.sources_frame.grid(row=self.row+1, column=1, columnspan=4, sticky="w")
 
         tk.Button(
             self.material_frame,
             text="Add Source",
             command=self.add_source_row,
-        ).grid(row=7, column=0, sticky="w")
+        ).grid(row=self.row+2, column=0, sticky="w")
 
     def add_source_row(self):
         source_row = {}
