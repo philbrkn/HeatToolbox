@@ -20,6 +20,8 @@ class MaterialFrame(ttk.LabelFrame):
             self.options["solver_type"],
             "gke",
             "fourier",
+            "joule",
+            command=self.update_solver_type,
         ).grid(row=row, column=1, sticky="w")
 
         # write knudsen number
@@ -117,3 +119,20 @@ class MaterialFrame(ttk.LabelFrame):
                 self.latent_frame,
                 text="Latent vector will be loaded from 'best_latent_vector.npy'",
             ).grid(row=0, column=0, sticky="w")
+
+    def update_solver_type(self, *args):
+        solver_type = self.options["solver_type"].get()
+
+        # Update defaults based on solver type
+        if solver_type == "gke":
+            self.options["knudsen"].set(1.0)
+            # Additional GKE-specific defaults
+        elif solver_type == "fourier":
+            self.options["knudsen"].set(None)  # Not used for Fourier
+            # Fourier-specific defaults
+        elif solver_type == "joule":
+            self.options["knudsen"].set(None)  # Not applicable
+            # Add Joule-specific defaults here
+
+        # Trigger updates for dependent widgets
+        self.update_latent_entries()
