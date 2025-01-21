@@ -32,6 +32,9 @@ class SimulationConfigGUI:
 
         # Add buttons
         self.add_buttons()
+        
+        # Set initial solver frame
+        self.switch_solver_frame()  # Ensure the correct frame is displayed at startup
 
     def set_focus(self):
         """Ensure the GUI window appears in front of other apps."""

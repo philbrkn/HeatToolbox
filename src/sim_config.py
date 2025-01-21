@@ -39,7 +39,7 @@ class SimulationConfig:
 
         # Geometric properties
         # if solver type is fourier, set length manually to 1
-        if self.solver_type == "fourier":
+        if self.solver_type == "fourier" or self.solver_type == "joule":
             self.LENGTH = 1
         elif self.solver_type == "gke":
             self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN

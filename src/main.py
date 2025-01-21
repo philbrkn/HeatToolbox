@@ -16,6 +16,7 @@ from optimization_module import BayesianModule, CMAESModule
 from post_processing import PostProcessingModule
 from solver_gke_module import GKESolver
 from solver_fourier_module import FourierSolver
+from solver_joule_module import JouleSolver
 from logging_module import LoggingModule
 from sim_config import SimulationConfig
 from log_utils import read_last_latent_vector
@@ -56,6 +57,8 @@ class SimulationController:
             solver = GKESolver(msh, facet_markers, self.config)
         elif self.config.solver_type == "fourier":
             solver = FourierSolver(msh, facet_markers, self.config)
+        elif self.config.solver_type == "joule":
+            solver = JouleSolver(msh, facet_markers, self.config)
         else:
             raise ValueError(f"Unknown solver type: {self.config.solver_type}")
 
