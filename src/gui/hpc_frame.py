@@ -9,13 +9,16 @@ class HPCFrame(ttk.LabelFrame):
         self.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
         self.create_widgets()
 
+        # Attach a trace to update GUI when hpc_enabled changes
+        self.options["hpc_enabled"].trace_add("write", self._on_hpc_enabled_changed)
+
     def create_widgets(self):
         # Enable HPC Checkbox
         tk.Checkbutton(
             self,
             text="Enable HPC",
-            variable=self.options["hpc_enabled"],
-            command=self.toggle_hpc_options,
+            variable=self.options["hpc_enabled"]
+            # command=self.toggle_hpc_options,
         ).grid(row=0, column=0, sticky="w")
 
         # HPC Options
@@ -117,3 +120,8 @@ class HPCFrame(ttk.LabelFrame):
         else:
             self.mpiprocs_label.grid_remove()
             self.mpiprocs_entry.grid_remove()
+
+    def _on_hpc_enabled_changed(self, *args):
+        """Callback whenever self.options['hpc_enabled'] is set (True/False)."""
+        # Just reuse your existing logic:
+        self.toggle_hpc_options()

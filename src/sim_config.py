@@ -2,6 +2,7 @@ import json
 import os
 from petsc4py import PETSc
 import numpy as np
+from mpi4py import MPI
 
 
 class SimulationConfig:
@@ -12,12 +13,28 @@ class SimulationConfig:
         Parameters:
         - config (str or dict): Path to a JSON configuration file or a dictionary containing configuration data.
         """
+        self.comm = MPI.COMM_WORLD
+        self.size = self.comm.Get_size()  # Total number of MPI processes
+
         if isinstance(config, str):  # If a file path is provided
-            with open(config, "r") as f:
-                print("Loading config from file")
-                self.config = json.load(f)
+            if rank == 0:
+                print("Loading config from file on rank 0")
+                with open(config, "r") as f:
+                    loaded_config = json.load(f)
+            else:
+                loaded_config = None
+            # Broadcast the config to all ranks
+            loaded_config = comm.bcast(loaded_config, root=0)
+            self.config = loaded_config
         elif isinstance(config, dict):  # If a dictionary is provided
-            self.config = config
+            # If a dictionary was directly passed in, just broadcast that
+            if rank == 0:
+                loaded_config = config
+            else:
+                loaded_config = None
+
+            loaded_config = comm.bcast(loaded_config, root=0)
+            self.config = loaded_config
         else:
             raise TypeError("Config must be either a file path (str) or a dictionary.")
 

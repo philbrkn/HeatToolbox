@@ -12,10 +12,10 @@ latent_size = 4
 device = torch.device("cpu")  # Change to "cuda" if using GPU
 
 
-def load_vae_model(rank):
-    model = VAE()
+def load_vae_model(rank, z_dim=latent_size):
+    model = VAE(z_dim=z_dim)
     # model = torch.load("./model/model", map_location=torch.device("cpu"))
-    model_path = "VAEs/models/128latent4epochs200Alldict"
+    model_path = f"VAEs/models/128latent{z_dim}epochs200Alldict" if z_dim != 16 else f"VAEs/models/128latent{z_dim}epochs500Alldict" 
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
     return model

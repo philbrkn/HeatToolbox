@@ -64,10 +64,15 @@ class SimulationConfigGUI:
     def run_simulation(self):
         try:
             # Extracting the options
-            config_dict = get_config_dict(self.options)
+            # config = get_config_dict(self.options)
+            log_name = self.options["log_name"].get() or "default_log"
+            log_dir = os.path.join("logs", log_name)
+            os.makedirs(log_dir, exist_ok=True)
+            save_config(self.options, log_dir)
+            config_path = os.path.join(log_dir, "config.json")
 
             # Initialize SimulationConfig with the extracted args
-            config = SimulationConfig(config_dict)
+            config = SimulationConfig(config_path)
             sim = SimulationController(config)
 
             # Run the simulation
@@ -149,12 +154,13 @@ class SimulationConfigGUI:
                         "pregamma": True
                     }
 
-                # Ensure we have the log directory
-                if "log_name" in config:
-                    log_dir = os.path.join("logs", config["log_name"])
-                else:
-                    messagebox.showerror("Error", "The configuration file must contain 'log_name'.")
-                    return
+                # # Ensure we have the log directory
+                # if "log_name" in config:
+                #     log_dir = os.path.join("logs", config["log_name"])
+                # else:
+                #     messagebox.showerror("Error", "The configuration file must contain 'log_name'.")
+                #     return
+
                 config["load_cma_result"] = True
 
                 # Update options in the GUI (optional, if we want to reflect changes)

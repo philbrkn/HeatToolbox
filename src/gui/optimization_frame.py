@@ -9,13 +9,15 @@ class OptimizationFrame(ttk.LabelFrame):
         self.grid(row=0, column=0, padx=10, pady=5, sticky="nsew")
         self.create_widgets()
 
+        self.options["optim"].trace_add("write", self._on_optim_changed)
+
     def create_widgets(self):
         # Run Optimization Checkbox
         tk.Checkbutton(
             self,
             text="Run Optimization",
-            variable=self.options["optim"],
-            command=self.toggle_optimizer_options,
+            variable=self.options["optim"]
+            # command=self.toggle_optimizer_options,
         ).grid(row=0, column=0, sticky="w")
 
         # Optimizer Selection
@@ -71,3 +73,8 @@ class OptimizationFrame(ttk.LabelFrame):
         self.bounds_upper_entry.grid_remove()
         self.n_iter_label.grid_remove()
         self.n_iter_entry.grid_remove()
+    
+    def _on_optim_changed(self, *args):
+        """Callback whenever self.options['hpc_enabled'] is set (True/False)."""
+        # Just reuse your existing logic:
+        self.toggle_optimizer_options()

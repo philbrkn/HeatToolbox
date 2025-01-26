@@ -89,6 +89,7 @@ def get_config_dict(options):
 
 def save_config(options, log_dir):
     """Save the current configuration to a JSON file."""
+    print("SAVING CONFIG")
     config = get_config_dict(options)
     os.makedirs(log_dir, exist_ok=True)
     config_path = os.path.join(log_dir, "config.json")
@@ -109,7 +110,9 @@ def set_options_from_config(options, config):
     """Update Tkinter options with values from a configuration."""
     for key, value in config.items():
         if key in options:
-            if isinstance(options[key], list):  # Handle lists like "latent"
+            if key == "sources":  # Special handling for sources
+                update_sources_from_config(options, value)
+            elif isinstance(options[key], list):  # Handle lists like "latent"
                 if isinstance(value, list):
                     for i, val in enumerate(value):
                         if i < len(options[key]) and hasattr(options[key][i], 'set'):
@@ -154,3 +157,24 @@ def parse_sources(tk_sources_dict):
         except ValueError as e:
             raise ValueError(f"Invalid source input: {e}")
     return sources_list if sources_list else None
+
+
+def update_sources_from_config(options, sources_list):
+    """Ensure the correct number of source rows are added to match the loaded config."""
+    sources_frame = options["sources_frame"]  # This should be a reference to the GUI's SourcesFrame
+
+    # Clear all existing sources
+    for source in options["sources"]:
+        sources_frame.remove_source_row(source)
+    
+    options["sources"].clear()  # Reset source list
+    
+    # Add sources from the loaded config
+    for i in range(0, len(sources_list), 2):  # Assuming sources are stored as [pos, heat, pos, heat, ...]
+        if i + 1 < len(sources_list):
+            position, heat = sources_list[i], sources_list[i + 1]
+            sources_frame.add_source_row()  # Add a new source row dynamically
+
+            # Update the last added source with correct values
+            options["sources"][-1]["position"].set(position)
+            options["sources"][-1]["heat"].set(heat)

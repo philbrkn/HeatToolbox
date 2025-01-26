@@ -8,6 +8,9 @@ class SourcesFrame(tk.Frame):
         self.material_frame = material_frame
         self.row = self.material_frame.row
         self.grid(row=self.row+1, column=1, columnspan=4, sticky="w")
+        # Store this frame in options so it can be accessed in utils_config.py
+        self.options["sources_frame"] = self
+        
         self.create_widgets()
         self.add_source_row()
 

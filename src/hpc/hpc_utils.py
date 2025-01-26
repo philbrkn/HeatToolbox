@@ -2,6 +2,7 @@ import os
 import subprocess
 import tkinter as tk
 from tkinter import messagebox
+import time
 
 
 def submit_job(hpc_user, hpc_host, hpc_path, log_dir, password):
@@ -11,7 +12,13 @@ def submit_job(hpc_user, hpc_host, hpc_path, log_dir, password):
     transfer_files_to_hpc(
         local_base_path, log_dir, hpc_user, hpc_host, hpc_path, password
     )
-
+    wait_for_files(
+        hpc_user,
+        hpc_host,
+        os.path.join(hpc_path, log_dir),
+        ["hpc_run.sh", "config.json"],
+        password
+    )
     try:
         # Set the SSHPASS environment variable
         env = os.environ.copy()
@@ -86,6 +93,27 @@ def transfer_files_to_hpc(
         )
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"File transfer failed: {e}")
+
+
+def wait_for_files(hpc_user, hpc_host, remote_path, files, password, timeout=30, interval=2):
+    env = os.environ.copy()
+    env['SSHPASS'] = password
+    elapsed = 0
+    while elapsed < timeout:
+        try:
+            # Check if all files exist on HPC
+            check_command = [
+                "sshpass", "-e",
+                "ssh", f"{hpc_user}@{hpc_host}",
+                f"ls {' '.join([os.path.join(remote_path, file) for file in files])}"
+            ]
+            subprocess.run(check_command, check=True, env=env)
+            return  # Files are available
+        except subprocess.CalledProcessError:
+            elapsed += interval
+            print(f"Waiting for files to sync... ({elapsed}/{timeout} seconds)")
+            time.sleep(interval)
+    raise RuntimeError("Files did not appear on HPC within the timeout period.")
 
 
 def prompt_password(prompt="Enter HPC Password"):
