@@ -1,14 +1,14 @@
-from tkinter import Tk
+# from tkinter import Tk
 from gui.main_window import SimulationConfigGUI
 
 
 def main():
     # Create the root Tkinter window
-    root = Tk()
+    # root = Tk()
     # Set up the main GUI window
-    app = SimulationConfigGUI(root)
+    app = SimulationConfigGUI()
     # Run the Tkinter main loop
-    root.mainloop()
+    app.mainloop()
 
 
 if __name__ == "__main__":

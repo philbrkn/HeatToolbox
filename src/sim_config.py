@@ -17,23 +17,23 @@ class SimulationConfig:
         self.size = self.comm.Get_size()  # Total number of MPI processes
 
         if isinstance(config, str):  # If a file path is provided
-            if rank == 0:
+            if self.comm.rank == 0:
                 print("Loading config from file on rank 0")
                 with open(config, "r") as f:
                     loaded_config = json.load(f)
             else:
                 loaded_config = None
             # Broadcast the config to all ranks
-            loaded_config = comm.bcast(loaded_config, root=0)
+            loaded_config = self.comm.bcast(loaded_config, root=0)
             self.config = loaded_config
         elif isinstance(config, dict):  # If a dictionary is provided
             # If a dictionary was directly passed in, just broadcast that
-            if rank == 0:
+            if self.comm.rank == 0:
                 loaded_config = config
             else:
                 loaded_config = None
 
-            loaded_config = comm.bcast(loaded_config, root=0)
+            loaded_config = self.comm.bcast(loaded_config, root=0)
             self.config = loaded_config
         else:
             raise TypeError("Config must be either a file path (str) or a dictionary.")

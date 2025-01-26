@@ -37,8 +37,12 @@ class LoggingModule:
     def _initialize_logging(self):
         # Save the configuration file in the log directory
         config_path = os.path.join(self.log_dir, "config.json")
-        with open(config_path, "w") as f:
-            json.dump(self.config.config, f, indent=4)
+        # Only create/write config.json if it doesn't already exist
+        if not os.path.exists(config_path):
+            with open(config_path, "w") as f:
+                json.dump(self.config.config, f, indent=4)
+        else:
+            print(f"Skipping config.json write; already exists at {config_path}")
 
         # Save a command-line script to reproduce the run
         run_script_path = os.path.join(self.log_dir, "run_simulation.sh")

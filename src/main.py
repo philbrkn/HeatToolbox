@@ -13,6 +13,7 @@ from mesh_generator import MeshGenerator
 from vae_module import load_vae_model, VAE, Flatten, UnFlatten
 from image_processing import z_to_img
 from opts.cmaes import CMAESModule
+from opts.bayes import BayesianModule
 from post_processing import PostProcessingModule
 from solver_gke_module import GKESolver
 from solver_fourier_module import FourierSolver
@@ -24,9 +25,9 @@ from log_utils import read_last_latent_vector
 class SimulationController:
     def __init__(self, config):
         self.config = config
-        self.logger = LoggingModule(config) if config.logging_enabled else None
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.rank
+        self.logger = LoggingModule(config) if config.logging_enabled and self.rank == 0 else None
         self.model = load_vae_model(self.rank, self.config.latent_size)
 
     def run_simulation(self):

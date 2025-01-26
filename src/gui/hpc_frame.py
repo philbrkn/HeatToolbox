@@ -1,11 +1,10 @@
-import tkinter as tk
-from tkinter import ttk
+import customtkinter as ctk
 
-
-class HPCFrame(ttk.LabelFrame):
+class HPCFrame(ctk.CTkFrame):
     def __init__(self, parent, options):
-        super().__init__(parent, text="HPC Script Options")
+        super().__init__(parent)
         self.options = options
+
         self.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
         self.create_widgets()
 
@@ -14,50 +13,51 @@ class HPCFrame(ttk.LabelFrame):
 
     def create_widgets(self):
         # Enable HPC Checkbox
-        tk.Checkbutton(
+        self.hpc_checkbox = ctk.CTkCheckBox(
             self,
             text="Enable HPC",
             variable=self.options["hpc_enabled"]
             # command=self.toggle_hpc_options,
-        ).grid(row=0, column=0, sticky="w")
+        )
+        self.hpc_checkbox.grid(row=0, column=0, sticky="w")
 
         # HPC Options
-        self.nodes_label = tk.Label(self, text="Number of Nodes:")
-        self.nodes_entry = tk.Entry(self, textvariable=self.options["nodes"], width=5)
+        self.nodes_label = ctk.CTkLabel(self, text="Number of Nodes:")
+        self.nodes_entry = ctk.CTkEntry(self, textvariable=self.options["nodes"], width=50)
 
-        self.ncpus_label = tk.Label(self, text="CPUs per Node (ncpus):")
-        self.ncpus_entry = tk.Entry(self, textvariable=self.options["ncpus"], width=5)
+        self.ncpus_label = ctk.CTkLabel(self, text="CPUs per Node (ncpus):")
+        self.ncpus_entry = ctk.CTkEntry(self, textvariable=self.options["ncpus"], width=5)
 
-        self.mem_label = tk.Label(self, text="Memory per Node (GB):")
-        self.mem_entry = tk.Entry(self, textvariable=self.options["mem"], width=5)
+        self.mem_label = ctk.CTkLabel(self, text="Memory per Node (GB):")
+        self.mem_entry = ctk.CTkEntry(self, textvariable=self.options["mem"], width=5)
 
-        self.walltime_label = tk.Label(self, text="Walltime (HH:MM:SS):")
-        self.walltime_entry = tk.Entry(self, textvariable=self.options["walltime"], width=5)
+        self.walltime_label = ctk.CTkLabel(self, text="Walltime (HH:MM:SS):")
+        self.walltime_entry = ctk.CTkEntry(self, textvariable=self.options["walltime"], width=5)
 
-        self.parallelize_checkbutton = tk.Checkbutton(
+        self.parallelize_checkbutton = ctk.CTkCheckBox(
             self,
             text="Enable Parallelization (MPI)",
             variable=self.options["parallelize"],
             command=self.toggle_mpi_options,
         )
 
-        self.mpiprocs_label = tk.Label(self, text="MPI Processes per Node (mpiprocs):")
-        self.mpiprocs_entry = tk.Entry(self, textvariable=self.options["mpiprocs"], width=10)
+        self.mpiprocs_label = ctk.CTkLabel(self, text="MPI Processes per Node (mpiprocs):")
+        self.mpiprocs_entry = ctk.CTkEntry(self, textvariable=self.options["mpiprocs"], width=10)
 
-        self.conda_path_label = tk.Label(self, text="Conda Environment Path:")
-        self.conda_path_entry = tk.Entry(self, textvariable=self.options["conda_env_path"], width=30)
+        self.conda_path_label = ctk.CTkLabel(self, text="Conda Environment Path:")
+        self.conda_path_entry = ctk.CTkEntry(self, textvariable=self.options["conda_env_path"], width=30)
 
-        self.conda_name_label = tk.Label(self, text="Conda Environment Name:")
-        self.conda_name_entry = tk.Entry(self, textvariable=self.options["conda_env_name"], width=20)
+        self.conda_name_label = ctk.CTkLabel(self, text="Conda Environment Name:")
+        self.conda_name_entry = ctk.CTkEntry(self, textvariable=self.options["conda_env_name"], width=20)
 
-        self.hpc_user_label = tk.Label(self, text="HPC User:")
-        self.hpc_user_entry = tk.Entry(self, textvariable=self.options["hpc_user"], width=10)
+        self.hpc_user_label = ctk.CTkLabel(self, text="HPC User:")
+        self.hpc_user_entry = ctk.CTkEntry(self, textvariable=self.options["hpc_user"], width=10)
 
-        self.hpc_host_label = tk.Label(self, text="HPC Host:")
-        self.hpc_host_entry = tk.Entry(self, textvariable=self.options["hpc_host"], width=10)
+        self.hpc_host_label = ctk.CTkLabel(self, text="HPC Host:")
+        self.hpc_host_entry = ctk.CTkEntry(self, textvariable=self.options["hpc_host"], width=10)
 
-        self.hpc_dir_label = tk.Label(self, text="HPC Directory:")
-        self.hpc_dir_entry = tk.Entry(self, textvariable=self.options["hpc_dir"], width=10)
+        self.hpc_dir_label = ctk.CTkLabel(self, text="HPC Directory:")
+        self.hpc_dir_entry = ctk.CTkEntry(self, textvariable=self.options["hpc_dir"], width=10)
 
         # Initially hide all HPC-related options
         self.hide_hpc_options()

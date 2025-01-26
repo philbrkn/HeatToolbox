@@ -1,48 +1,47 @@
-import tkinter as tk
-from tkinter import ttk
+import customtkinter as ctk
 
 
-class SolvingFrame(ttk.LabelFrame):
+class SolvingFrame(ctk.CTkFrame):
     def __init__(self, parent, options):
-        super().__init__(parent, text="Solving Options")
+        super().__init__(parent)
         self.options = options
         self.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
         self.create_widgets()
 
     def create_widgets(self):
-        tk.Label(self, text="Mesh Resolution: Length / [] ").grid(
+        ctk.CTkLabel(self, text="Mesh Resolution: Length / [] ").grid(
             row=0, column=0, sticky="w"
         )
-        tk.Entry(self, textvariable=self.options["res"], width=10).grid(
+        ctk.CTkEntry(self, textvariable=self.options["res"], width=10).grid(
             row=0, column=1
         )
 
-        tk.Checkbutton(
+        ctk.CTkCheckBox(
             self,
             text="Enable Volume Fraction Control",
             variable=self.options["vf_enabled"],
             command=self.toggle_volume_fraction,
         ).grid(row=1, column=0, sticky="w")
 
-        tk.Label(self, text="Volume Fraction").grid(
+        ctk.CTkLabel(self, text="Volume Fraction").grid(
             row=2, column=0, sticky="w"
         )
-        self.vf_entry = tk.Entry(self, textvariable=self.options["vf_value"], width=10)
+        self.vf_entry = ctk.CTkEntry(self, textvariable=self.options["vf_value"], width=10)
         self.vf_entry.grid(row=2, column=1)
         self.toggle_volume_fraction()
 
         # Logging Toggle
-        tk.Checkbutton(
+        ctk.CTkCheckBox(
             self,
             text="Enable Logging",
             variable=self.options["logging_enabled"],
         ).grid(row=3, column=0, sticky="w")
 
-        tk.Label(self, text="Log File Name").grid(row=4, column=0, sticky="w")
-        tk.Entry(self, textvariable=self.options["log_name"], width=20).grid(row=4, column=1, sticky="w")
+        ctk.CTkLabel(self, text="Log File Name").grid(row=4, column=0, sticky="w")
+        ctk.CTkEntry(self, textvariable=self.options["log_name"], width=20).grid(row=4, column=1, sticky="w")
 
     def toggle_volume_fraction(self):
         if self.options["vf_enabled"].get():
-            self.vf_entry.config(state="normal")
+            self.vf_entry.configure(state="normal")  #  Use configure() instead of config()
         else:
-            self.vf_entry.config(state="disabled")
+            self.vf_entry.configure(state="disabled")  #  Correct way to disable

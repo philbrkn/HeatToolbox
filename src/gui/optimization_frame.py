@@ -1,45 +1,47 @@
-import tkinter as tk
-from tkinter import ttk
+import customtkinter as ctk
 
 
-class OptimizationFrame(ttk.LabelFrame):
+class OptimizationFrame(ctk.CTkFrame):
     def __init__(self, parent, options):
-        super().__init__(parent, text="Optimization Options")
+        super().__init__(parent)
         self.options = options
-        self.grid(row=0, column=0, padx=10, pady=5, sticky="nsew")
-        self.create_widgets()
 
+        self.grid(row=0, column=0, padx=10, pady=5, sticky="nsew")
+        self.grid_columnconfigure((0, 1), weight=1)
+
+        self.create_widgets()
+        # Automatically update UI when "optim" checkbox is changed
         self.options["optim"].trace_add("write", self._on_optim_changed)
 
     def create_widgets(self):
+        """Create UI elements with CustomTkinter."""
         # Run Optimization Checkbox
-        tk.Checkbutton(
-            self,
-            text="Run Optimization",
-            variable=self.options["optim"]
-            # command=self.toggle_optimizer_options,
-        ).grid(row=0, column=0, sticky="w")
+        self.optim_checkbox = ctk.CTkCheckBox(
+            self, text="Run Optimization", variable=self.options["optim"]
+        )
+        self.optim_checkbox.grid(row=0, column=0, columnspan=2, pady=(5, 10), sticky="w")
 
         # Optimizer Selection
-        self.optimizer_label = tk.Label(self, text="Select Optimizer")
-        self.optimizer_menu = tk.OptionMenu(
-            self, self.options["optimizer"], "bayesian", "cmaes"
+        self.optimizer_label = ctk.CTkLabel(self, text="Select Optimizer:")
+        self.optimizer_menu = ctk.CTkOptionMenu(
+            self, variable=self.options["optimizer"], values=["bayesian", "cmaes"]
         )
+        self.options["optimizer"].set("cmaes")  # set a default value
 
         # Population Size
-        self.popsize_label = tk.Label(self, text="Population Size:")
-        self.popsize_entry = tk.Entry(self, textvariable=self.options["popsize"], width=10)
+        self.popsize_label = ctk.CTkLabel(self, text="Population Size:")
+        self.popsize_entry = ctk.CTkEntry(self, textvariable=self.options["popsize"], width=120)
 
         # Bounds
-        self.bounds_lower_label = tk.Label(self, text="Lower Bound:")
-        self.bounds_lower_entry = tk.Entry(self, textvariable=self.options["bounds_lower"], width=10)
+        self.bounds_lower_label = ctk.CTkLabel(self, text="Lower Bound:")
+        self.bounds_lower_entry = ctk.CTkEntry(self, textvariable=self.options["bounds_lower"], width=120)
 
-        self.bounds_upper_label = tk.Label(self, text="Upper Bound:")
-        self.bounds_upper_entry = tk.Entry(self, textvariable=self.options["bounds_upper"], width=10)
+        self.bounds_upper_label = ctk.CTkLabel(self, text="Upper Bound:")
+        self.bounds_upper_entry = ctk.CTkEntry(self, textvariable=self.options["bounds_upper"], width=120)
 
         # Number of Iterations
-        self.n_iter_label = tk.Label(self, text="Number of Iterations:")
-        self.n_iter_entry = tk.Entry(self, textvariable=self.options["n_iter"], width=10)
+        self.n_iter_label = ctk.CTkLabel(self, text="Number of Iterations:")
+        self.n_iter_entry = ctk.CTkEntry(self, textvariable=self.options["n_iter"], width=120)
 
         # Initially hide all optimizer-related options
         self.hide_optimizer_options()

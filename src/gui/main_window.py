@@ -1,4 +1,5 @@
-import tkinter as tk
+# import tkinter as tk
+import customtkinter as ctk
 import traceback
 from tkinter import messagebox, filedialog
 
@@ -18,11 +19,21 @@ import os
 import json
 
 
-class SimulationConfigGUI:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Simulation Configuration")
-        self.set_focus()
+class SimulationConfigGUI(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        
+        # Set Modern Appearance
+        ctk.set_appearance_mode("Dark")  # Modes: "Light", "Dark", "System"
+        ctk.set_default_color_theme("blue")  # Themes: "blue", "dark-blue", "green"
+
+        # Ensure the main window stretches properly but doesn't leave extra space
+        self.grid_columnconfigure(0, weight=1)  # Stretch horizontally
+        self.grid_rowconfigure(99, weight=0)  # Remove extra space at the bottom
+
+        # self.root = root
+        # self.root.title("Simulation Configuration")
+        # self.set_focus()
 
         # Initialize options
         self.options = initialize_options()
@@ -33,6 +44,15 @@ class SimulationConfigGUI:
         # Add buttons
         self.add_buttons()
 
+    def configure_grid(self):
+        """Configure grid layout for responsiveness"""
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+
     def set_focus(self):
         """Ensure the GUI window appears in front of other apps."""
         self.root.lift()
@@ -42,24 +62,25 @@ class SimulationConfigGUI:
 
     def init_frames(self):
         """Initialize and add all frames to the GUI."""
-        self.optimization_frame = OptimizationFrame(self.root, self.options)
-        self.material_frame = MaterialFrame(self.root, self.options)
-        self.solving_frame = SolvingFrame(self.root, self.options)
+        self.optimization_frame = OptimizationFrame(self, self.options)
+        self.material_frame = MaterialFrame(self, self.options)
+        self.solving_frame = SolvingFrame(self, self.options)
         self.visualization_frame = VisualizationFrame(
-            self.root, self.options, visualize_options=["gamma", "temperature", "flux", "profiles", "pregamma"]
+            self, self.options, visualize_options=["gamma", "temperature", "flux", "profiles", "pregamma"]
         )
-        self.sources_frame = SourcesFrame(self.root, self.options, self.material_frame)
-        self.hpc_frame = HPCFrame(self.root, self.options)
+        self.sources_frame = SourcesFrame(self, self.options, self.material_frame)
+        self.hpc_frame = HPCFrame(self, self.options)
 
     def add_buttons(self):
-        button_frame = tk.Frame(self.root)
-        button_frame.grid(row=3, column=0, columnspan=3, pady=10)
+        """Create modern buttons using CTkButton."""
+        button_frame = ctk.CTkFrame(self)
+        button_frame.grid(row=3, column=0, columnspan=3, pady=10, padx=10, sticky="ew")
 
-        tk.Button(button_frame, text="Run Simulation", command=self.run_simulation).pack(side="left", padx=5)
-        tk.Button(button_frame, text="Transfer and submit to HPC", command=self.submit_to_hpc).pack(side="left", padx=5)
-        tk.Button(button_frame, text="Visualize Best Result", command=self.visualize_best_result).pack(side="left", padx=5)
-        tk.Button(button_frame, text="Save Config", command=self.save_config).pack(side="left", padx=5)
-        tk.Button(button_frame, text="Load Config", command=self.load_config).pack(side="left", padx=5)
+        ctk.CTkButton(button_frame, text="Run Simulation", command=self.run_simulation).pack(side="left", padx=10, pady=5)
+        ctk.CTkButton(button_frame, text="Transfer and Submit to HPC", command=self.submit_to_hpc).pack(side="left", padx=10, pady=5)
+        ctk.CTkButton(button_frame, text="Visualize Best Result", command=self.visualize_best_result).pack(side="left", padx=10, pady=5)
+        ctk.CTkButton(button_frame, text="Save Config", command=self.save_config).pack(side="left", padx=10, pady=5)
+        ctk.CTkButton(button_frame, text="Load Config", command=self.load_config).pack(side="left", padx=10, pady=5)
 
     def run_simulation(self):
         try:
