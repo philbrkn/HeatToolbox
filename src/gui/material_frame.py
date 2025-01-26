@@ -20,12 +20,12 @@ class MaterialFrame(ctk.CTkFrame):
             variable=self.options["solver_type"],
             values=["gke", "fourier", "joule"],
             command=self.update_solver_type,
-        ).grid(row=row, column=1, sticky="w")
+        ).grid(row=row, column=1, padx=5, pady=5, sticky="ew")
 
         # write knudsen number
         row += 1
         ctk.CTkLabel(self, text="Knudsen Number").grid(row=row, column=0, sticky="w")
-        ctk.CTkEntry(self, textvariable=self.options["knudsen"], width=10).grid(
+        ctk.CTkEntry(self, textvariable=self.options["knudsen"], width=100).grid(
             row=row, column=1
         )
 
@@ -37,7 +37,7 @@ class MaterialFrame(ctk.CTkFrame):
             variable=self.options["latent_size"],
             values=["2", "4", "8", "16"],  # Convert numbers to strings
             command=self.update_latent_size,
-        ).grid(row=row, column=1, sticky="w")
+        ).grid(row=row, column=1, padx=5, pady=5, sticky="ew")
 
         # Latent Method
         row += 1
@@ -47,7 +47,7 @@ class MaterialFrame(ctk.CTkFrame):
             variable=self.options["latent_method"],
             values=["manual", "random", "preloaded"],
             command=self.update_latent_method,
-        ).grid(row=row, column=1, sticky="w")
+        ).grid(row=row, column=1, padx=5, pady=5, sticky="ew")
         self.options["latent_method"].set("preloaded")  # Set a default value
 
         # Latent Values Entry (will be updated based on latent size and method)
@@ -103,7 +103,7 @@ class MaterialFrame(ctk.CTkFrame):
             )
             for i in range(self.options["latent_size"].get()):
                 ctk.CTkEntry(
-                    latent_values_frame, textvariable=self.options["latent"][i], width=5
+                    latent_values_frame, textvariable=self.options["latent"][i], width=100
                 ).grid(row=0, column=i)
         elif method == "random":
             ctk.CTkLabel(

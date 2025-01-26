@@ -28,8 +28,14 @@ class SimulationConfigGUI(ctk.CTk):
         ctk.set_default_color_theme("blue")  # Themes: "blue", "dark-blue", "green"
 
         # Ensure the main window stretches properly but doesn't leave extra space
-        self.grid_columnconfigure(0, weight=1)  # Stretch horizontally
-        self.grid_rowconfigure(99, weight=0)  # Remove extra space at the bottom
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(3, weight=1)
+        self.grid_rowconfigure(4, weight=1)
+        self.grid_rowconfigure(5, weight=1)  # Ensure the last row stretches
+        self.grid_rowconfigure(99, weight=0)  # Ensure last row does NOT expand
 
         # self.root = root
         # self.root.title("Simulation Configuration")
@@ -43,15 +49,6 @@ class SimulationConfigGUI(ctk.CTk):
 
         # Add buttons
         self.add_buttons()
-
-    def configure_grid(self):
-        """Configure grid layout for responsiveness"""
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_columnconfigure(2, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
-        self.grid_rowconfigure(2, weight=1)
 
     def set_focus(self):
         """Ensure the GUI window appears in front of other apps."""
@@ -76,11 +73,21 @@ class SimulationConfigGUI(ctk.CTk):
         button_frame = ctk.CTkFrame(self)
         button_frame.grid(row=3, column=0, columnspan=3, pady=10, padx=10, sticky="ew")
 
-        ctk.CTkButton(button_frame, text="Run Simulation", command=self.run_simulation).pack(side="left", padx=10, pady=5)
-        ctk.CTkButton(button_frame, text="Transfer and Submit to HPC", command=self.submit_to_hpc).pack(side="left", padx=10, pady=5)
-        ctk.CTkButton(button_frame, text="Visualize Best Result", command=self.visualize_best_result).pack(side="left", padx=10, pady=5)
-        ctk.CTkButton(button_frame, text="Save Config", command=self.save_config).pack(side="left", padx=10, pady=5)
-        ctk.CTkButton(button_frame, text="Load Config", command=self.load_config).pack(side="left", padx=10, pady=5)
+        self.grid_columnconfigure(0, weight=1)  # Ensure buttons expand evenly
+
+        buttons = [
+            ("Run Simulation", self.run_simulation),
+            ("Submit to HPC", self.submit_to_hpc),
+            ("Visualize Best", self.visualize_best_result),
+            ("Save Config", self.save_config),
+            ("Load Config", self.load_config),
+        ]
+
+        for idx, (text, command) in enumerate(buttons):
+            ctk.CTkButton(button_frame, text=text, command=command, width=150, height=40).grid(row=0, column=idx, padx=5, pady=5, sticky="ew")
+
+        # REMOVE EMPTY SPACE BELOW
+        self.grid_rowconfigure(3, weight=0)  # Fix the bottom row to not expand
 
     def run_simulation(self):
         try:

@@ -1,16 +1,17 @@
 import tkinter as tk
 import customtkinter as ctk
 
+
 class SourcesFrame(ctk.CTkFrame):
     def __init__(self, parent, options, material_frame):
         super().__init__(parent)
         self.options = options
         self.material_frame = material_frame
         self.row = self.material_frame.row
-        self.grid(row=self.row+1, column=1, columnspan=4, sticky="w")
+        # self.grid(row=2, column=1, columnspan=4, sticky="w")
         # Store this frame in options so it can be accessed in utils_config.py
         self.options["sources_frame"] = self
-        
+
         self.create_widgets()
         self.add_source_row()
 
@@ -19,13 +20,13 @@ class SourcesFrame(ctk.CTkFrame):
             row=self.row, column=0, sticky="w"
         )
         self.sources_frame = ctk.CTkFrame(self.material_frame)
-        self.sources_frame.grid(row=self.row+1, column=1, columnspan=4, sticky="w")
+        self.sources_frame.grid(row=self.row + 1, column=1, columnspan=4, sticky="w")
 
         ctk.CTkButton(
             self.material_frame,
             text="Add Source",
             command=self.add_source_row,
-        ).grid(row=self.row+2, column=0, sticky="w")
+        ).grid(row=self.row + 2, column=0, sticky="w")
 
     def add_source_row(self):
         source_row = {}
@@ -35,12 +36,12 @@ class SourcesFrame(ctk.CTkFrame):
         # Position Entry
         ctk.CTkLabel(row_frame, text="Position:").pack(side="left")
         position_var = tk.DoubleVar(value=0.5)
-        ctk.CTkEntry(row_frame, textvariable=position_var, width=5).pack(side="left")
+        ctk.CTkEntry(row_frame, textvariable=position_var, width=50).pack(side="left")
 
         # Heat Value Entry
         ctk.CTkLabel(row_frame, text="Heat:").pack(side="left")
         heat_var = tk.DoubleVar(value=80)
-        ctk.CTkEntry(row_frame, textvariable=heat_var, width=5).pack(side="left")
+        ctk.CTkEntry(row_frame, textvariable=heat_var, width=50).pack(side="left")
 
         # Remove Button
         remove_button = ctk.CTkButton(

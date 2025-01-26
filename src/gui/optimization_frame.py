@@ -8,6 +8,7 @@ class OptimizationFrame(ctk.CTkFrame):
 
         self.grid(row=0, column=0, padx=10, pady=5, sticky="nsew")
         self.grid_columnconfigure((0, 1), weight=1)
+        self.grid_rowconfigure(99, weight=1)  # Prevent bottom empty space
 
         self.create_widgets()
         # Automatically update UI when "optim" checkbox is changed
@@ -26,22 +27,21 @@ class OptimizationFrame(ctk.CTkFrame):
         self.optimizer_menu = ctk.CTkOptionMenu(
             self, variable=self.options["optimizer"], values=["bayesian", "cmaes"]
         )
-        self.options["optimizer"].set("cmaes")  # set a default value
 
         # Population Size
         self.popsize_label = ctk.CTkLabel(self, text="Population Size:")
-        self.popsize_entry = ctk.CTkEntry(self, textvariable=self.options["popsize"], width=120)
+        self.popsize_entry = ctk.CTkEntry(self, textvariable=self.options["popsize"], width=100)
 
         # Bounds
         self.bounds_lower_label = ctk.CTkLabel(self, text="Lower Bound:")
-        self.bounds_lower_entry = ctk.CTkEntry(self, textvariable=self.options["bounds_lower"], width=120)
+        self.bounds_lower_entry = ctk.CTkEntry(self, textvariable=self.options["bounds_lower"], width=100)
 
         self.bounds_upper_label = ctk.CTkLabel(self, text="Upper Bound:")
-        self.bounds_upper_entry = ctk.CTkEntry(self, textvariable=self.options["bounds_upper"], width=120)
+        self.bounds_upper_entry = ctk.CTkEntry(self, textvariable=self.options["bounds_upper"], width=100)
 
         # Number of Iterations
         self.n_iter_label = ctk.CTkLabel(self, text="Number of Iterations:")
-        self.n_iter_entry = ctk.CTkEntry(self, textvariable=self.options["n_iter"], width=120)
+        self.n_iter_entry = ctk.CTkEntry(self, textvariable=self.options["n_iter"], width=100)
 
         # Initially hide all optimizer-related options
         self.hide_optimizer_options()
@@ -51,7 +51,7 @@ class OptimizationFrame(ctk.CTkFrame):
         if self.options["optim"].get():
             # Show optimizer-related options
             self.optimizer_label.grid(row=1, column=0, sticky="w")
-            self.optimizer_menu.grid(row=1, column=1, sticky="w")
+            self.optimizer_menu.grid(row=1, column=1, padx=5, pady=5, sticky="w")
             self.popsize_label.grid(row=2, column=0, sticky="w")
             self.popsize_entry.grid(row=2, column=1, sticky="w")
             self.bounds_lower_label.grid(row=3, column=0, sticky="w")

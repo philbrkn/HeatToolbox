@@ -130,7 +130,114 @@ class MeshGenerator:
 
         # return msh, cell_markers, facet_markers
 
-    def sym_create_mesh(self):
+        def sym_create_mesh(self):
+        """
+        Symmetric version: 
+        - The right boundary (x = L_X) is flagged as 'Symmetry'.
+        - We create a single source 'extrusion' region at the top-right corner.
+        """
+        comm = MPI.COMM_WORLD
+        rank = comm.rank
+
+        gmsh.initialize()
+        gmsh.option.setNumber("General.Terminal", 0)
+        gmsh.model.add("domain_with_extrusion_symmetric")
+
+        L_X = self.config.L_X
+        L_Y = self.config.L_Y
+        res = self.config.RESOLUTION
+        source_width  = self.config.SOURCE_WIDTH
+        source_height = self.config.SOURCE_HEIGHT
+
+        # The overall top of the domain extends to y_max = L_Y + source_height
+        y_max = L_Y + source_height
+
+        # -------------------------
+        #  1) Define base geometry
+        # -------------------------
+        # Bottom-left (p0), bottom-right (p1), top-right (p2), top-left (p3)
+        p0 = gmsh.model.geo.addPoint(0.0, 0.0,     0.0, meshSize=res)
+        p1 = gmsh.model.geo.addPoint(L_X, 0.0,     0.0, meshSize=res)
+        p2 = gmsh.model.geo.addPoint(L_X, y_max,   0.0, meshSize=res)
+        p3 = gmsh.model.geo.addPoint(0.0, L_Y,     0.0, meshSize=res)
+
+        # Lines for the base rectangle (plus top offset)
+        l0 = gmsh.model.geo.addLine(p0, p1)  # bottom edge
+        l1 = gmsh.model.geo.addLine(p1, p2)  # right edge (will be "Symmetry")
+        # We won't directly define p2->p3 because we have an extrusion region
+        l3 = gmsh.model.geo.addLine(p3, p0)  # left edge
+
+        # -------------------------
+        #  2) Define the extrusion
+        # -------------------------
+        # Here, we assume you want one “source” region at the top-right:
+        # from x = L_X - source_width up to x = L_X, 
+        # spanning y = L_Y .. L_Y + source_height = y_max
+        x_min = L_X - source_width
+
+        # bottom-left of the extrusion
+        p4 = gmsh.model.geo.addPoint(x_min, L_Y,   0.0, meshSize=res)
+        # top-left of the extrusion
+        p7 = gmsh.model.geo.addPoint(x_min, y_max, 0.0, meshSize=res)
+
+        # Connect top-right corner p2 to p7 (extrusion top edge)
+        l6 = gmsh.model.geo.addLine(p2, p7)  # top boundary
+        l7 = gmsh.model.geo.addLine(p7, p4)  # left vertical of extrusion
+        # Connect top-left corner p3 to bottom-left of the extrusion p4
+        l8 = gmsh.model.geo.addLine(p3, p4)  # top of the “base rectangle”
+
+        # -------------------------
+        #  3) Combine into surface
+        # -------------------------
+        # The final curve loop goes around:
+        #  p0 -> p1 (l0), p1 -> p2 (l1), p2->p7->p4->p3, p3->p0
+        #  which is [l0, l1, l6, l7, -l8, l3]
+        loop_combined = gmsh.model.geo.addCurveLoop([l0, l1, l6, l7, -l8, l3])
+        surface = gmsh.model.geo.addPlaneSurface([loop_combined])
+
+        gmsh.model.geo.synchronize()
+
+        # -------------------------
+        #  4) Physical group labels
+        # -------------------------
+        # Bottom boundary
+        gmsh.model.addPhysicalGroup(1, [l0], tag=1)
+        gmsh.model.setPhysicalName(1, 1, "IsothermalBoundary")
+
+        # Slip boundaries: left side + the vertical lines of the extrusion 
+        # (excluding the symmetry boundary on the right)
+        slip_lines = [l3, l7, l8]
+        gmsh.model.addPhysicalGroup(1, slip_lines, tag=2)
+        gmsh.model.setPhysicalName(1, 2, "SlipBoundary")
+
+        # Top boundary: line l6
+        gmsh.model.addPhysicalGroup(1, [l6], tag=3)
+        gmsh.model.setPhysicalName(1, 3, "TopBoundary")
+
+        # Right boundary as symmetry
+        gmsh.model.addPhysicalGroup(1, [l1], tag=4)
+        gmsh.model.setPhysicalName(1, 4, "Symmetry")
+
+        # The 2D domain
+        gmsh.model.addPhysicalGroup(2, [surface], tag=1)
+        gmsh.model.setPhysicalName(2, 1, "Domain")
+
+        # -------------------------
+        #  5) Generate and convert
+        # -------------------------
+        gmsh.model.mesh.generate(2)
+
+        # Convert to Dolfinx Mesh (only rank 0 actually reads it, but you can
+        # broadcast it to all processes if you want to run in parallel)
+        msh, cell_markers, facet_markers = io.gmshio.model_to_mesh(
+            gmsh.model, comm=comm, rank=0, gdim=2
+        )
+
+        gmsh.finalize()
+
+        return msh, cell_markers, facet_markers
+
+    def old_sym_create_mesh(self):
         comm = MPI.COMM_SELF
         if comm.rank == 0:
             gmsh.initialize()

@@ -1,11 +1,18 @@
 import customtkinter as ctk
 
+
 class HPCFrame(ctk.CTkFrame):
     def __init__(self, parent, options):
         super().__init__(parent)
         self.options = options
 
         self.grid(row=2, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
+        self.grid_columnconfigure(0, weight=1)  # Reduce weight of label column
+        self.grid_columnconfigure(1, weight=2)  # Increase weight for entries
+        self.grid_columnconfigure(2, weight=1)  # Ensure equal spacing for HPC user settings
+        self.grid_columnconfigure(3, weight=2)  # Ensure equal spacing for HPC user settings
+        self.grid_rowconfigure(99, weight=1)  # Prevent bottom empty space
+
         self.create_widgets()
 
         # Attach a trace to update GUI when hpc_enabled changes
@@ -23,16 +30,16 @@ class HPCFrame(ctk.CTkFrame):
 
         # HPC Options
         self.nodes_label = ctk.CTkLabel(self, text="Number of Nodes:")
-        self.nodes_entry = ctk.CTkEntry(self, textvariable=self.options["nodes"], width=50)
+        self.nodes_entry = ctk.CTkEntry(self, textvariable=self.options["nodes"], width=100)
 
         self.ncpus_label = ctk.CTkLabel(self, text="CPUs per Node (ncpus):")
-        self.ncpus_entry = ctk.CTkEntry(self, textvariable=self.options["ncpus"], width=5)
+        self.ncpus_entry = ctk.CTkEntry(self, textvariable=self.options["ncpus"], width=100)
 
         self.mem_label = ctk.CTkLabel(self, text="Memory per Node (GB):")
-        self.mem_entry = ctk.CTkEntry(self, textvariable=self.options["mem"], width=5)
+        self.mem_entry = ctk.CTkEntry(self, textvariable=self.options["mem"], width=100)
 
         self.walltime_label = ctk.CTkLabel(self, text="Walltime (HH:MM:SS):")
-        self.walltime_entry = ctk.CTkEntry(self, textvariable=self.options["walltime"], width=5)
+        self.walltime_entry = ctk.CTkEntry(self, textvariable=self.options["walltime"], width=100)
 
         self.parallelize_checkbutton = ctk.CTkCheckBox(
             self,
@@ -42,22 +49,22 @@ class HPCFrame(ctk.CTkFrame):
         )
 
         self.mpiprocs_label = ctk.CTkLabel(self, text="MPI Processes per Node (mpiprocs):")
-        self.mpiprocs_entry = ctk.CTkEntry(self, textvariable=self.options["mpiprocs"], width=10)
+        self.mpiprocs_entry = ctk.CTkEntry(self, textvariable=self.options["mpiprocs"], width=100)
 
         self.conda_path_label = ctk.CTkLabel(self, text="Conda Environment Path:")
-        self.conda_path_entry = ctk.CTkEntry(self, textvariable=self.options["conda_env_path"], width=30)
+        self.conda_path_entry = ctk.CTkEntry(self, textvariable=self.options["conda_env_path"], width=150)
 
         self.conda_name_label = ctk.CTkLabel(self, text="Conda Environment Name:")
-        self.conda_name_entry = ctk.CTkEntry(self, textvariable=self.options["conda_env_name"], width=20)
+        self.conda_name_entry = ctk.CTkEntry(self, textvariable=self.options["conda_env_name"], width=150)
 
         self.hpc_user_label = ctk.CTkLabel(self, text="HPC User:")
-        self.hpc_user_entry = ctk.CTkEntry(self, textvariable=self.options["hpc_user"], width=10)
+        self.hpc_user_entry = ctk.CTkEntry(self, textvariable=self.options["hpc_user"], width=150)
 
         self.hpc_host_label = ctk.CTkLabel(self, text="HPC Host:")
-        self.hpc_host_entry = ctk.CTkEntry(self, textvariable=self.options["hpc_host"], width=10)
+        self.hpc_host_entry = ctk.CTkEntry(self, textvariable=self.options["hpc_host"], width=150)
 
         self.hpc_dir_label = ctk.CTkLabel(self, text="HPC Directory:")
-        self.hpc_dir_entry = ctk.CTkEntry(self, textvariable=self.options["hpc_dir"], width=10)
+        self.hpc_dir_entry = ctk.CTkEntry(self, textvariable=self.options["hpc_dir"], width=150)
 
         # Initially hide all HPC-related options
         self.hide_hpc_options()
@@ -66,14 +73,18 @@ class HPCFrame(ctk.CTkFrame):
         """Show or hide HPC options based on the Enable HPC checkbox."""
         if self.options["hpc_enabled"].get():
             # Show HPC-related options
-            self.nodes_label.grid(row=1, column=0, sticky="w")
-            self.nodes_entry.grid(row=1, column=1, sticky="w")
-            self.ncpus_label.grid(row=2, column=0, sticky="w")
-            self.ncpus_entry.grid(row=2, column=1, sticky="w")
-            self.mem_label.grid(row=3, column=0, sticky="w")
-            self.mem_entry.grid(row=3, column=1, sticky="w")
-            self.walltime_label.grid(row=4, column=0, sticky="w")
-            self.walltime_entry.grid(row=4, column=1, sticky="w")
+            self.nodes_label.grid(row=1, column=0, padx=0, pady=2, sticky="w")
+            self.nodes_entry.grid(row=1, column=1, padx=(2, 0), pady=2, sticky="w")
+
+            self.ncpus_label.grid(row=2, column=0, padx=0, pady=2, sticky="w")
+            self.ncpus_entry.grid(row=2, column=1, padx=(2, 0), pady=2, sticky="w")
+
+            self.mem_label.grid(row=3, column=0, padx=0, pady=2, sticky="w")
+            self.mem_entry.grid(row=3, column=1, padx=(2, 0), pady=2, sticky="w")
+
+            self.walltime_label.grid(row=4, column=0, padx=0, pady=2, sticky="w")
+            self.walltime_entry.grid(row=4, column=1, padx=(2, 0), pady=2, sticky="w")
+
             self.parallelize_checkbutton.grid(row=5, column=0, sticky="w")
             self.toggle_mpi_options()  # Show or hide MPI options based on the checkbox
             self.hpc_user_label.grid(row=1, column=2, sticky="w")
