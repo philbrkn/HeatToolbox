@@ -44,7 +44,7 @@ class GKESolver:
         self.ds_tops = [self.ds(tag) for tag in top_tags]
 
         if self.config.symmetry:
-            self.ds_symmetry = self.ds(4)
+            self.ds_symmetry = self.ds(99)
 
         # Set up boundary condition functions and Dirichlet boundary conditions
         W1 = self.W.sub(1)

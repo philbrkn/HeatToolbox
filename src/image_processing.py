@@ -7,25 +7,56 @@ from scipy.ndimage import zoom
 
 
 def img_list_to_gamma_expression(img_list, config):
-    # Compute global min and max coordinates
+    """
+    Build a function gamma_expression(x_input) -> array
+    that, for each point x_input in the domain, returns
+    0 or 1 depending on whether it lies in a region
+    determined by 'img_list' or the top-extrusion mask.
+
+    This handles both non-symmetric & symmetric geometries,
+    with multiple source positions.
+    """
+
+    # ------------------------------------------------------------
+    # 1) Define domain bounding box
+    #    Note: If config.symmetry is True, we assume L_X is
+    #    already half of the full domain width. The rest of
+    #    the logic (0..L_X) stays the same.
+    # ------------------------------------------------------------
     x_min = 0
     x_max = config.L_X
     y_min = 0
     y_max = config.L_Y + config.SOURCE_HEIGHT
 
+    # Range in X and Y
     x_range = x_max - x_min
     y_range = y_max - y_min
 
-    # Adjust y_min for image mapping
+    # For the images, we shift them upward by some offset:
     y_min_im = y_min + 1.5 * config.SOURCE_HEIGHT  # To make image higher
 
+    # ------------------------------------------------------------
+    # 2) Handle the source positions in absolute coordinates
+    # ------------------------------------------------------------
     num_sources = len(config.source_positions)
-    source_positions = np.array(config.source_positions) * config.L_X
+    # Convert fractional positions [0..1] => [0..L_X]
+    # If symmetry is enabled, we assume the sources are
+    # already in the left half of the domain. We need to double
+    # the source positions to cover the full domain.
+    if config.symmetry:
+        source_positions = np.array(config.source_positions) * config.L_X * 2
+    else:
+        source_positions = np.array(config.source_positions) * config.L_X
 
-    # Define image mesh width
+    # ------------------------------------------------------------
+    # 3) Define how wide each image “strip” is
+    #    (Your original approach: x_range / num_sources)
+    # ------------------------------------------------------------
     image_mesh_width = x_range / num_sources
 
-    # Calculate the physical x ranges of each image in the domain
+    # ------------------------------------------------------------
+    # 4) Build an array of x-ranges for each image in img_list
+    # ------------------------------------------------------------
     image_x_ranges = []
     for x_pos in source_positions:
         x_min_image = x_pos - image_mesh_width / 2
@@ -37,10 +68,20 @@ def img_list_to_gamma_expression(img_list, config):
 
         image_x_ranges.append([x_min_image, x_max_image])
 
-    # Define y-coordinate for the start of extrusion
+    # ------------------------------------------------------------
+    # 5) Define the “bottom” of the top extrusion region
+    #    This is for masking purposes.
+    # ------------------------------------------------------------
     y_min_extrusion = config.L_Y - config.SOURCE_HEIGHT
 
+    # ------------------------------------------------------------
+    # 6) Construct the actual callback function for gamma
+    # ------------------------------------------------------------
     def gamma_expression(x_input):
+        """
+        x_input.shape -> (gdim, N)
+        Feturn an array of shape (N,) with 0 or 1.
+        """
         # x_input is of shape (gdim, N)
         x_coords = x_input[0, :]
         y_coords = x_input[1, :]
@@ -48,8 +89,11 @@ def img_list_to_gamma_expression(img_list, config):
         # Initialize gamma_values with zeros
         gamma_values = np.zeros_like(x_coords)
 
-        # For each image, map it onto the domain
+        # -------------------------------
+        # A) “Paint” the images
+        # -------------------------------
         for img, (x_min_image, x_max_image) in zip(img_list, image_x_ranges):
+            # img is a 2D numpy array of shape (height, width) with 0/1
             img_height, img_width = img.shape
 
             # Determine which points are within the image's x-range
@@ -85,32 +129,59 @@ def img_list_to_gamma_expression(img_list, config):
             )
             gamma_values[in_image] = gamma_values_new
 
-        # Apply mask extrusion
+        # -------------------------------
+        # B) Optional: mask extrusions
+        # -------------------------------
         if config.mask_extrusion:
-            # Mask the top extrusion if requested
-            if config.symmetry:
-                x_min_extrusion = config.L_X - config.SOURCE_WIDTH
-                x_max_extrusion = config.L_X
+            # We do multiple extrusions for multiple source_positions
+            # whether or not we are in symmetry mode.
+            #
+            # If symmetry = True, we typically have L_X “halved,” but
+            # the logic is the same, as we still place extrusions
+            # at each x_pos ± source_width/2 (with clamp).
+            for x_pos in source_positions:
+                # define a slightly bigger region than the width for safety
+                half_w = 1.1 * config.SOURCE_WIDTH / 2.0
+                x_min_ex = x_pos - half_w
+                x_max_ex = x_pos + half_w
 
-                in_extrusion = np.logical_and(
-                    np.logical_and(
-                        y_coords > y_min_extrusion, x_coords >= x_min_extrusion
-                    ),
-                    x_coords <= x_max_extrusion,
-                )
+                # clamp to [0, L_X]
+                if x_min_ex < x_min:
+                    x_min_ex = x_min
+                if x_max_ex > x_max:
+                    x_max_ex = x_max
+
+                # all points above y_min_extrusion, within x_min_ex..x_max_ex
+                in_extrusion_x = np.logical_and(x_coords >= x_min_ex, x_coords <= x_max_ex)
+                in_extrusion_y = y_coords > y_min_extrusion
+                in_extrusion = np.logical_and(in_extrusion_x, in_extrusion_y)
+
+                # set gamma=1 in that top region
                 gamma_values[in_extrusion] = 1.0
-            else:
-                for x_pos in source_positions:
-                    x_min_extrusion = x_pos - 1.1 * config.SOURCE_WIDTH / 2
-                    x_max_extrusion = x_pos + 1.1 * config.SOURCE_WIDTH / 2
+            # DEPRECIATE THE FOLLOWING:
+            # if config.symmetry:
+            #     x_min_extrusion = config.L_X - config.SOURCE_WIDTH
+            #     x_max_extrusion = config.L_X
 
-                    in_extrusion = np.logical_and(
-                        np.logical_and(
-                            y_coords > y_min_extrusion, x_coords >= x_min_extrusion
-                        ),
-                        x_coords <= x_max_extrusion,
-                    )
-                    gamma_values[in_extrusion] = 1.0
+            #     in_extrusion = np.logical_and(
+            #         np.logical_and(
+            #             y_coords > y_min_extrusion, x_coords >= x_min_extrusion
+            #         ),
+            #         x_coords <= x_max_extrusion,
+            #     )
+            #     gamma_values[in_extrusion] = 1.0
+            # else:
+            #     for x_pos in source_positions:
+            #         x_min_extrusion = x_pos - 1.1 * config.SOURCE_WIDTH / 2
+            #         x_max_extrusion = x_pos + 1.1 * config.SOURCE_WIDTH / 2
+
+            #         in_extrusion = np.logical_and(
+            #             np.logical_and(
+            #                 y_coords > y_min_extrusion, x_coords >= x_min_extrusion
+            #             ),
+            #             x_coords <= x_max_extrusion,
+            #         )
+            #         gamma_values[in_extrusion] = 1.0
 
         return gamma_values
 

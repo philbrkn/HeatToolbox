@@ -17,6 +17,10 @@ from .utils_config import initialize_options,  get_config_dict, save_config, loa
 from hpc.hpc_utils import submit_job, prompt_password
 import os
 import json
+import gmsh
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 class SimulationConfigGUI(ctk.CTk):
@@ -79,6 +83,7 @@ class SimulationConfigGUI(ctk.CTk):
             ("Run Simulation", self.run_simulation),
             ("Submit to HPC", self.submit_to_hpc),
             ("Visualize Best", self.visualize_best_result),
+            ("Visualize Mesh", self.visualize_gmsh_mesh),  # <--- NEW
             ("Save Config", self.save_config),
             ("Load Config", self.load_config),
         ]
@@ -207,3 +212,139 @@ class SimulationConfigGUI(ctk.CTk):
 
             except Exception as e:
                 messagebox.showerror("Error", f"An error occurred: {e}")
+
+    def visualize_gmsh_mesh(self):
+            """
+            Example method to build or load the Gmsh geometry,
+            extract boundary lines and color them in a Matplotlib figure
+            embedded in Tkinter.
+            """
+            try:
+                # 1) Build or load your Gmsh model using your config
+                #    (You could also call your 'sym_create_mesh' or 'create_mesh' 
+                #    but *do not finalize gmsh yet*, because we want to query it.)
+                
+                gmsh.initialize()
+                gmsh.model.add("visual_demo")
+
+                # For illustration, let's do something simpler:
+                # We'll just add a rectangle + a circle or so
+                # Or call your existing geometry builder. For example:
+                # my_mesh_gen = MeshGenerator(self.options)  # if that’s how you do it
+                # my_mesh_gen.sym_create_mesh()              # but skip finalizing
+                #
+                # Instead, as a self-contained example:
+                p0 = gmsh.model.geo.addPoint(0, 0, 0)
+                p1 = gmsh.model.geo.addPoint(2, 0, 0)
+                p2 = gmsh.model.geo.addPoint(2, 1, 0)
+                p3 = gmsh.model.geo.addPoint(0, 1, 0)
+                l0 = gmsh.model.geo.addLine(p0, p1)
+                l1 = gmsh.model.geo.addLine(p1, p2)
+                l2 = gmsh.model.geo.addLine(p2, p3)
+                l3 = gmsh.model.geo.addLine(p3, p0)
+                loop = gmsh.model.geo.addCurveLoop([l0,l1,l2,l3])
+                s = gmsh.model.geo.addPlaneSurface([loop])
+                # Physical tags
+                gmsh.model.addPhysicalGroup(1, [l0], tag=1)
+                gmsh.model.setPhysicalName(1, 1, "Bottom")
+                gmsh.model.addPhysicalGroup(1, [l1], tag=2)
+                gmsh.model.setPhysicalName(1, 2, "Right")
+                gmsh.model.addPhysicalGroup(1, [l2,l3], tag=3)
+                gmsh.model.setPhysicalName(1, 3, "OtherBoundary")
+                gmsh.model.addPhysicalGroup(2, [s], tag=1)
+                gmsh.model.setPhysicalName(2, 1, "Domain")
+
+                gmsh.model.geo.synchronize()
+                gmsh.model.mesh.generate(2)
+
+                # 2) Extract boundary line data for each Physical Group
+                dim = 1  # lines
+                phys_groups = gmsh.model.getPhysicalGroups(dim) 
+                # => [(1, tag1), (1, tag2), ...]
+
+                # We'll store the lines (list of segments) and each segment's color / name
+                boundary_segments = []
+                color_map = {}
+                color_cycle = plt.cm.tab10.colors  # or any color palette
+                color_index = 0
+
+                for (d, group_tag) in phys_groups:
+                    # fetch the entity tags (line IDs) in this group
+                    line_ids = gmsh.model.getEntitiesForPhysicalGroup(d, group_tag)
+                    # get the group name
+                    group_name = gmsh.model.getPhysicalName(d, group_tag)
+                    # pick a color from the color cycle
+                    this_color = color_cycle[color_index % len(color_cycle)]
+                    color_index += 1
+                    color_map[group_tag] = (group_name, this_color)
+
+                    # For each line_id, get the node coordinates in 2D
+                    for lid in line_ids:
+                        # get mesh nodes for this line
+                        node_tags, node_coords, _ = gmsh.model.mesh.getNodes(dim=d, tag=lid)
+                        # node_coords is a flat list: [x1,y1,z1, x2,y2,z2, ...]
+                        # The line connectivity
+                        elem_types, elem_tags, elem_node_tags = gmsh.model.mesh.getElements(dim=d, tag=lid)
+                        # Typically there's 1 element type (e.g. 1D line segments):
+                        # we can parse elem_node_tags[0] in pairs (or in order) to figure out each segment
+
+                        # But for a simple line, it might be just 1 segment with 2 endpoints.
+                        # We'll parse them thoroughly in case it's subdivided for the mesh.
+
+                        # Build a mapping from nodeTag -> (x,y)
+                        node_map = {}
+                        for i, ntag in enumerate(node_tags):
+                            x = node_coords[3*i]
+                            y = node_coords[3*i+1]
+                            node_map[ntag] = (x, y)
+
+                        # Now get the connectivity
+                        # e.g. for 2-node line segments, each element has 2 node tags
+                        econn = elem_node_tags[0]  # the actual node tags in the element
+                        # group them in pairs
+                        pairs = [econn[i:i+2] for i in range(0, len(econn), 2)]
+                        for (nd1, nd2) in pairs:
+                            x1, y1 = node_map[nd1]
+                            x2, y2 = node_map[nd2]
+                            boundary_segments.append({
+                                "group_tag": group_tag,
+                                "x": [x1, x2],
+                                "y": [y1, y2],
+                            })
+
+                # 3) Now gmsh.finalize() if you like
+                gmsh.finalize()
+
+                # 4) Create a Matplotlib Figure, plot each segment in its group color
+                fig = Figure(figsize=(5, 4), dpi=100)
+                ax = fig.add_subplot(111)
+                ax.set_title("Gmsh Boundary Visualization")
+                ax.set_aspect("equal", "box")
+
+                for seg in boundary_segments:
+                    grp = seg["group_tag"]
+                    (grp_name, c) = color_map[grp]
+                    ax.plot(seg["x"], seg["y"], color=c, lw=2, label=grp_name)
+
+                # Because multiple segments from the same group can appear,
+                # we don't want a repeating label in the legend. Let's do a trick:
+                # get existing labels, only label the first segment of each group.
+                handles, labels = ax.get_legend_handles_labels()
+                # remove duplicates
+                unique = dict()
+                for h, l in zip(handles, labels):
+                    if l not in unique:
+                        unique[l] = h
+                ax.legend(unique.values(), unique.keys(), loc='best')
+
+                # 5) Embed this figure in a Tkinter Toplevel or inside your main window
+                top = ctk.CTkToplevel(self)
+                top.title("Mesh Visualization")
+
+                canvas = FigureCanvasTkAgg(fig, master=top)  
+                canvas.draw()
+                canvas.get_tk_widget().pack(side="top", fill="both", expand=True)
+
+            except Exception as e:
+                traceback.print_exc()
+                messagebox.showerror("Error", str(e))

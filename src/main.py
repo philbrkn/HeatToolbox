@@ -38,7 +38,7 @@ class SimulationController:
         # Create solver instance
         if self.rank == 0:
             if self.config.symmetry:
-                msh, cell_markers, facet_markers = mesh_generator.sym_create_mesh()
+                mesh_generator.sym_create_mesh()
             else:
                 mesh_generator.create_mesh()
         else:
@@ -196,7 +196,10 @@ class SimulationController:
 
         # Apply symmetry to each image if enabled
         if self.config.symmetry:
-            img_list = [img[:, : img.shape[1] // 2] for img in img_list]
+            # only keep the left half of the image if source_position is 0.5
+            for i, img in enumerate(img_list):
+                if self.config.source_positions[i] == 0.5:
+                    img_list[i] = img[:, : img.shape[1] // 2]
 
         return img_list
 

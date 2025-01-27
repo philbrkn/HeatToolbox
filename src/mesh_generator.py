@@ -115,7 +115,7 @@ class MeshGenerator:
         # Generate the mesh
         gmsh.model.mesh.generate(2)
 
-        # Optionally, save the mesh for debugging
+        # save the mesh because of mpi
         gmsh.write("domain_with_extrusions.msh")
 
         # Convert to Dolfinx mesh
@@ -130,112 +130,203 @@ class MeshGenerator:
 
         # return msh, cell_markers, facet_markers
 
-        def sym_create_mesh(self):
+    def sym_create_mesh(self):
         """
         Symmetric version: 
         - The right boundary (x = L_X) is flagged as 'Symmetry'.
+            This boundary is set as L_X / 2 in sim_config.py
         - We create a single source 'extrusion' region at the top-right corner.
         """
-        comm = MPI.COMM_WORLD
+        comm = MPI.COMM_SELF
         rank = comm.rank
 
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal", 0)
-        gmsh.model.add("domain_with_extrusion_symmetric")
+        gmsh.model.add("domain_with_extrusions")
 
         L_X = self.config.L_X
         L_Y = self.config.L_Y
         res = self.config.RESOLUTION
-        source_width  = self.config.SOURCE_WIDTH
+        source_width = self.config.SOURCE_WIDTH
         source_height = self.config.SOURCE_HEIGHT
 
-        # The overall top of the domain extends to y_max = L_Y + source_height
-        y_max = L_Y + source_height
+        # -------------------------------------------------
+        # 1) Define base rectangle (0 <= x <= L_X, 0 <= y <= L_Y)
+        # -------------------------------------------------
+        #
+        #    p3-------- l2? --------p2
+        #    |                       |
+        #   l3                      l1  (Symmetry)
+        #    |                       |
+        #    p0--------- l0 --------p1
+        #        
+        p0 = gmsh.model.geo.addPoint(0, 0, 0, meshSize=res)  # Bottom left
+        p1 = gmsh.model.geo.addPoint(L_X, 0, 0, meshSize=res)  # Bottom right
+        p2 = gmsh.model.geo.addPoint(L_X, L_Y, 0, meshSize=res)  # Top right
+        p3 = gmsh.model.geo.addPoint(0, L_Y, 0, meshSize=res)  # Top left
 
-        # -------------------------
-        #  1) Define base geometry
-        # -------------------------
-        # Bottom-left (p0), bottom-right (p1), top-right (p2), top-left (p3)
-        p0 = gmsh.model.geo.addPoint(0.0, 0.0,     0.0, meshSize=res)
-        p1 = gmsh.model.geo.addPoint(L_X, 0.0,     0.0, meshSize=res)
-        p2 = gmsh.model.geo.addPoint(L_X, y_max,   0.0, meshSize=res)
-        p3 = gmsh.model.geo.addPoint(0.0, L_Y,     0.0, meshSize=res)
+        # Define lines for the base rectangle
+        l0 = gmsh.model.geo.addLine(p0, p1)  # Bottom
+        l1 = gmsh.model.geo.addLine(p1, p2)  # Right
+        l2 = gmsh.model.geo.addLine(p2, p3)  # Top
+        l3 = gmsh.model.geo.addLine(p3, p0)  # Left
 
-        # Lines for the base rectangle (plus top offset)
-        l0 = gmsh.model.geo.addLine(p0, p1)  # bottom edge
-        l1 = gmsh.model.geo.addLine(p1, p2)  # right edge (will be "Symmetry")
-        # We won't directly define p2->p3 because we have an extrusion region
-        l3 = gmsh.model.geo.addLine(p3, p0)  # left edge
+        # -------------------------------------------------
+        # 2) Extrusions: from y=L_Y up to y=L_Y+source_height
+        #    for each source in 'source_positions'
+        # -------------------------------------------------
+        #
+        # We'll connect them from left to right, building lines that
+        # run along the top of the base rectangle (p3 => first block => ... => p2).
+        #
+        # - "connect_rect_extrusion_point" is the last x on the top row that we reached
+        #   (starting from p3).
+        # - For each source:
+        #       x_pos  = fraction * L_X
+        #       x_min  = x_pos - source_width/2
+        #       x_max  = x_pos + source_width/2
+        #   Then create p4, p5, p6, p7 for that block
+        #   Connect previous chunk to p4 with a new line
+        # -------------------------------------------------
 
-        # -------------------------
-        #  2) Define the extrusion
-        # -------------------------
-        # Here, we assume you want one “source” region at the top-right:
-        # from x = L_X - source_width up to x = L_X, 
-        # spanning y = L_Y .. L_Y + source_height = y_max
-        x_min = L_X - source_width
+        # We store the vertical/diagonal lines that connect from one block to the next
+        rect_extr_lines = []
+        # Initialize list to hold all extrusion curve loops
+        extrusion_loops = []
 
-        # bottom-left of the extrusion
-        p4 = gmsh.model.geo.addPoint(x_min, L_Y,   0.0, meshSize=res)
-        # top-left of the extrusion
-        p7 = gmsh.model.geo.addPoint(x_min, y_max, 0.0, meshSize=res)
+        # Physical groups for boundaries
+        isothermal_boundaries = [l0]  # bottom
+        symmetry_boundaries = [l1]  # right
+        slip_boundaries = [l3]  # left
+        top_boundaries = []  # top
 
-        # Connect top-right corner p2 to p7 (extrusion top edge)
-        l6 = gmsh.model.geo.addLine(p2, p7)  # top boundary
-        l7 = gmsh.model.geo.addLine(p7, p4)  # left vertical of extrusion
-        # Connect top-left corner p3 to bottom-left of the extrusion p4
-        l8 = gmsh.model.geo.addLine(p3, p4)  # top of the “base rectangle”
+        # We'll connect from p3 (top-left) across to p2 (top-right).
+        connect_rect_extrusion_point = p3
 
-        # -------------------------
-        #  3) Combine into surface
-        # -------------------------
-        # The final curve loop goes around:
-        #  p0 -> p1 (l0), p1 -> p2 (l1), p2->p7->p4->p3, p3->p0
-        #  which is [l0, l1, l6, l7, -l8, l3]
-        loop_combined = gmsh.model.geo.addCurveLoop([l0, l1, l6, l7, -l8, l3])
+        # Sort sources by ascending x-position (if needed)
+        sorted_positions = sorted(self.config.source_positions)
+        # Iterate over each source position to create extrusions
+        for idx, pos in enumerate(sorted_positions):
+            x_pos = pos * L_X * 2
+            x_min = x_pos - source_width / 2
+            x_max = x_pos + source_width / 2
+
+            # If you want to clamp to [0, L_X] so blocks cannot go out of domain:
+            if x_min < 0.0:
+                x_min = 0.0
+            if x_max > L_X:
+                x_max = L_X
+
+            y_min = L_Y
+            y_max = L_Y + source_height
+
+            # Define points for the extrusion (source region)
+            p4 = gmsh.model.geo.addPoint(x_min, y_min, 0, meshSize=res)  # Bottom left of extrusion
+            p5 = gmsh.model.geo.addPoint(x_max, y_min, 0, meshSize=res)  # Bottom right of extrusion
+            p6 = gmsh.model.geo.addPoint(x_max, y_max, 0, meshSize=res)  # Top right of extrusion
+            p7 = gmsh.model.geo.addPoint(x_min, y_max, 0, meshSize=res)  # Top left of extrusion
+
+            # Define lines for the extrusion
+            # l4 = gmsh.model.geo.addLine(p4, p5)  # Bottom of extrusion
+            l5 = gmsh.model.geo.addLine(p5, p6)  # Right of extrusion
+            l6 = gmsh.model.geo.addLine(p6, p7)  # Top of extrusion
+            l7 = gmsh.model.geo.addLine(p7, p4)  # Left of extrusion
+
+            # To connect extrusion to the base rectangle (For curve loop and slip line)
+            l_connect = gmsh.model.geo.addLine(connect_rect_extrusion_point, p4)
+            # Update the "current" top reference to the bottom-right corner of this block
+            connect_rect_extrusion_point = p5
+            rect_extr_lines.append(l_connect)
+
+            # Define curve loops for the extrusion (for curve loop)
+            extrusion_loop = [l5, l6, l7]
+            extrusion_loops.append(extrusion_loop)  # Use this for curve loop later
+
+            # Physical groups for boundaries
+            # Right edge:
+            if abs(x_max - L_X) < 1e-14:
+                symmetry_boundaries.append(l5)
+            else:
+                slip_boundaries.append(l5)
+
+            # The connecting line from previous top corner to p4:
+            # Check if it's at x=0 or x=L_X for the entire line (unlikely),
+            # else we default it to slip.
+            slip_boundaries.append(l_connect)
+
+            slip_boundaries.extend([l5, l7, l_connect])
+            top_boundaries.append(l6)  # Top of each extrusion as a separate boundary
+
+        l_connect = gmsh.model.geo.addLine(connect_rect_extrusion_point, p2)
+        slip_boundaries.append(l_connect)
+        rect_extr_lines.append(l_connect)
+        
+        # -------------------------------------------------
+        # 3) Build the final curve loop
+        # -------------------------------------------------
+        # Following the same orientation logic as your original code:
+        #
+        #   all_loops starts with [l0, l1] => bottom & right
+        #   then we reverse rect_extr_lines and extrusion_loops
+        #   for each block we do -l_connect, +[l5, l6, l7]
+        #   at the end we add -rect_extr_lines[-1], l3
+        #
+        all_loops = [l0, l1]   # bottom + right
+        # reverse order of extrusion loop and rect_extr_lines:
+        rect_extr_lines = rect_extr_lines[::-1]
+        extrusion_loops = extrusion_loops[::-1]
+        for i in range(len(extrusion_loops)):
+            all_loops.append(-rect_extr_lines[i])
+            all_loops.extend(extrusion_loops[i])
+        # add last rect_extr_line
+        all_loops.extend([-rect_extr_lines[-1], l3])
+
+        # create gmsh loop and surface
+        loop_combined = gmsh.model.geo.addCurveLoop(all_loops)
         surface = gmsh.model.geo.addPlaneSurface([loop_combined])
 
         gmsh.model.geo.synchronize()
 
-        # -------------------------
-        #  4) Physical group labels
-        # -------------------------
-        # Bottom boundary
-        gmsh.model.addPhysicalGroup(1, [l0], tag=1)
+        # Define physical groups
+        # Isothermal Boundary
+        gmsh.model.addPhysicalGroup(1, isothermal_boundaries, tag=1)
         gmsh.model.setPhysicalName(1, 1, "IsothermalBoundary")
 
-        # Slip boundaries: left side + the vertical lines of the extrusion 
-        # (excluding the symmetry boundary on the right)
-        slip_lines = [l3, l7, l8]
-        gmsh.model.addPhysicalGroup(1, slip_lines, tag=2)
+        # Slip Boundaries
+        gmsh.model.addPhysicalGroup(1, slip_boundaries, tag=2)
         gmsh.model.setPhysicalName(1, 2, "SlipBoundary")
 
-        # Top boundary: line l6
-        gmsh.model.addPhysicalGroup(1, [l6], tag=3)
-        gmsh.model.setPhysicalName(1, 3, "TopBoundary")
+        # Top Boundaries
+        for idx, l_top in enumerate(top_boundaries):
+            tag = 3 + idx  # Starting from tag 3
+            gmsh.model.addPhysicalGroup(1, [l_top], tag=tag)
+            gmsh.model.setPhysicalName(1, tag, f"TopBoundary_{idx}")
 
-        # Right boundary as symmetry
-        gmsh.model.addPhysicalGroup(1, [l1], tag=4)
-        gmsh.model.setPhysicalName(1, 4, "Symmetry")
+        gmsh.model.addPhysicalGroup(1, [l1], tag=99)
+        gmsh.model.setPhysicalName(1, 99, "Symmetry")
 
-        # The 2D domain
+        # Domain
         gmsh.model.addPhysicalGroup(2, [surface], tag=1)
         gmsh.model.setPhysicalName(2, 1, "Domain")
-
         # -------------------------
         #  5) Generate and convert
         # -------------------------
         gmsh.model.mesh.generate(2)
 
-        # Convert to Dolfinx Mesh (only rank 0 actually reads it, but you can
-        # broadcast it to all processes if you want to run in parallel)
-        msh, cell_markers, facet_markers = io.gmshio.model_to_mesh(
-            gmsh.model, comm=comm, rank=0, gdim=2
-        )
+        # save the mesh because of mpi
+        gmsh.write("domain_with_extrusions.msh")
+
+        # Convert to Dolfinx mesh
+        # msh, cell_markers, facet_markers = io.gmshio.model_to_mesh(
+        #     gmsh.model,
+        #     comm=comm,
+        #     rank=rank,
+        #     gdim=2
+        # )
 
         gmsh.finalize()
 
-        return msh, cell_markers, facet_markers
+        # return msh, cell_markers, facet_markers
 
     def old_sym_create_mesh(self):
         comm = MPI.COMM_SELF
