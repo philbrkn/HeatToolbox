@@ -150,11 +150,14 @@ class MeshGenerator:
         source_width = self.config.SOURCE_WIDTH
         source_height = self.config.SOURCE_HEIGHT
 
+        # if ther is source at x=0.5:
+        y_max = L_Y + self.config.SOURCE_HEIGHT
+
         # -------------------------------------------------
         # 1) Define base rectangle (0 <= x <= L_X, 0 <= y <= L_Y)
         # -------------------------------------------------
-        #
-        #    p3-------- l2? --------p2
+        #                         --p2
+        #    p3-------- l2? ------
         #    |                       |
         #   l3                      l1  (Symmetry)
         #    |                       |
@@ -162,13 +165,13 @@ class MeshGenerator:
         #        
         p0 = gmsh.model.geo.addPoint(0, 0, 0, meshSize=res)  # Bottom left
         p1 = gmsh.model.geo.addPoint(L_X, 0, 0, meshSize=res)  # Bottom right
-        p2 = gmsh.model.geo.addPoint(L_X, L_Y, 0, meshSize=res)  # Top right
+        p2 = gmsh.model.geo.addPoint(L_X, y_max, 0, meshSize=res)  # Top right
         p3 = gmsh.model.geo.addPoint(0, L_Y, 0, meshSize=res)  # Top left
 
         # Define lines for the base rectangle
         l0 = gmsh.model.geo.addLine(p0, p1)  # Bottom
-        l1 = gmsh.model.geo.addLine(p1, p2)  # Right
-        l2 = gmsh.model.geo.addLine(p2, p3)  # Top
+        l1 = gmsh.model.geo.addLine(p1, p2)  # Right (SYMMETRY LINE)
+        # l2 = gmsh.model.geo.addLine(p2, p3)  # Top
         l3 = gmsh.model.geo.addLine(p3, p0)  # Left
 
         # -------------------------------------------------
@@ -200,14 +203,14 @@ class MeshGenerator:
         slip_boundaries = [l3]  # left
         top_boundaries = []  # top
 
-        # We'll connect from p3 (top-left) across to p2 (top-right).
+        # Start with the top-left corner (p3) of the base rectangle
         connect_rect_extrusion_point = p3
 
         # Sort sources by ascending x-position (if needed)
         sorted_positions = sorted(self.config.source_positions)
         # Iterate over each source position to create extrusions
         for idx, pos in enumerate(sorted_positions):
-            x_pos = pos * L_X * 2
+            x_pos = pos * L_X * 2  # x2 because source positions are to [0,1] and domain is [0,0.5]
             x_min = x_pos - source_width / 2
             x_max = x_pos + source_width / 2
 
@@ -223,7 +226,10 @@ class MeshGenerator:
             # Define points for the extrusion (source region)
             p4 = gmsh.model.geo.addPoint(x_min, y_min, 0, meshSize=res)  # Bottom left of extrusion
             p5 = gmsh.model.geo.addPoint(x_max, y_min, 0, meshSize=res)  # Bottom right of extrusion
-            p6 = gmsh.model.geo.addPoint(x_max, y_max, 0, meshSize=res)  # Top right of extrusion
+            if abs(x_max - L_X) > 1e-14:  # if we are not on the symmetry line
+                p6 = gmsh.model.geo.addPoint(x_max, y_max, 0, meshSize=res)  # Top right of extrusion
+            else:  # we are on symmetry line
+                p6 = p2  # set the top right of extrusion to be the top right of the base rectangle
             p7 = gmsh.model.geo.addPoint(x_min, y_max, 0, meshSize=res)  # Top left of extrusion
 
             # Define lines for the extrusion
@@ -233,34 +239,31 @@ class MeshGenerator:
             l7 = gmsh.model.geo.addLine(p7, p4)  # Left of extrusion
 
             # To connect extrusion to the base rectangle (For curve loop and slip line)
+            # First run: p3 to p4 is top left of rect to bottom left of first block
+            # Second run: p5 (bottom right of previous) to p4 (bottom left of current)
             l_connect = gmsh.model.geo.addLine(connect_rect_extrusion_point, p4)
             # Update the "current" top reference to the bottom-right corner of this block
             connect_rect_extrusion_point = p5
             rect_extr_lines.append(l_connect)
 
-            # Define curve loops for the extrusion (for curve loop)
-            extrusion_loop = [l5, l6, l7]
-            extrusion_loops.append(extrusion_loop)  # Use this for curve loop later
-
-            # Physical groups for boundaries
-            # Right edge:
-            if abs(x_max - L_X) < 1e-14:
-                symmetry_boundaries.append(l5)
-            else:
+            # if we are not on the symmetry line:
+            if abs(x_max - L_X) > 1e-14:
+                # Define curve loops for the extrusion (for curve loop)
+                # add right (l5) and top (l6) if we are not on symmetry line
+                extrusion_loops.append([l5, l6, l7])
+                # Extend: Right edge l5
                 slip_boundaries.append(l5)
+            else:  # we are on symmetry line
+                # dont add l5 (right)
+                extrusion_loop = [l6, l7]
+                extrusion_loops.append(extrusion_loop)  # Use this for curve loop later
 
-            # The connecting line from previous top corner to p4:
-            # Check if it's at x=0 or x=L_X for the entire line (unlikely),
-            # else we default it to slip.
-            slip_boundaries.append(l_connect)
-
-            slip_boundaries.extend([l5, l7, l_connect])
+            # Left edge l7 (probably always slip unless x_min = 0)
+            slip_boundaries.append(l7)
+            # The connecting line from the last top corner to the new block's left corner
+            slip_boundaries.append(l_connect)  # or symmetry if it touches x= L_X, etc.
             top_boundaries.append(l6)  # Top of each extrusion as a separate boundary
 
-        l_connect = gmsh.model.geo.addLine(connect_rect_extrusion_point, p2)
-        slip_boundaries.append(l_connect)
-        rect_extr_lines.append(l_connect)
-        
         # -------------------------------------------------
         # 3) Build the final curve loop
         # -------------------------------------------------
@@ -275,12 +278,14 @@ class MeshGenerator:
         # reverse order of extrusion loop and rect_extr_lines:
         rect_extr_lines = rect_extr_lines[::-1]
         extrusion_loops = extrusion_loops[::-1]
+        # for each block, add -l_connect, +[l5, l6, l7]
         for i in range(len(extrusion_loops)):
-            all_loops.append(-rect_extr_lines[i])
+            # FIRST DO EXTRUSION IN MIDDLE
             all_loops.extend(extrusion_loops[i])
-        # add last rect_extr_line
-        all_loops.extend([-rect_extr_lines[-1], l3])
-
+            # THEN CONNECT TO NEXT
+            all_loops.append(-rect_extr_lines[i])
+        # add LEFT side l3
+        all_loops.append(l3)
         # create gmsh loop and surface
         loop_combined = gmsh.model.geo.addCurveLoop(all_loops)
         surface = gmsh.model.geo.addPlaneSurface([loop_combined])
@@ -302,7 +307,7 @@ class MeshGenerator:
             gmsh.model.addPhysicalGroup(1, [l_top], tag=tag)
             gmsh.model.setPhysicalName(1, tag, f"TopBoundary_{idx}")
 
-        gmsh.model.addPhysicalGroup(1, [l1], tag=99)
+        gmsh.model.addPhysicalGroup(1, symmetry_boundaries, tag=99)
         gmsh.model.setPhysicalName(1, 99, "Symmetry")
 
         # Domain
@@ -316,17 +321,7 @@ class MeshGenerator:
         # save the mesh because of mpi
         gmsh.write("domain_with_extrusions.msh")
 
-        # Convert to Dolfinx mesh
-        # msh, cell_markers, facet_markers = io.gmshio.model_to_mesh(
-        #     gmsh.model,
-        #     comm=comm,
-        #     rank=rank,
-        #     gdim=2
-        # )
-
         gmsh.finalize()
-
-        # return msh, cell_markers, facet_markers
 
     def old_sym_create_mesh(self):
         comm = MPI.COMM_SELF

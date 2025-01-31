@@ -10,8 +10,8 @@ from pymoo.util.display.multi import MultiObjectiveOutput
 from pymoo.core.callback import Callback
 from pymoo.core.population import Population
 from pymoo.operators.mutation.pm import PolynomialMutation
-from pymoo.algorithms.moo.nsga2 import RankAndCrowdingSurvival
-from pymoode.survival import RankAndCrowding
+# from pymoo.algorithms.moo.nsga2 import RankAndCrowdingSurvival
+from pymoo.operators.survival.rank_and_crowding import RankAndCrowding
 
 
 import torch
@@ -21,6 +21,7 @@ import json
 import os
 import pickle
 import copy
+from image_processing import z_to_img
 # from memory_profiler import profile
 # from .utils.logging_utils import generate_log_name, initialize_logger_folder
 
@@ -56,6 +57,16 @@ class CloakProblem(Problem):
                 "loss": loss
             }
             logging.info(json.dumps(log_entry))
+            # Decode the latent vector to an image only in the root process
+            img_list = []
+            for z in gene_torch:
+                img = z_to_img(z.reshape(1, -1), self.model, self.config.vol_fraction)
+                # Apply symmetry if enabled
+                if self.config.symmetry:
+                    img = img[:, : img.shape[1] // 2]
+                img_list.append(img)
+            # Solve the problem using the solver with the generated image
+            fitness = self.solver.solve_image(img_list)
 
         out["F"] = np.array(losses)
 
@@ -215,8 +226,3 @@ def optim_main(config, log_fold_path=None):
 
     # End of main
     print("Optim over.")
-
-
-if __name__ == "__main__":
-    from .config import config
-    optim_main(config)

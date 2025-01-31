@@ -11,7 +11,7 @@ import os
 # import modules
 from mesh_generator import MeshGenerator
 from vae_module import load_vae_model, VAE, Flatten, UnFlatten
-from image_processing import z_to_img
+from image_processing import z_to_img, generate_images
 from opts.cmaes import CMAESModule
 from opts.bayes import BayesianModule
 from post_processing import PostProcessingModule
@@ -95,7 +95,7 @@ class SimulationController:
             latent_vectors = self.load_latent_vectors_from_cma_log()
             print(latent_vectors)
             # Proceed to generate images and solve
-            img_list = self.generate_images(latent_vectors)
+            img_list = generate_images(self.config, latent_vectors, self.model)
 
             if self.config.visualize['pregamma']:
                 self.plot_image_list(img_list, self.config, logger=self.logger)
@@ -129,7 +129,7 @@ class SimulationController:
             latent_vectors = self.get_latent_vectors()
 
             # Generate image from latent vector
-            img_list = self.generate_images(latent_vectors)
+            img_list = generate_images(self.config, latent_vectors, self.model)
             # check if pregamma key is true in the visualize dictinoary
             if self.config.visualize['pregamma']:
                 self.plot_image_list(img_list, self.config, logger=self.logger)
@@ -153,7 +153,6 @@ class SimulationController:
                     V1 = solver.V
 
                 post_processor.postprocess_results(q, T, V1, solver.msh, solver.gamma)
-
 
     def get_latent_vectors(self):
         # Handle latent vector based on the selected method
@@ -182,26 +181,6 @@ class SimulationController:
                     "No saved latent vectors found. Please provide a valid file."
                 )
         return latent_vectors
-
-    def generate_images(self, latent_vectors):
-        # Generate image from latent vector
-        img_list = []
-        for z in latent_vectors:
-            if self.config.blank:
-                img = np.zeros((128, 128))
-            else:
-                # Ensure z is reshaped correctly if needed
-                img = z_to_img(z.reshape(1, -1), self.model, self.config.vol_fraction)
-            img_list.append(img)
-
-        # Apply symmetry to each image if enabled
-        if self.config.symmetry:
-            # only keep the left half of the image if source_position is 0.5
-            for i, img in enumerate(img_list):
-                if self.config.source_positions[i] == 0.5:
-                    img_list[i] = img[:, : img.shape[1] // 2]
-
-        return img_list
 
     def plot_image_list(self, img_list, config, logger=None):
         import matplotlib.pyplot as plt

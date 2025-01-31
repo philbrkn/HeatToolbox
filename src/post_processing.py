@@ -19,6 +19,10 @@ class PostProcessingModule:
         self.logger = logger
         self.is_off_screen = self.config.plot_mode == "screenshot"
 
+        # make sure self.logger.log_dir / visualization exists
+        if self.rank == 0:
+            os.makedirs(os.path.join(self.logger.log_dir, "visualization"), exist_ok=True)
+
     def postprocess_results(self, q, T, V, msh, gamma):
         global_top, global_geom, global_ct, global_vals = self.gather_mesh_on_rank0(
             msh, V, T

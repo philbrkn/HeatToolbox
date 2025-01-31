@@ -188,6 +188,27 @@ def img_list_to_gamma_expression(img_list, config):
     return gamma_expression
 
 
+def generate_images(config, latent_vectors, model):
+    # Generate image from latent vector
+    img_list = []
+    for z in latent_vectors:
+        if config.blank:
+            img = np.zeros((128, 128))
+        else:
+            # Ensure z is reshaped correctly if needed
+            img = z_to_img(z.reshape(1, -1), model, config.vol_fraction)
+        img_list.append(img)
+
+    # Apply symmetry to each image if enabled
+    if config.symmetry:
+        # only keep the left half of the image if source_position is 0.5
+        for i, img in enumerate(img_list):
+            if config.source_positions[i] == 0.5:
+                img_list[i] = img[:, : img.shape[1] // 2]
+
+    return img_list
+
+
 def gaussian_blur(img, sigma=1):
     """Apply Gaussian blur using PyTorch."""
     # Create a 2D Gaussian kernel

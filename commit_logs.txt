@@ -1,0 +1,52 @@
+* 23576ab (HEAD -> main, origin/main, origin/HEAD) Feature: symmetry works. next: NSGA
+* cee4a12 new gui works. implement symmetry again. then implement nsga.
+* f3c8475 moved to ctkinter
+* 1c26cab fixing gui. still need to fix hpc and viz changing config when it shouldn't
+| * a04b369 (origin/joule, joule) NOT WORKING: Refactor GUI initialization and solver selection
+|/  
+* d392b1b (origin/refactor-log-and-hpc, refactor-log-and-hpc) Starting to make Joule functionality
+* 4c34286 Add fourier solving module and make gui changes
+* abd5e4b Add CMA plotting and add fourier solver.
+* 5abcaf6 Add visualize best from hpc config
+* abbc938 Add cma plotting
+* af0eba8 HPC enable toggle
+* efe9552 Add CMAES params
+* 3a079cd logging changes, fix gui, fix hpc, change cmaes. todo: implement cmaes params
+* 93511a5 trying to implement
+* 7607317 Small changes to main and sim config
+* 0989bc4 Refactor config class into new file
+* 1c9c355 (origin/batch-cmaes, batch-cmaes) refractor main
+* b1f9358 parallelize and refractor gpu. add hpc run script
+* dc54bbb attempting mpi for cmaes. fenics does not work
+* e70e2d0 (origin/fenicsx090, fenicsx090) Implemented 090
+* f7cd411 Refactor .gitignore to include logs directory
+* 2f4b8a5 Refactor hpc_run.sh and fix stuff for hpc to run
+* 6bac3c6 Refactor CMA-ES module to split latent vectors per source
+* e5487f6 refractoring cma-es
+* 0838560 Refactor hpc_run.sh and change CMA used
+* 8814e13 Add missing files and remove unused files
+* 17e1302 vae changes
+* 7c0ed12 logging and gui changes
+* 950fc7e implement cma-es
+* 3f896b7 remove cached
+* 1882f96 gui
+* 0e89b72 volume fraction + refractor
+* 2329541 modular sources
+* 5fc456c git ignore
+* 8efdefb feature: source in cmd line
+* 0885713 fixing image to gamma
+* d19e486 implementing two sources
+* 47feddc feat: reparallelize code
+* 27a1001 implement vorticity and eff cond post proc
+* 69c3258 implement knudsen and temp line plots
+* 6b618fb feat: new class organization
+* ac407d1 small changes
+* 0f631f3 implement sym and optim
+* 11fa0e6 optim and alpha tests
+* 0a87def clean up
+* 2765680 img works
+* 68a5786 sep into functions v4
+* 52658a5 implement gmsh
+* 1d1f042 implement parallelization with mumps (v3)
+* 9d5d8ec v2 works for correct scale
+* 20b68fd first commit

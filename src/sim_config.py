@@ -85,7 +85,6 @@ class SimulationConfig:
         self.symmetry = self.config.get("symmetry", False)
         if self.symmetry:
             self.L_X /= 2
-            self.SOURCE_WIDTH /= 2
 
         # Visualization
         self.visualize = self.config.get("visualize", [])
