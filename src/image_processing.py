@@ -158,30 +158,6 @@ def img_list_to_gamma_expression(img_list, config):
 
                 # set gamma=1 in that top region
                 gamma_values[in_extrusion] = 1.0
-            # DEPRECIATE THE FOLLOWING:
-            # if config.symmetry:
-            #     x_min_extrusion = config.L_X - config.SOURCE_WIDTH
-            #     x_max_extrusion = config.L_X
-
-            #     in_extrusion = np.logical_and(
-            #         np.logical_and(
-            #             y_coords > y_min_extrusion, x_coords >= x_min_extrusion
-            #         ),
-            #         x_coords <= x_max_extrusion,
-            #     )
-            #     gamma_values[in_extrusion] = 1.0
-            # else:
-            #     for x_pos in source_positions:
-            #         x_min_extrusion = x_pos - 1.1 * config.SOURCE_WIDTH / 2
-            #         x_max_extrusion = x_pos + 1.1 * config.SOURCE_WIDTH / 2
-
-            #         in_extrusion = np.logical_and(
-            #             np.logical_and(
-            #                 y_coords > y_min_extrusion, x_coords >= x_min_extrusion
-            #             ),
-            #             x_coords <= x_max_extrusion,
-            #         )
-            #         gamma_values[in_extrusion] = 1.0
 
         return gamma_values
 

@@ -75,6 +75,9 @@ class SimulationController:
                 best_z_list = optimizer.optimize(
                     n_iter=100
                 )  # Adjust iterations as needed
+            elif self.config.optimizer == "nsga2":
+                from opts.nsga import optimize_nsga
+                best_z_list = optimize_nsga(solver, self.model, self.config, logger=self.logger)
             elif self.config.optimizer == "bayesian":
                 optimizer = BayesianModule(
                     solver,
@@ -126,6 +129,7 @@ class SimulationController:
 
                 post_processor.postprocess_results(q, T, V1, solver.msh, solver.gamma)
         else:
+            # print the config dict:
             latent_vectors = self.get_latent_vectors()
 
             # Generate image from latent vector

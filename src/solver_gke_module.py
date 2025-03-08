@@ -133,6 +133,27 @@ class GKESolver:
         avg_temp_global = temp_global / area
         return avg_temp_global
 
+    def get_std_dev(self):
+        # Calculate the standard deviation of the temperature field
+        q, T = self.U.sub(0).collapse(), self.U.sub(1).collapse()
+
+        # Compute the mean temperature
+        temp_form = fem.form(T * ufl.dx)
+        temp_local = fem.assemble_scalar(temp_form)
+        temp_global = temp_local
+        area = self.config.L_X * self.config.L_Y + self.config.SOURCE_WIDTH * self.config.SOURCE_HEIGHT
+        mean_temp = temp_global / area
+
+        # Compute the variance
+        variance_form = fem.form((T - mean_temp) ** 2 * ufl.dx)
+        variance_local = fem.assemble_scalar(variance_form)
+        variance_global = variance_local / area
+
+        # Standard deviation is the square root of the variance
+        std_dev = np.sqrt(variance_global)
+
+        return std_dev
+
     def solve_problem(self, F):
         residual = fem.form(F)
         J = ufl.derivative(F, self.U, self.dU)

@@ -65,7 +65,11 @@ class SimulationConfig:
         self.SOURCE_WIDTH = self.LENGTH
         self.SOURCE_HEIGHT = self.LENGTH * 0.25
         self.mask_extrusion = True
-        self.blank = self.config.get("blank", False)
+        if self.config.get("blank", False):
+            self.blank = True
+            self.mask_extrusion = False
+        else:
+            self.blank = False
 
         # Mesh resolution
         res = self.config.get("res", 12.0)
@@ -111,6 +115,12 @@ class SimulationConfig:
 
         self.hpc_enabled = self.config.get("hpc_enabled", True)
         self.load_cma_result = self.config.get("load_cma_result", False)
+        # if hpc activated:
+        if self.hpc_enabled:
+            # set to wall time * 0.95
+            self.maxtime = int(float(self.walltime.split(":")[0]) * 3600 * 0.95+float(self.walltime.split(":")[1]) * 60 * 0.95)
+        else:
+            self.maxtime = self.config.get("maxtime", 3600)  # default to 1 hour if not set
 
     def process_sources(self):
         sources = self.sources

@@ -25,7 +25,7 @@ class OptimizationFrame(ctk.CTkFrame):
         # Optimizer Selection
         self.optimizer_label = ctk.CTkLabel(self, text="Select Optimizer:")
         self.optimizer_menu = ctk.CTkOptionMenu(
-            self, variable=self.options["optimizer"], values=["bayesian", "cmaes"]
+            self, variable=self.options["optimizer"], values=["bayesian", "cmaes", "nsga2"]
         )
 
         # Population Size
@@ -43,6 +43,9 @@ class OptimizationFrame(ctk.CTkFrame):
         self.n_iter_label = ctk.CTkLabel(self, text="Number of Iterations:")
         self.n_iter_entry = ctk.CTkEntry(self, textvariable=self.options["n_iter"], width=100)
 
+        self.maxtime_label = ctk.CTkLabel(self, text="Max Time (seconds):")
+        self.maxtime_entry = ctk.CTkEntry(self, textvariable=self.options["maxtime"], width=100)
+        
         # Initially hide all optimizer-related options
         self.hide_optimizer_options()
 
@@ -60,6 +63,9 @@ class OptimizationFrame(ctk.CTkFrame):
             self.bounds_upper_entry.grid(row=4, column=1, sticky="w")
             self.n_iter_label.grid(row=5, column=0, sticky="w")
             self.n_iter_entry.grid(row=5, column=1, sticky="w")
+
+            self.maxtime_label.grid(row=6, column=0, sticky="w")
+            self.maxtime_entry.grid(row=6, column=1, sticky="w")
         else:
             self.hide_optimizer_options()
 
@@ -75,7 +81,9 @@ class OptimizationFrame(ctk.CTkFrame):
         self.bounds_upper_entry.grid_remove()
         self.n_iter_label.grid_remove()
         self.n_iter_entry.grid_remove()
-    
+        self.maxtime_label.grid_remove()
+        self.maxtime_entry.grid_remove()
+
     def _on_optim_changed(self, *args):
         """Callback whenever self.options['hpc_enabled'] is set (True/False)."""
         # Just reuse your existing logic:

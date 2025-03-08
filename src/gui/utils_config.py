@@ -44,6 +44,7 @@ def initialize_options():
         # "timeout": tk.StringVar(),
         "knudsen": tk.DoubleVar(value=1),
         "solver_type": tk.StringVar(value="gke"),
+        "maxtime": tk.IntVar(value=3600),  # Max optimization time for NSGA2
     }
 
 

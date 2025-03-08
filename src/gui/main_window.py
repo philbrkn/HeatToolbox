@@ -21,6 +21,8 @@ import gmsh
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import subprocess
+import sys
 
 
 class SimulationConfigGUI(ctk.CTk):
@@ -53,6 +55,9 @@ class SimulationConfigGUI(ctk.CTk):
 
         # Add buttons
         self.add_buttons()
+
+        self.simulation_process = None  # To track the running subprocess
+
 
     def set_focus(self):
         """Ensure the GUI window appears in front of other apps."""
@@ -95,21 +100,34 @@ class SimulationConfigGUI(ctk.CTk):
         self.grid_rowconfigure(3, weight=0)  # Fix the bottom row to not expand
 
     def run_simulation(self):
+        # Check if a subprocess is already running
+        if self.simulation_process and self.simulation_process.poll() is None:
+            response = messagebox.askyesno(
+                "Simulation Running",
+                "A simulation is already running. Do you want to terminate it and start a new one?"
+            )
+            if response:  # IF YES, TERINATE AND RUN NEW SIMULATION
+                self.simulation_process.terminate()
+            else:  # IF NO, DO NOT RUN NEW SIMULATION
+                return
+        # IF NO SIMULATION RUNNING, OR TERMINATED, START NEW SIMULATION
         try:
-            # Extracting the options
-            # config = get_config_dict(self.options)
             log_name = self.options["log_name"].get() or "default_log"
             log_dir = os.path.join("logs", log_name)
             os.makedirs(log_dir, exist_ok=True)
             save_config(self.options, log_dir)
             config_path = os.path.join(log_dir, "config.json")
 
-            # Initialize SimulationConfig with the extracted args
-            config = SimulationConfig(config_path)
-            sim = SimulationController(config)
+            command = [
+                sys.executable,
+                "src/main.py",
+                "--config",
+                config_path
+            ]
 
-            # Run the simulation
-            sim.run_simulation()
+            # Launch subprocess and keep reference
+            self.simulation_process = subprocess.Popen(command)
+            messagebox.showinfo("Simulation Started", f"Simulation started with config '{log_name}'.")
 
         except Exception as e:
             traceback.print_exc()
