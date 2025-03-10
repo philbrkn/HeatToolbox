@@ -34,7 +34,7 @@ class SimulationConfigGUI:
         self.options["latent"] = [tk.DoubleVar() for _ in range(4)]
 
         # Visualization options
-        self.visualize_options = ["gamma", "temperature", "flux", "profiles", "pregamma"]
+        self.visualize_options = ["gamma", "temperature", "flux", "profiles", "pregamma", "effective_conductivity"]
 
         # Create the GUI components
         self.create_widgets()

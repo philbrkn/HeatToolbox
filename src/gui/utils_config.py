@@ -85,6 +85,7 @@ def get_config_dict(options):
         "load_cmaes_config": options["load_cmaes_config"].get(),
         "knudsen": options["knudsen"].get(),
         "solver_type": options["solver_type"].get(),
+        "maxtime":  options["maxtime"].get(),  # Max optimization time for NSGA2
     }
 
 

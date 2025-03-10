@@ -28,6 +28,12 @@ class PostProcessingModule:
             msh, V, T
         )
         _, _, _, global_gamma = self.gather_mesh_on_rank0(msh, V, gamma)
+        
+        # Calculate eff_cond once at the top-level here
+        eff_cond = self.calculate_eff_thermal_cond(q, T, msh)
+        eff_cond_CG, V_CG = self.project_to_CG_space(eff_cond, msh)
+
+        _, _, _, global_eff_cond = self.gather_mesh_on_rank0(msh, V_CG, eff_cond_CG)
 
         viz = self.config.visualize
         if self.rank == 0:
@@ -51,7 +57,14 @@ class PostProcessingModule:
                     global_geom,
                     global_vals,
                     field_name="T",
-                    # clim=(0, 0.5),
+                    clim=[0, 0.5],
+                )
+
+            # ADD THIS BLOCK TO VISUALIZE EFFECTIVE CONDUCTIVITY
+            if viz["effective_conductivity"] and global_eff_cond is not None:
+                self.plot_scalar_field(
+                    global_top, global_ct, global_geom, global_eff_cond,
+                    field_name="Effective Conductivity", clim=[0,1250], show_edges=False,
                 )
 
         # Code for flux plotting (only runs when not in parallel)
@@ -371,14 +384,20 @@ class PostProcessingModule:
             return ufl.sqrt(grad_T[0]**2 + grad_T[1]**2)
 
         def k_cond(q, T):
+            epsilon = 1e-6  # small regularization constant to avoid division by zero
             q_magnitude = heat_flux_magnitude(q)
             grad_T_magnitude = temperature_gradient_magnitude(T)
-            return q_magnitude / (grad_T_magnitude)
+            return q_magnitude / (grad_T_magnitude + epsilon)
 
-        V_cond = fem.functionspace(msh, ("DG", 1))  # DG space for scalar curl
+        V_cond = fem.functionspace(msh, ("DG", 1))  # DG space for scalar conductivity
         cond_function = fem.Function(V_cond)
-
-        curl_flux_calculator = fem.Expression(k_cond(q, T), V_cond.element.interpolation_points())
-        cond_function.interpolate(curl_flux_calculator)
+        cond_expr = fem.Expression(k_cond(q, T), V_cond.element.interpolation_points())
+        cond_function.interpolate(cond_expr)
 
         return cond_function
+
+    def project_to_CG_space(self, function_DG, msh, degree=1):
+        V_CG = fem.functionspace(msh, ("CG", 1))
+        function_CG = fem.Function(V_CG)
+        function_CG.interpolate(function_DG)
+        return function_CG, V_CG

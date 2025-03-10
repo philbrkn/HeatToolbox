@@ -72,7 +72,7 @@ class SimulationConfigGUI(ctk.CTk):
         self.material_frame = MaterialFrame(self, self.options)
         self.solving_frame = SolvingFrame(self, self.options)
         self.visualization_frame = VisualizationFrame(
-            self, self.options, visualize_options=["gamma", "temperature", "flux", "profiles", "pregamma"]
+            self, self.options, visualize_options=["gamma", "temperature", "flux", "profiles", "pregamma","effective_conductivity"]
         )
         self.sources_frame = SourcesFrame(self, self.options, self.material_frame)
         self.hpc_frame = HPCFrame(self, self.options)
@@ -193,17 +193,16 @@ class SimulationConfigGUI(ctk.CTk):
                 config["optim"] = False
                 config["hpc_enabled"] = False
                 # Turn all visualization options on
-                if "visualize" in config:
-                    for key in config["visualize"]:
-                        config["visualize"][key] = True
-                else:
-                    config["visualize"] = {
-                        "gamma": True,
-                        "temperature": True,
-                        "flux": True,
-                        "profiles": True,
-                        "pregamma": True
-                    }
+                config["visualize"] = {
+                    "gamma": True,
+                    "temperature": True,
+                    "flux": True,
+                    "profiles": True,
+                    "pregamma": True,
+                    "effective_conductivity": True
+                }
+
+                config["res"] = 20.0  # Increase resolution for better visualization
 
                 # # Ensure we have the log directory
                 # if "log_name" in config:

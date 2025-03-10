@@ -79,7 +79,29 @@ class NSGAProblem(Problem):
         # Make sure F has shape (n_samples, n_obj)
         out["F"] = np.array(losses)
 
+    # Modify pickling behavior
+    def __reduce__(self):
+        # Return a callable (usually a class or function) and a tuple of
+        # arguments to pass to the callable. The callable is used to recreate
+        # the object when deserializing. The '_recreate' method can be a
+        # @staticmethod or another external function.
+        return (self._recreate, (self.n_var, self.n_obj, self.n_constr,
+                                 self.xl, self.xu))
 
+    @staticmethod
+    def _recreate(n_var, n_obj, n_constr, xl, xu):
+        # This method will be called when deserializing.
+        obj = NSGAProblem.__new__(NSGAProblem)  # Create a new instance
+        # obj.n_var = n_var
+        # obj.n_obj = n_obj
+        # obj.n_constr = n_constr
+        # obj.xl = xl
+        # obj.xu = xu
+        # NOTE: self.ass is not set here. If you need to reinitialize it after
+        # deserialization, you should do it outside of the pickling process or
+        # add additional logic.
+        return obj
+    
 class CustomOutput(MultiObjectiveOutput):
     # Redo the initialization to include the logger
     def __init__(self, logger=None):

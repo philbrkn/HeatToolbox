@@ -119,8 +119,11 @@ class SimulationConfig:
         if self.hpc_enabled:
             # set to wall time * 0.95
             self.maxtime = int(float(self.walltime.split(":")[0]) * 3600 * 0.95+float(self.walltime.split(":")[1]) * 60 * 0.95)
+            print(f" Max time is {self.maxtime} seconds")
         else:
             self.maxtime = self.config.get("maxtime", 3600)  # default to 1 hour if not set
+        
+        self.parallelize = self.config.get("parallelize", False)
 
     def process_sources(self):
         sources = self.sources
