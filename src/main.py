@@ -14,7 +14,7 @@ from vae_module import load_vae_model, VAE, Flatten, UnFlatten
 from image_processing import z_to_img, generate_images
 from opts.cmaes import CMAESModule
 from opts.bayes import BayesianModule
-from post_processing import PostProcessingModule
+from post_processing_fenicsx import PostProcessingModule
 from solver_gke_module import GKESolver
 from solver_fourier_module import FourierSolver
 from logging_module import LoggingModule

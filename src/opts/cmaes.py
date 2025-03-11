@@ -11,7 +11,7 @@ from image_processing import z_to_img, generate_images
 import cma
 from mpi4py import MPI
 import os
-from post_processing import PostProcessingModule
+from post_processing_fenicsx import PostProcessingModule
 
 
 class CMAESModule:

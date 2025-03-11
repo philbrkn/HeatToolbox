@@ -99,7 +99,7 @@ class SimulationConfigGUI(ctk.CTk):
         # REMOVE EMPTY SPACE BELOW
         self.grid_rowconfigure(3, weight=0)  # Fix the bottom row to not expand
 
-    def run_simulation(self):
+    def run_simulation(self, config_path=None):
         # Check if a subprocess is already running
         if self.simulation_process and self.simulation_process.poll() is None:
             response = messagebox.askyesno(
@@ -113,11 +113,11 @@ class SimulationConfigGUI(ctk.CTk):
         # IF NO SIMULATION RUNNING, OR TERMINATED, START NEW SIMULATION
         try:
             log_name = self.options["log_name"].get() or "default_log"
-            log_dir = os.path.join("logs", log_name)
-            os.makedirs(log_dir, exist_ok=True)
-            save_config(self.options, log_dir)
-            config_path = os.path.join(log_dir, "config.json")
-
+            if config_path is None:
+                log_dir = os.path.join("logs", log_name)
+                os.makedirs(log_dir, exist_ok=True)
+                save_config(self.options, log_dir)
+                config_path = os.path.join(log_dir, "config.json")
             command = [
                 sys.executable,
                 "src/main.py",
@@ -166,6 +166,7 @@ class SimulationConfigGUI(ctk.CTk):
             f.write(hpc_script)
 
     def save_config(self):
+        # ISSUE: REMOVE THE DEFAULT LOG AND JUST DONT SAVE CONFIG IF EMPTY
         log_name = self.options["log_name"].get() or "default_log"
         log_dir = os.path.join("logs", log_name)
         os.makedirs(log_dir, exist_ok=True)
@@ -192,15 +193,19 @@ class SimulationConfigGUI(ctk.CTk):
                 # Modify the configuration in memory
                 config["optim"] = False
                 config["hpc_enabled"] = False
-                # Turn all visualization options on
-                config["visualize"] = {
-                    "gamma": True,
-                    "temperature": True,
-                    "flux": True,
-                    "profiles": True,
-                    "pregamma": True,
-                    "effective_conductivity": True
-                }
+                # check if any in visualize options are true
+                # convert BooleanVars to actual values:
+                config["visualize"] = {k: v.get() for k, v in self.options["visualize"].items()}
+                # Turn all visualization options if none were clicked
+                if not any(config["visualize"].values()):
+                    config["visualize"] = {
+                        "gamma": True,
+                        "temperature": True,
+                        "flux": True,
+                        "profiles": True,
+                        "pregamma": True,
+                        "effective_conductivity": True
+                    }
 
                 config["res"] = 20.0  # Increase resolution for better visualization
 
@@ -218,11 +223,12 @@ class SimulationConfigGUI(ctk.CTk):
                 # set_options_from_config(self.options, config)
 
                 # Create a SimulationConfig object
-                simulation_config = SimulationConfig(config)
-
+                config_path = os.path.join("logs", config['log_name'], "viz_config.json")
+                with open(config_path, "w") as f:
+                    json.dump(config, f, indent=4)
                 # Create a SimulationController and run the simulation
-                controller = SimulationController(simulation_config)
-                controller.run_simulation()
+                # controller = SimulationController(simulation_config)
+                self.run_simulation(config_path=config_path)
 
                 # Inform the user
                 messagebox.showinfo("Success", "Simulation completed and visualizations saved.")
