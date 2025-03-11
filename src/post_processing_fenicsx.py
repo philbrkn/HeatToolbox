@@ -23,7 +23,7 @@ class PostProcessingModule:
         if self.rank == 0 and self.logger:
             os.makedirs(os.path.join(self.logger.log_dir, "visualization"), exist_ok=True)
 
-    def postprocess_results(self, q, T, V, msh, gamma):
+    def postprocess_results(self, q, T, V, msh, gamma, fileadd=""):
         global_top, global_geom, global_ct, global_vals = self.gather_mesh_on_rank0(
             msh, V, T
         )
@@ -46,7 +46,7 @@ class PostProcessingModule:
                     global_ct,
                     global_geom,
                     global_gamma,
-                    field_name="gamma",
+                    field_name=fileadd+"gamma",
                     show_edges=False,
                 )
 
@@ -56,7 +56,7 @@ class PostProcessingModule:
                     global_ct,
                     global_geom,
                     global_vals,
-                    field_name="T",
+                    field_name=fileadd+"T",
                     clim=[0, 0.5],
                 )
 

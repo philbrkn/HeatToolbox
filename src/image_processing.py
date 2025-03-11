@@ -3,7 +3,31 @@ import numpy as np
 # from mpi4py import MPI
 import torch
 import torch.nn.functional as F
-from scipy.ndimage import zoom
+from scipy.ndimage import zoom, label, generate_binary_structure
+
+
+def remove_small_specs(grid, min_size=3000):
+    """
+    Remove small specks in the material distribution.
+
+    Parameters:
+      grid (np.array): The input binary material distribution grid.
+      min_size (int): Minimum size (in pixels) a connected component must have.
+
+    Returns:
+      np.array: The cleaned grid with small specks removed.
+    """
+    # Label all connected components (using 8-connectivity)
+    structure = generate_binary_structure(2, 2)
+    labeled, ncomponents = label(grid == 1, structure=structure)
+    # Compute the size of each component
+    component_sizes = np.bincount(labeled.ravel())
+    # Identify components smaller than min_size
+    too_small = component_sizes < min_size
+    too_small_mask = too_small[labeled]
+    # Remove small components (set them to background = 0)
+    grid[too_small_mask] = 0
+    return grid
 
 
 def img_list_to_gamma_expression(img_list, config):
@@ -173,6 +197,7 @@ def generate_images(config, latent_vectors, model):
         else:
             # Ensure z is reshaped correctly if needed
             img = z_to_img(z.reshape(1, -1), model, config.vol_fraction)
+        img = remove_small_specs(img, min_size=3000)
         img_list.append(img)
 
     # Apply symmetry to each image if enabled

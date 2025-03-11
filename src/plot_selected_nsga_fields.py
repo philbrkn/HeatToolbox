@@ -17,6 +17,7 @@ class NSGAVisualizer:
         self.iter_path = iter_path
         with open(config_path, "r") as f:
             self.config_dict = json.load(f)
+        self.config_dict["visualize"]["gamma"] = True
         self.config = SimulationConfig(self.config_dict)
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.rank
@@ -42,9 +43,9 @@ class NSGAVisualizer:
             V1, _ = solver.U.function_space.sub(1).collapse()
 
             # Plot gamma field
-            gamma_field_filename = f"gamma_field_solution_{positions.index(pos)}.png"
-            post_processor.postprocess_results(q, T, V=solver.W, msh=solver.msh, gamma=solver.gamma)
-
+            # join with self.iter_oath
+            gamma_field_filename = os.path.join(self.iter_path, f"pos{positions.index(pos)}_")
+            post_processor.postprocess_results(q, T, V=solver.W, msh=solver.msh, gamma=solver.gamma, fileadd=gamma_field_filename)
 
     def run_fenics_solver(self, img_list):
         mesh_file = "domain_with_extrusions.msh"
