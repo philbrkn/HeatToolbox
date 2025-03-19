@@ -111,6 +111,6 @@ def main():
 
 if __name__ == "__main__":
     # main()
-    ITER_PATH = "logs/_ONE_SOURCE_NSGA2"
+    ITER_PATH = "logs/_ONE_SOURCE_NSGA3"
     output_file = os.path.join(ITER_PATH, "overlay_pareto_fronts.png")
     overlay_pareto_fronts(ITER_PATH, output_file)
