@@ -48,24 +48,9 @@ class PymooPostprocess:
         """
         F = self.res.F.copy()
 
-        if filter_outliers:
-            F = F[np.all(F < threshold, axis=1)]
-            from pymoo.decomposition.asf import ASF
-
-            N_OBJ = F.shape[1]
-            weights = np.array([0.0001] * N_OBJ)
-            decomp = ASF()
-            dec_idx = decomp(F, weights).argmin()
-        # else:
-        #     dec_idx = self.decomp_idx
-
         if len(F[0]) == 2:
             plt.clf()
             fig = plt.figure(figsize=(10, 8))
-            if minmax is True:
-                minF, maxF = self.get_min_max_pareto(F)
-                F = (F - minF) / (maxF - minF)
-                F[:, 1] = 1 - F[:, 1]
             plt.scatter(
                 F[:, 0],
                 F[:, 1],
@@ -259,6 +244,6 @@ def main(config, ITER_PATH, pareto_dict=None):
 
 
 if __name__ == "__main__":
-    ITER_PATH = "logs/_ONE_SOURCE_NSGA/test_nsga_10mpi_z16"
+    ITER_PATH = "logs/_ONE_SOURCE_NSGA3/test_nsga_10mpi_z16"
     config = os.path.join(ITER_PATH, "config.json")
     main(config, ITER_PATH)

@@ -159,9 +159,9 @@ def overlay_temperature_profiles(base_dir):
         return
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    colors = plt.cm.viridis(np.linspace(0, 1, len(Tx_overlay_data)))
+    colors = plt.cm.hsv(np.linspace(0, 1, len(Tx_overlay_data)))
     for i, (label, x_vals, T_profile) in enumerate(Tx_overlay_data):
-        ax.plot(x_vals, T_profile, label=f"z={2**(i+1)}", color=colors[i])
+        ax.plot(x_vals, T_profile, label=f"z={2**(i+1)}") #, color=colors[i])
     ax.set_xlabel("Position (normalized)")
     ax.set_ylabel("Temperature (T)")
     ax.set_title("Overlay of Horizontal Temperature Profiles")
@@ -174,9 +174,9 @@ def overlay_temperature_profiles(base_dir):
     print(f"Overlay plot saved to {output_path}")
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    colors = plt.cm.viridis(np.linspace(0, 1, len(Ty_overlay_data)))
+    colors = plt.cm.hsv(np.linspace(0, 1, len(Ty_overlay_data)))
     for i, (label, y_vals, T_profile) in enumerate(Ty_overlay_data):
-        ax.plot(y_vals, T_profile, label=f"z={2**(i+1)}", color=colors[i])
+        ax.plot(y_vals, T_profile, label=f"z={2**(i+1)}") #, color=colors[i])
     ax.set_xlabel("Position (normalized)")
     ax.set_ylabel("Temperature (T)")
     ax.set_title("Overlay of Vertical Temperature Profiles")
@@ -189,9 +189,9 @@ def overlay_temperature_profiles(base_dir):
     print(f"Overlay plot saved to {output_path}")
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    colors = plt.cm.viridis(np.linspace(0, 1, len(q_x_overlay_data)))
+    colors = plt.cm.hsv(np.linspace(0, 1, len(q_x_overlay_data)))
     for i, (label, x_vals, q_x) in enumerate(q_x_overlay_data):
-        ax.plot(x_vals, q_x, label=f"z={2**(i+1)}", color=colors[i])
+        ax.plot(x_vals, q_x, label=f"z={2**(i+1)}") #, color=colors[i])
     ax.set_xlabel("Position (normalized)")
     ax.set_ylabel("Heat flux")
     ax.set_title("Overlay of Horizontal Flux Profiles")
@@ -204,9 +204,9 @@ def overlay_temperature_profiles(base_dir):
     print(f"Overlay plot saved to {output_path}")
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    colors = plt.cm.viridis(np.linspace(0, 1, len(q_y_overlay_data)))
+    colors = plt.cm.hsv(np.linspace(0, 1, len(q_y_overlay_data)))
     for i, (label, y_vals, q_y) in enumerate(q_y_overlay_data):
-        ax.plot(y_vals, q_y, label=f"z={2**(i+1)}", color=colors[i])
+        ax.plot(y_vals, q_y, label=f"z={2**(i+1)}")
     ax.set_xlabel("Position (normalized)")
     ax.set_ylabel("Heat flux")
     ax.set_title("Overlay of Vertical Flux Profiles")
@@ -223,6 +223,6 @@ def overlay_temperature_profiles(base_dir):
 if __name__ == "__main__":
     # Adjust the base directory to match your folder structure.
     # In your case, you might run:
-    # base_directory = os.path.join("logs", "_ONE_SOURCE_CMAES")
-    base_directory = os.path.join("logs", "_THREE_SOURCES_CMAES")
+    base_directory = os.path.join("logs", "_ONE_SOURCE_CMAES")
+    # base_directory = os.path.join("logs", "_THREE_SOURCES_CMAES")
     overlay_temperature_profiles(base_directory)

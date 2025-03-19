@@ -10,6 +10,7 @@ from vae_module import load_vae_model
 from image_processing import generate_images
 from post_processing_fenicsx import PostProcessingModule
 import matplotlib.pyplot as plt
+from mesh_generator import MeshGenerator
 
 
 class NSGAVisualizer:
@@ -48,9 +49,14 @@ class NSGAVisualizer:
             post_processor.postprocess_results(q, T, V=solver.W, msh=solver.msh, gamma=solver.gamma, fileadd=gamma_field_filename)
 
     def run_fenics_solver(self, img_list):
-        mesh_file = "domain_with_extrusions.msh"
+        mesh_gen = MeshGenerator(self.config)
+        if self.config.symmetry:
+            mesh_gen.sym_create_mesh()
+        else:
+            mesh_gen.create_mesh()
+        # The mesh file must be available at this path
         msh, cell_markers, facet_markers = dolfinx.io.gmshio.read_from_msh(
-            mesh_file, MPI.COMM_WORLD, gdim=2
+            "domain_with_extrusions.msh", MPI.COMM_SELF, gdim=2
         )
         solver = GKESolver(msh, facet_markers, self.config)
         solver.solve_image(img_list)
@@ -58,7 +64,7 @@ class NSGAVisualizer:
 
 
 if __name__ == "__main__":
-    ITER_PATH = "logs/_ONE_SOURCE_NSGA/test_nsga_10mpi_z16"
+    ITER_PATH = "logs/_ONE_SOURCE_NSGA2/test_nsga_10mpi_z2"
     CONFIG_PATH = ITER_PATH + "/config.json"
 
     visualizer = NSGAVisualizer(ITER_PATH, CONFIG_PATH)

@@ -3,7 +3,8 @@ import numpy as np
 # from mpi4py import MPI
 import torch
 import torch.nn.functional as F
-from scipy.ndimage import zoom, label, generate_binary_structure
+from scipy.ndimage import zoom, label, generate_binary_structure, binary_dilation, binary_erosion
+# from skimage.morphology import binary_dilation, binary_erosion, remove_small_objects
 
 
 def remove_small_specs(grid, min_size=3000):
@@ -28,6 +29,40 @@ def remove_small_specs(grid, min_size=3000):
     # Remove small components (set them to background = 0)
     grid[too_small_mask] = 0
     return grid
+
+
+def enforce_volume_fraction(img, vf, max_iter=50, atol=5e-2):
+    """
+    Adjust a binary image iteratively so that its volume fraction (proportion of 1's)
+    approaches the desired value.
+
+    Parameters:
+      img (np.array): Input binary image (values 0 or 1).
+      vf (float): Desired volume fraction (between 0 and 1).
+      max_iter (int): Maximum number of iterations.
+      atol (float): Absolute tolerance for convergence.
+
+    Returns:
+      np.array: Adjusted binary image with small specks removed.
+    """
+    # Ensure binary image is boolean for morphology operations.
+    adjusted_img = img.copy().astype(np.bool_)
+    current_vf = np.sum(adjusted_img) / adjusted_img.size
+    niter = 0
+    while (not np.isclose(current_vf, vf, atol=atol)) and (niter < max_iter):
+        if current_vf < vf:
+            # Increase volume fraction: dilate the image
+            adjusted_img = binary_dilation(adjusted_img)
+        elif current_vf > vf:
+            # Decrease volume fraction: erode the image
+            adjusted_img = binary_erosion(adjusted_img)
+        current_vf = np.sum(adjusted_img) / adjusted_img.size
+        niter += 1
+
+    # Remove small specks after adjustment.
+    # adjusted_img = remove_small_specs(adjusted_img.astype(np.uint8), min_size=1000)
+    # Return as float32 array (with values 0 or 1)
+    return adjusted_img.astype(np.float32)
 
 
 def img_list_to_gamma_expression(img_list, config):
@@ -198,6 +233,7 @@ def generate_images(config, latent_vectors, model):
             # Ensure z is reshaped correctly if needed
             img = z_to_img(z.reshape(1, -1), model, config.vol_fraction)
         img = remove_small_specs(img, min_size=3000)
+        # img = enforce_volume_fraction(img, config.vol_fraction)
         img_list.append(img)
 
     # Apply symmetry to each image if enabled

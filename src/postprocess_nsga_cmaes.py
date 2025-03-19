@@ -85,8 +85,8 @@ def main(config_file, ITER_PATH_NSGA):
 
 if __name__ == "__main__":
     # Define the iteration (output) folder and configuration file.
-    ITER_PATH_NSGA = "logs/_ONE_SOURCE_NSGA/test_nsga_10mpi_z16"
-    ITER_PATH_CMAES = "logs/_ONE_SOURCE_CMAES/cmaes_sym_1source_z16"
+    ITER_PATH_NSGA = "logs/_ONE_SOURCE_NSGA2/test_nsga_10mpi_z8"
+    ITER_PATH_CMAES = "logs/_ONE_SOURCE_CMAES/cmaes_sym_1source_z8"
     
     config_file = os.path.join(ITER_PATH_CMAES, "config.json")
     main(config_file, ITER_PATH_NSGA)
