@@ -25,6 +25,11 @@ def generate_hpc_script(config, config_path):
     # Add walltime
     script_lines.append(f"#PBS -l walltime={config['walltime']}")
 
+    # email notifs
+    config['email'] = "pt721@ic.ac.uk"
+    script_lines.append(f"#PBS -M {config['email']}")
+    script_lines.append("#PBS -m abe")
+
     # Load necessary modules and activate the conda environment
     script_lines.extend(
         [
@@ -37,12 +42,14 @@ def generate_hpc_script(config, config_path):
             "cp -r $HOME/BTE-NO $TMPDIR/",
             "",
             "cd $TMPDIR/BTE-NO",
+            "pip install -e .",
             "",
         ]
     )
 
     # Generate the command line using the config path
-    command = f"python src/main.py --config {config_path}"
+    # use Python module invocation
+    command = f"python -m heatoptim.main --config {config_path}"
 
     # Calculate timeout in hours
     if config.get("timeout"):

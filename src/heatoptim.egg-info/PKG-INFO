@@ -1,4 +1,4 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.4
 Name: heatoptim
 Version: 0.1.0
 Summary: toolbox for heat-related simulations and processing.
@@ -14,3 +14,7 @@ Requires-Dist: torch==2.2.2
 Requires-Dist: torchaudio==2.2.2
 Requires-Dist: torchvision==0.17.2
 Requires-Dist: vtk==9.3.1
+Dynamic: author
+Dynamic: author-email
+Dynamic: requires-dist
+Dynamic: summary

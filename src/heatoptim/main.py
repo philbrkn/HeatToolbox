@@ -77,10 +77,10 @@ class SimulationController:
                 )  # Adjust iterations as needed
             elif self.config.optimizer == "nsga2":
                 if self.config.parallelize:
-                    from opts.nsga_mpi import optimize_nsga
+                    from heatoptim.opts.nsga_mpi import optimize_nsga
                     best_z_list = optimize_nsga(solver, self.model, self.config, logger=self.logger)
                 else:
-                    from opts.nsga import optimize_nsga
+                    from heatoptim.opts.nsga import optimize_nsga
                     best_z_list = optimize_nsga(solver, self.model, self.config, logger=self.logger)
             elif self.config.optimizer == "bayesian":
                 optimizer = BayesianModule(

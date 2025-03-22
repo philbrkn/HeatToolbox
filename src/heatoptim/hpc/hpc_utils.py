@@ -6,7 +6,29 @@ import time
 
 
 def submit_job(hpc_user, hpc_host, hpc_path, log_dir, password):
-
+    """
+    Submits a job to an HPC cluster using SSH and qsub.
+    Args:
+        hpc_user (str): The username for the HPC cluster.
+        hpc_host (str): The hostname or IP address of the HPC cluster.
+        hpc_path (str): The base path on the HPC where the job files are located.
+        log_dir (str): The directory containing the job files to be submitted.
+        password (str): The password for the HPC user.
+    Workflow:
+        1. Transfers the log directory to the HPC cluster.
+        2. Waits for the required files ("hpc_run.sh" and "config.json") to appear on the HPC.
+        3. Submits the job using the `qsub` command via SSH.
+    Environment:
+        - Uses the `SSHPASS` environment variable to securely pass the password for SSH.
+    Raises:
+        subprocess.CalledProcessError: If the `qsub` command fails during job submission.
+    UI Feedback:
+        - Displays a success message with the job ID if the submission is successful.
+        - Displays an error message if the submission fails.
+    Note:
+        Requires the `sshpass` utility to be installed on the local machine.
+    """
+    
     local_base_path = "."
     # Transfer the log directory to the HPC
     transfer_files_to_hpc(
@@ -61,6 +83,8 @@ def transfer_files_to_hpc(
     # Ensure local paths exist
     local_src_path = os.path.join(local_base_path, "src")
     local_log_path = os.path.join(local_base_path, log_dir)
+    setup_path = os.path.join(local_base_path, "setup.py")
+    toml_path = os.path.join(local_base_path, "pyproject.toml")
     if not os.path.exists(local_src_path):
         raise FileNotFoundError(f"Source directory not found: {local_src_path}")
     if not os.path.exists(local_log_path):
@@ -81,6 +105,8 @@ def transfer_files_to_hpc(
         os.path.join(local_base_path, "hpc_exclude.txt"),
         f"{local_src_path}/",  # Transfer the src directory
         f"{local_log_path}/",  # Transfer the specific log directory
+        setup_path,  # Transfer the setup.py file
+        toml_path,  # Transfer the pyproject.toml file
         f"{hpc_user}@{hpc_host}:{hpc_remote_base_path}/",
     ]
     print(rsync_command)

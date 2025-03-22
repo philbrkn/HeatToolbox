@@ -1,3 +1,4 @@
+pyproject.toml
 setup.py
 src/heatoptim/__init__.py
 src/heatoptim/main.py
@@ -24,6 +25,10 @@ src/heatoptim/gui/visualization_frame.py
 src/heatoptim/hpc/__init__.py
 src/heatoptim/hpc/hpc_utils.py
 src/heatoptim/hpc/script_generator.py
+src/heatoptim/models/128latent16epochs500Alldict
+src/heatoptim/models/128latent2epochs200Alldict
+src/heatoptim/models/128latent4epochs200Alldict
+src/heatoptim/models/128latent8epochs200Alldict
 src/heatoptim/opts/__init__.py
 src/heatoptim/opts/bayes.py
 src/heatoptim/opts/cmaes.py

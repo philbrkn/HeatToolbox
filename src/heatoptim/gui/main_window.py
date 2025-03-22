@@ -120,7 +120,8 @@ class SimulationConfigGUI(ctk.CTk):
                 config_path = os.path.join(log_dir, "config.json")
             command = [
                 sys.executable,
-                "src/main.py",
+                "-m",
+                "heatoptim.main",
                 "--config",
                 config_path
             ]

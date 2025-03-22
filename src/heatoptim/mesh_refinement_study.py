@@ -39,7 +39,7 @@ def main():
         # Construct the command with mpirun
         command = [
             "python3",
-            "src/main.py",
+            "heatoptim.main",
             "--res",
             str(res),
             "--visualize",

@@ -204,12 +204,12 @@ def optimize_nsga(solver, model, config, logger=None):
         verbose=True,
     )
 
-    print("Best solution found:")
-    print("X =", res.X)
-    print("F =", res.F)
-
     # rank 0: save results
     if MPI.COMM_WORLD.Get_rank() == 0:
+        print("Best solution found:")
+        print("X =", res.X)
+        print("F =", res.F)
+
         result_path = os.path.join(config.log_dir, "NSGA_Result.pk1")
         with open(result_path, "wb") as f:
             pickle.dump(res, f)

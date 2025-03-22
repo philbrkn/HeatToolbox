@@ -46,7 +46,7 @@ class LoggingModule:
 
         # Save a command-line script to reproduce the run
         run_script_path = os.path.join(self.log_dir, "run_simulation.sh")
-        command = f"python src/main.py --config {config_path}"
+        command = f"python -m heatoptim.main --config {config_path}"
         with open(run_script_path, "w") as f:
             f.write(command + "\n")
 

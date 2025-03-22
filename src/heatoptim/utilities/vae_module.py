@@ -3,6 +3,8 @@
 import torch
 from torch import nn
 # from mpi4py import MPI
+import heatoptim
+import os
 
 # REMOVE LATER?
 image_size = 128
@@ -12,10 +14,30 @@ latent_size = 4
 device = torch.device("cpu")  # Change to "cuda" if using GPU
 
 
-def load_vae_model(rank, z_dim=latent_size):
+def _load_vae_model_depreciated(rank, z_dim=latent_size):
+    '''DEPRECIATE'''
     model = VAE(z_dim=z_dim)
     # model = torch.load("./model/model", map_location=torch.device("cpu"))
     model_path = f"models/128latent{z_dim}epochs200Alldict" if z_dim != 16 else f"models/128latent{z_dim}epochs500Alldict"
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.eval()
+    return model
+
+
+def load_vae_model(rank, z_dim=latent_size):
+    model = VAE(z_dim=z_dim)
+
+    # Determine the base directory of the installed package
+    package_dir = os.path.dirname(heatoptim.__file__)
+
+    # Choose the correct folder based on z_dim
+    model_dict = f"128latent{z_dim}epochs200Alldict" if z_dim != 16 else f"128latent{z_dim}epochs500Alldict"
+
+    # Construct the full path to the model file
+    # Adjust "model.pth" to the actual filename you need to load
+    model_path = os.path.join(package_dir, "models", model_dict)
+
+    # Load the state dict from the file
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
     return model

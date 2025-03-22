@@ -23,7 +23,7 @@ setup(
     ],
     package_data={
         # If you need to include non-code assets (like VAE models) inside the package:
-        "heatoptim": ["models/vae/*"],
+        "heatoptim": ["models/*"],
     },
     include_package_data=True,
     entry_points={
