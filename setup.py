@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="heattoolbox",
+    name="heatoptim",
     version="0.1.0",
     description="toolbox for heat-related simulations and processing.",
     author="Placeholder",
@@ -23,12 +23,12 @@ setup(
     ],
     package_data={
         # If you need to include non-code assets (like VAE models) inside the package:
-        "heattoolbox": ["models/vae/*"],
+        "heatoptim": ["models/vae/*"],
     },
     include_package_data=True,
     entry_points={
         "console_scripts": [
-            "heattoolbox-gui=heattoolbox.run_gui:main",
+            "heatoptim=heatoptim.run_gui:main",
         ],
     },
 )
