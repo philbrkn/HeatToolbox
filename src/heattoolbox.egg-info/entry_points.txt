@@ -1,0 +1,2 @@
+[console_scripts]
+heattoolbox-gui = heattoolbox.run_gui:main

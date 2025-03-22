@@ -1,0 +1,10 @@
+numpy
+matplotlib==3.9.2
+mpi4py
+gmsh==4.13.1
+cma==3.2.2
+pymoo==0.6.1.3
+torch==2.2.2
+torchaudio==2.2.2
+torchvision==0.17.2
+vtk==9.3.1
