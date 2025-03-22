@@ -1,2 +1,2 @@
-import heattoolbox
-print(heattoolbox.__version__) 
+import heatoptim
+print(heatoptim.__version__)

@@ -21,7 +21,7 @@ import json
 import os
 import pickle
 import copy
-from image_processing import z_to_img
+from heatoptim.utilities.image_processing import z_to_img
 # from memory_profiler import profile
 # from .utils.logging_utils import generate_log_name, initialize_logger_folder
 

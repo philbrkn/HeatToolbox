@@ -2,9 +2,9 @@
 test functions in the image_processing.py file
 '''
 import numpy as np
-from image_processing import generate_images
-from vae_module import load_vae_model
-from sim_config import SimulationConfig
+from heatoptim.utilities.image_processing import generate_images
+from heatoptim.utilities.vae_module import load_vae_model
+from heatoptim.config.sim_config import SimulationConfig
 import matplotlib.pyplot as plt
 import os
 

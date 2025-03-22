@@ -2,7 +2,7 @@
 
 from pymoo.core.problem import Problem
 import numpy as np
-from image_processing import generate_images  # using your generate_images function
+from heatoptim.utilities.image_processing import generate_images  # using your generate_images function
 
 # nsga_optimization.py
 

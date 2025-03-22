@@ -2,7 +2,7 @@
 
 import torch
 from torch import nn
-from mpi4py import MPI
+# from mpi4py import MPI
 
 # REMOVE LATER?
 image_size = 128

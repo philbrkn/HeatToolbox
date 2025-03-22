@@ -9,7 +9,7 @@ setup(
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     install_requires=[
-        "numpy",
+        "numpy",    
         "matplotlib==3.9.2",
         "mpi4py",
         # "dolfinx",

@@ -9,17 +9,17 @@ import dolfinx.io
 import os
 
 # import modules
-from mesh_generator import MeshGenerator
-from vae_module import load_vae_model, VAE, Flatten, UnFlatten
-from image_processing import z_to_img, generate_images
-from opts.cmaes import CMAESModule
-from opts.bayes import BayesianModule
-from post_processing_fenicsx import PostProcessingModule
-from solver_gke_module import GKESolver
-from solver_fourier_module import FourierSolver
-from logging_module import LoggingModule
-from sim_config import SimulationConfig
-from log_utils import read_last_latent_vector
+from heatoptim.solvers.mesh_generator import MeshGenerator
+from heatoptim.utilities.vae_module import load_vae_model, VAE, Flatten, UnFlatten
+from heatoptim.utilities.image_processing import z_to_img, generate_images
+from heatoptim.opts.cmaes import CMAESModule
+from heatoptim.opts.bayes import BayesianModule
+from heatoptim.postprocessing.post_processing_fenicsx import PostProcessingModule
+from heatoptim.solvers.solver_gke_module import GKESolver
+from heatoptim.solvers.solver_fourier_module import FourierSolver
+from heatoptim.utilities.logging_module import LoggingModule
+from heatoptim.config.sim_config import SimulationConfig
+from heatoptim.utilities.log_utils import read_last_latent_vector
 
 
 class SimulationController:

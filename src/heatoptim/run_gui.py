@@ -1,5 +1,5 @@
 # from tkinter import Tk
-from gui.main_window import SimulationConfigGUI
+from heatoptim.gui.main_window import SimulationConfigGUI
 
 
 def main():

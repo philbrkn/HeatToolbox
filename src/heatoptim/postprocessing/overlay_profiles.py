@@ -13,13 +13,13 @@ import numpy as np
 from mpi4py import MPI
 
 # Import your modules – adjust these imports if your folder structure differs
-from sim_config import SimulationConfig
-from mesh_generator import MeshGenerator
-from solver_gke_module import GKESolver
-from vae_module import load_vae_model
-from image_processing import generate_images
-from post_processing_fenicsx import PostProcessingModule
-from log_utils import read_last_latent_vector
+from heatoptim.config.sim_config import SimulationConfig
+from heatoptim.solvers.mesh_generator import MeshGenerator
+from heatoptim.solvers.solver_gke_module import GKESolver
+from heatoptim.utilities.vae_module import load_vae_model
+from heatoptim.utilities.image_processing import generate_images
+from heatoptim.postprocessing.post_processing_fenicsx import PostProcessingModule
+from heatoptim.utilities.log_utils import read_last_latent_vector
 import dolfinx.io
 
 

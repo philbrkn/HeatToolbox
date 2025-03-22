@@ -8,12 +8,12 @@ from mpi4py import MPI
 import dolfinx.io
 
 # for plotting fields:
-from vae_module import load_vae_model
-from image_processing import generate_images
-from post_processing_fenicsx import PostProcessingModule
-from mesh_generator import MeshGenerator
-from sim_config import SimulationConfig
-from solver_gke_module import GKESolver
+from heatoptim.utilities.vae_module import load_vae_model
+from heatoptim.utilities.image_processing import generate_images
+from heatoptim.postprocessing.post_processing_fenicsx import PostProcessingModule
+from heatoptim.solvers.mesh_generator import MeshGenerator
+from heatoptim.config.sim_config import SimulationConfig
+from heatoptim.solvers.solver_gke_module import GKESolver
 
 
 class PymooPostprocess:

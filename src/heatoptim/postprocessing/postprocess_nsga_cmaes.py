@@ -20,7 +20,7 @@ def main(config_file, ITER_PATH_NSGA):
         config_dict = json.load(f)
 
     # Create a SimulationConfig instance (assumes sim_config.SimulationConfig exists).
-    from sim_config import SimulationConfig
+    from heatoptim.config.sim_config import SimulationConfig
 
     config = SimulationConfig(config_dict)
 
@@ -39,7 +39,7 @@ def main(config_file, ITER_PATH_NSGA):
     solver = GKESolver(msh, facet_markers, config)
 
     # Load the VAE model.
-    from vae_module import load_vae_model
+    from heatoptim.utilities.vae_module import load_vae_model
 
     model = load_vae_model(rank, config.latent_size)
 
@@ -52,7 +52,7 @@ def main(config_file, ITER_PATH_NSGA):
     )
 
     # Generate the list of images from the latent vectors.
-    from image_processing import generate_images
+    from heatoptim.utilities.image_processing import generate_images
 
     img_list = generate_images(config, latent_vectors, model)
 

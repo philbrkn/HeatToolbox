@@ -1,5 +1,5 @@
 import numpy as np
-from image_processing import z_to_img
+from heatoptim.utilities.image_processing import z_to_img
 
 # external optimizers:
 # implement: only import if you want to use them

@@ -15,7 +15,7 @@ from pymoo.core.problem import Problem
 from pymoo.util.display.multi import MultiObjectiveOutput
 from pymoo.core.callback import Callback
 
-from image_processing import generate_images
+from heatoptim.utilities.image_processing import generate_images
 
 
 class MyCallback(Callback):

@@ -5,6 +5,7 @@ import subprocess
 import matplotlib.pyplot as plt
 import os
 
+
 def main():
     # Define the length scale from your config or set it directly
     MEAN_FREE_PATH = 0.439e-6  # meters

@@ -3,7 +3,7 @@ from mpi4py import MPI
 from petsc4py import PETSc
 from dolfinx import fem, mesh
 import dolfinx.fem.petsc  # ghost import
-from image_processing import img_list_to_gamma_expression
+from heatoptim.utilities.image_processing import img_list_to_gamma_expression
 import basix.ufl
 import numpy as np
 

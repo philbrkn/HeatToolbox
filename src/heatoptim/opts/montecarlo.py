@@ -4,11 +4,11 @@ import json
 import os
 from mpi4py import MPI
 import dolfinx.io
-from solver_gke_module import GKESolver
-from sim_config import SimulationConfig
-from image_processing import generate_images
-from vae_module import load_vae_model
-from mesh_generator import MeshGenerator
+from heatoptim.solvers.solver_gke_module import GKESolver
+from heatoptim.config.sim_config import SimulationConfig
+from heatoptim.utilities.image_processing import generate_images
+from heatoptim.utilities.vae_module import load_vae_model
+from heatoptim.solvers.mesh_generator import MeshGenerator
 import matplotlib.pyplot as plt
 
 

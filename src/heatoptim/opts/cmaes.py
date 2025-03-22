@@ -5,13 +5,13 @@
 # from PIL import Image
 # from solver_module import Solver
 import numpy as np
-from image_processing import z_to_img, generate_images
+from heatoptim.utilities.image_processing import z_to_img, generate_images
 
 # external optimizers:
 import cma
 from mpi4py import MPI
 import os
-from post_processing_fenicsx import PostProcessingModule
+from heatoptim.postprocessing.post_processing_fenicsx import PostProcessingModule
 
 
 class CMAESModule:

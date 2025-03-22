@@ -10,11 +10,11 @@ from .visualization_frame import VisualizationFrame
 from .sources_frame import SourcesFrame
 from .hpc_frame import HPCFrame
 
-from sim_config import SimulationConfig
-from main import SimulationController
-from hpc.script_generator import generate_hpc_script
+from heatoptim.config.sim_config import SimulationConfig
+from heatoptim.main import SimulationController
+from heatoptim.hpc.script_generator import generate_hpc_script
 from .utils_config import initialize_options,  get_config_dict, save_config, load_config
-from hpc.hpc_utils import submit_job, prompt_password
+from heatoptim.hpc.hpc_utils import submit_job, prompt_password
 import os
 import json
 import gmsh
