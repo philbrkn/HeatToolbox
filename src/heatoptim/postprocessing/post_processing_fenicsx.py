@@ -28,6 +28,12 @@ class PostProcessingModule:
             msh, V, T
         )
         _, _, _, global_gamma = self.gather_mesh_on_rank0(msh, V, gamma)
+        
+        # Print the knudsen numbers
+        if self.rank == 0:
+            print(f"For a length of {self.config.LENGTH} m:")
+            print(f"Knudsen number (silicon): {self.config.KNUDSEN_SI}")
+            print(f"Knudsen number (diamond): {self.config.KNUDSEN_DI}")
 
         if q is not None:
             # Calculate eff_cond once at the top-level here
@@ -59,7 +65,7 @@ class PostProcessingModule:
                     global_geom,
                     global_vals,
                     field_name=fileadd+"T",
-                    clim=[0, 0.5],
+                    # clim=[0, 0.5],
                 )
 
             # ADD THIS BLOCK TO VISUALIZE EFFECTIVE CONDUCTIVITY
@@ -278,7 +284,9 @@ class PostProcessingModule:
 
         plotter = pv.Plotter(off_screen=self.is_off_screen)
         plotter.add_text("magnitude", font_size=12, color="black")
-        plotter.add_mesh(V_grid.copy(), show_edges=False)
+        # plotter.add_mesh(V_grid.copy(), show_edges=False)
+        # plotter.add_mesh(V_grid.copy(), show_edges=False, clim=[0,10000])
+        
         plotter.view_xy()
         plotter.link_views()
         if self.is_off_screen:

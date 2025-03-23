@@ -65,6 +65,8 @@ class GKESolver:
 
         ramp_kappa = ramp(self.gamma, self.config.KAPPA_SI, self.config.KAPPA_DI)
         ramp_ell = ramp(self.gamma, self.config.ELL_SI, self.config.ELL_DI)
+        # ramp_kappa = ramp(self.gamma, self.config.KAPPA_DI, self.config.KAPPA_SI)
+        # ramp_ell = ramp(self.gamma, self.config.ELL_DI, self.config.ELL_SI)
 
         viscous_term = (
             ramp_ell ** 2

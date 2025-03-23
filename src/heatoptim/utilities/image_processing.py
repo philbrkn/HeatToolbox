@@ -125,8 +125,9 @@ def img_list_to_gamma_expression(img_list, config):
     # If symmetry is enabled, we assume the sources are
     # already in the left half of the domain. We need to double
     # the source positions to cover the full domain.
-    if config.symmetry:
-        source_positions = np.array(config.source_positions) * config.L_X * 2
+    if config.symmetry:  # ISSUE!!!!
+        source_positions = np.array(config.source_positions) * config.L_X
+        # source_positions = np.array(config.source_positions) * config.L_X * 2
     else:
         source_positions = np.array(config.source_positions) * config.L_X
 
@@ -221,6 +222,8 @@ def img_list_to_gamma_expression(img_list, config):
             # If symmetry = True, we typically have L_X “halved,” but
             # the logic is the same, as we still place extrusions
             # at each x_pos ± source_width/2 (with clamp).
+            if config.symmetry:  # ISSUE!!!!
+                source_positions = np.array(config.source_positions) * config.L_X * 2
             for x_pos in source_positions:
                 # define a slightly bigger region than the width for safety
                 half_w = 1.1 * config.SOURCE_WIDTH / 2.0

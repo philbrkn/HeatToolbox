@@ -43,8 +43,8 @@ class SimulationConfig:
         self.T_ISO = PETSc.ScalarType(0.0)
         self.Q_L = PETSc.ScalarType(80)
 
-        self.MEAN_FREE_PATH = 0.439e-6
-        self.KNUDSEN = self.config.get("knudsen", 1)
+        # self.MEAN_FREE_PATH = 0.439e-6
+        # self.KNUDSEN = self.config.get("knudsen", 1)
         self.solver_type = self.config.get("solver_type", "gke")
 
         # Volume fraction
@@ -59,7 +59,24 @@ class SimulationConfig:
         if self.solver_type == "fourier":
             self.LENGTH = 1
         elif self.solver_type == "gke":
-            self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN
+            # self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN
+            # self.LENGTH = 0.439e-6
+            self.LENGTH = 0.5e-6  # 0.5 microns or 500 nm
+            # self.LENGTH = 5e-3
+
+        # AT 300K
+        self.MEAN_FREE_PATH_SI = 0.439e-6
+        self.ELL_SI = PETSc.ScalarType(self.MEAN_FREE_PATH_SI / np.sqrt(5))  # should be 196 nm
+        self.ELL_DI = PETSc.ScalarType(600e-9)  # 600 nm @ 300 K
+        # self.ELL_DI = PETSc.ScalarType(1960e-9)
+        self.MEAN_FREE_PATH_DI = self.ELL_DI * np.sqrt(5)
+
+        self.KNUDSEN_SI = self.MEAN_FREE_PATH_SI / self.LENGTH
+        self.KNUDSEN_DI = self.MEAN_FREE_PATH_DI / self.LENGTH
+        self.KAPPA_SI = PETSc.ScalarType(141.0)
+        self.KAPPA_DI = PETSc.ScalarType(2000.0)  # Estimated value for diamond
+        # self.KAPPA_DI = PETSc.ScalarType(600.0)  # Estimated value for diamond
+
         self.L_X = 25 * self.LENGTH
         self.L_Y = 12.5 * self.LENGTH
         self.SOURCE_WIDTH = self.LENGTH
@@ -74,12 +91,6 @@ class SimulationConfig:
         # Mesh resolution
         res = self.config.get("res", 12.0)
         self.RESOLUTION = self.LENGTH / res if res > 0 else self.LENGTH / 12
-
-        # Material properties
-        self.ELL_SI = PETSc.ScalarType(self.MEAN_FREE_PATH / np.sqrt(5))
-        self.ELL_DI = PETSc.ScalarType(196e-8)
-        self.KAPPA_SI = PETSc.ScalarType(141.0)
-        self.KAPPA_DI = PETSc.ScalarType(600.0)
 
         # Sources
         self.sources = self.config.get("sources", [0.5, self.Q_L])
