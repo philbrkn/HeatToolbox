@@ -2,3 +2,5 @@
 **/*.pyc
 **/*.pyo
 logs/*
+html/*
+latex/*

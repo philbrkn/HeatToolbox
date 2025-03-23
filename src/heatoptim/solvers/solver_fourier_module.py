@@ -74,6 +74,9 @@ class FourierSolver:
         return F
 
     def solve_image(self, img_list):
+        # Reset temperature field T to zero to avoid accumulation from previous evaluations
+        self.T.x.array[:] = 0.0
+
         gamma_expr = img_list_to_gamma_expression(img_list, self.config)
         self.gamma.interpolate(gamma_expr)
 
@@ -91,7 +94,27 @@ class FourierSolver:
         temp_global = temp_local
         area = self.config.L_X * self.config.L_Y + self.config.SOURCE_WIDTH * self.config.SOURCE_HEIGHT
         avg_temp_global = temp_global / area
+
         return avg_temp_global
+
+    def get_std_dev(self):
+        T = self.T
+        # Compute the mean temperature
+        temp_form = fem.form(T * ufl.dx)
+        temp_local = fem.assemble_scalar(temp_form)
+        temp_global = temp_local
+        area = self.config.L_X * self.config.L_Y + self.config.SOURCE_WIDTH * self.config.SOURCE_HEIGHT
+        mean_temp = temp_global / area
+
+        # Compute the variance
+        variance_form = fem.form((T - mean_temp) ** 2 * ufl.dx)
+        variance_local = fem.assemble_scalar(variance_form)
+        variance_global = variance_local / area
+
+        # Standard deviation is the square root of the variance
+        std_dev = np.sqrt(variance_global)
+
+        return std_dev
 
     def solve_problem(self, residual, jacobian):
         # Create matrix and vector

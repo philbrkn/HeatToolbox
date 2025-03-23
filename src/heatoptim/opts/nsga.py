@@ -101,7 +101,8 @@ class NSGAProblem(Problem):
         # deserialization, you should do it outside of the pickling process or
         # add additional logic.
         return obj
-    
+
+
 class CustomOutput(MultiObjectiveOutput):
     # Redo the initialization to include the logger
     def __init__(self, logger=None):

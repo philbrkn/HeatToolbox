@@ -28,12 +28,14 @@ class PostProcessingModule:
             msh, V, T
         )
         _, _, _, global_gamma = self.gather_mesh_on_rank0(msh, V, gamma)
-        
-        # Calculate eff_cond once at the top-level here
-        eff_cond = self.calculate_eff_thermal_cond(q, T, msh)
-        eff_cond_CG, V_CG = self.project_to_CG_space(eff_cond, msh)
 
-        _, _, _, global_eff_cond = self.gather_mesh_on_rank0(msh, V_CG, eff_cond_CG)
+        if q is not None:
+            # Calculate eff_cond once at the top-level here
+            eff_cond = self.calculate_eff_thermal_cond(q, T, msh)
+            eff_cond_CG, V_CG = self.project_to_CG_space(eff_cond, msh)
+            _, _, _, global_eff_cond = self.gather_mesh_on_rank0(msh, V_CG, eff_cond_CG)
+        else:
+            global_eff_cond = None
 
         viz = self.config.visualize
         if self.rank == 0:
