@@ -11,7 +11,7 @@ from heatoptim.utilities.image_processing import z_to_img, generate_images
 import cma
 from mpi4py import MPI
 import os
-from heatoptim.postprocessing.post_processing_fenicsx import PostProcessingModule
+from heatoptim.postprocessing.post_processing_gke import PostProcessingGKE
 
 
 class CMAESModule:

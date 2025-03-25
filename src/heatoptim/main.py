@@ -14,7 +14,8 @@ from heatoptim.utilities.vae_module import load_vae_model, VAE, Flatten, UnFlatt
 from heatoptim.utilities.image_processing import z_to_img, generate_images
 from heatoptim.opts.cmaes import CMAESModule
 from heatoptim.opts.bayes import BayesianModule
-from heatoptim.postprocessing.post_processing_fenicsx import PostProcessingModule
+from heatoptim.postprocessing.post_processing_gke import PostProcessingGKE
+from heatoptim.postprocessing.post_processing_fourier import PostProcessingFourier
 from heatoptim.solvers.solver_gke_module import GKESolver
 from heatoptim.solvers.solver_fourier_module import FourierSolver
 from heatoptim.utilities.logging_module import LoggingModule
@@ -120,18 +121,21 @@ class SimulationController:
                 cma.plot(os.path.join(cma_log_dir, "outcma_"))
                 cma.s.figsave(os.path.join(cma_log_dir, 'convergence_plots.png'))
 
-                post_processor = PostProcessingModule(
-                    self.rank, self.config, logger=self.logger
-                )
- 
                 if self.config.solver_type == "gke":
+                    post_processor = PostProcessingGKE(
+                        self.rank, self.config, logger=self.logger
+                    )
                     q, T = solver.U.sub(0).collapse(), solver.U.sub(1).collapse()
                     V1, _ = solver.U.function_space.sub(1).collapse()
+                    post_processor.postprocess_results(q, T, V1, solver.msh, solver.gamma)
                 elif self.config.solver_type == "fourier":
+                    post_processor = PostProcessingFourier(
+                        self.rank, self.config, logger=self.logger
+                    )
                     q, T = None, solver.T
                     V1 = solver.V
+                    post_processor.postprocess_results(T, V1, solver.msh, solver.gamma)
 
-                post_processor.postprocess_results(q, T, V1, solver.msh, solver.gamma)
         else:
             # print the config dict:
             latent_vectors = self.get_latent_vectors()
@@ -149,18 +153,20 @@ class SimulationController:
                 print(f"Time taken to solve: {time2 - time1:.3f} seconds")
 
             # Check if visualize list is not empty
-            if self.config.visualize:
-                post_processor = PostProcessingModule(
+            if self.config.solver_type == "gke":
+                post_processor = PostProcessingGKE(
                     self.rank, self.config, logger=self.logger
                 )
-                if self.config.solver_type == "gke":
-                    q, T = solver.U.sub(0).collapse(), solver.U.sub(1).collapse()
-                    V1, _ = solver.U.function_space.sub(1).collapse()
-                elif self.config.solver_type == "fourier":
-                    q, T = None, solver.T
-                    V1 = solver.V
-
+                q, T = solver.U.sub(0).collapse(), solver.U.sub(1).collapse()
+                V1, _ = solver.U.function_space.sub(1).collapse()
                 post_processor.postprocess_results(q, T, V1, solver.msh, solver.gamma)
+            elif self.config.solver_type == "fourier":
+                post_processor = PostProcessingFourier(
+                    self.rank, self.config, logger=self.logger
+                )
+                q, T = None, solver.T
+                V1 = solver.V
+                post_processor.postprocess_results(T, V1, solver.msh, solver.gamma)
 
     def get_latent_vectors(self):
         # Handle latent vector based on the selected method

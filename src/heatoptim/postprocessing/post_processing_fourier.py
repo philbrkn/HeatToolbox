@@ -12,7 +12,7 @@ except ImportError:
     pv = None
 
 
-class PostProcessingModule:
+class PostProcessingFourier:
     def __init__(self, rank, config, logger=None):
         self.rank = rank
         self.config = config
@@ -23,25 +23,23 @@ class PostProcessingModule:
         if self.rank == 0 and self.logger:
             os.makedirs(os.path.join(self.logger.log_dir, "visualization"), exist_ok=True)
 
-    def postprocess_results(self, q, T, V, msh, gamma, fileadd=""):
-        global_top, global_geom, global_ct, global_vals = self.gather_mesh_on_rank0(
-            msh, V, T
-        )
+    def postprocess_results(self, T, V, msh, gamma, fileadd=""):
+        global_top, global_geom, global_ct, global_vals = self.gather_mesh_on_rank0(msh, V, T)
         _, _, _, global_gamma = self.gather_mesh_on_rank0(msh, V, gamma)
         
         # Print the knudsen numbers
         if self.rank == 0:
             print(f"For a length of {self.config.LENGTH} m:")
-            print(f"Knudsen number (silicon): {self.config.KNUDSEN_SI}")
-            print(f"Knudsen number (diamond): {self.config.KNUDSEN_DI}")
+            # print(f"Knudsen number (silicon): {self.config.KNUDSEN_SI}")
+            # print(f"Knudsen number (diamond): {self.config.KNUDSEN_DI}")
 
-        if q is not None:
-            # Calculate eff_cond once at the top-level here
-            eff_cond = self.calculate_eff_thermal_cond(q, T, msh)
-            eff_cond_CG, V_CG = self.project_to_CG_space(eff_cond, msh)
-            _, _, _, global_eff_cond = self.gather_mesh_on_rank0(msh, V_CG, eff_cond_CG)
-        else:
-            global_eff_cond = None
+        # if q is not None:
+        #     # Calculate eff_cond once at the top-level here
+        #     eff_cond = self.calculate_eff_thermal_cond(q, T, msh)
+        #     eff_cond_CG, V_CG = self.project_to_CG_space(eff_cond, msh)
+        #     _, _, _, global_eff_cond = self.gather_mesh_on_rank0(msh, V_CG, eff_cond_CG)
+        # else:
+        #     global_eff_cond = None
 
         viz = self.config.visualize
         if self.rank == 0:
@@ -65,50 +63,40 @@ class PostProcessingModule:
                     global_geom,
                     global_vals,
                     field_name=fileadd+"T",
-                    # clim=[0, 0.5],
+                    clim=[0, 0.5],
                 )
 
             # ADD THIS BLOCK TO VISUALIZE EFFECTIVE CONDUCTIVITY
-            if viz["effective_conductivity"] and global_eff_cond is not None:
-                self.plot_scalar_field(
-                    global_top, global_ct, global_geom, global_eff_cond,
-                    field_name="Effective Conductivity", clim=[0,150], show_edges=False,
-                )
+            # if viz["effective_conductivity"] and global_eff_cond is not None:
+            #     self.plot_scalar_field(
+            #         global_top, global_ct, global_geom, global_eff_cond,
+            #         field_name="Effective Conductivity", clim=[0,2500], show_edges=False,
+            #     )
 
         # Code for flux plotting (only runs when not in parallel)
         if msh.comm.size == 1:
-            if viz["flux"]:
-                self.plot_vector_field(q, msh)
+            # if viz["flux"]:
+            #     self.plot_vector_field(q, msh)
             if viz["profiles"]:
-                self.plot_profiles(q, T, msh)
+                self.plot_profiles(T, msh)
         else:
             if self.rank == 0:
                 print("Flux and profiles plotting is disabled when running in parallel.")
                 print("Please run the code in serial to enable flux and profiles plotting.")
 
-    def plot_profiles(self, q, T, msh):
-        q_x, q_y = q.split()  # extract components
-        curl_q = self.calculate_curl(q, msh, plot_curl=False)
-        eff_cond = self.calculate_eff_thermal_cond(q, T, msh)
+    def plot_profiles(self, T, msh):
         # GET TEMPERATURE and FLUX PROFILES #
         x_char = self.config.L_X if self.config.symmetry else self.config.L_X / 2
         # horizontal line:
         x_end = x_char
         y_val = self.config.L_Y - 4 * self.config.LENGTH / 8
         (x_vals, T_x) = self.get_temperature_line(T, msh, "horizontal", start=0, end=x_end, value=y_val)
-        (_, q_x_vals_horiz) = self.get_temperature_line(q_x, msh, "horizontal", start=0, end=x_end, value=y_val)
-        (_, curl_vals_horiz) = self.get_temperature_line(curl_q, msh, "horizontal", start=0, end=x_end, value=y_val)
 
         # vertical line:
         y_end = self.config.L_Y + self.config.SOURCE_HEIGHT
         x_val = x_char - self.config.LENGTH / 8
         (y_vals, T_y) = self.get_temperature_line(T, msh, "vertical", start=0, end=y_end, value=x_val)
-        (_, q_y_vals_vert) = self.get_temperature_line(q_y, msh, "vertical", start=0, end=y_end, value=x_val)
-        (_, curl_vals_vert) = self.get_temperature_line(curl_q, msh, "vertical", start=0, end=y_end, value=x_val)
-        (_, eff_cond_vals) = self.get_temperature_line(eff_cond, msh, "vertical", start=0, end=y_end, value=x_val)
         # normalize x and y vals by config.ell_si
-        x_vals = (x_vals[-1] - x_vals) / self.config.ELL_SI
-        y_vals = (y_vals[-1] - y_vals) / self.config.ELL_SI
 
         # PLOT TEMP PROFILES #
         fig, ax = plt.subplots(figsize=(10, 5))
@@ -124,42 +112,6 @@ class PostProcessingModule:
                 self.logger.save_image(fig, "temperature_profiles.png")
             else:
                 plt.savefig("temperature_profiles.png")
-            plt.close(fig)
-        else:
-            plt.show()
-
-        # PLOT FLUX PROFILES #
-        q_x_vals_horiz *= -1  # flip the sign of the flux
-        # 2 subplot:
-        fig, axs = plt.subplots(1, 2, figsize=(10, 4))
-        axs[0].plot(y_vals, q_y_vals_vert, color='blue', label="Vert flux - Vertical Line")
-        axs[1].plot(x_vals, q_x_vals_horiz, color='red', label="Horiz flux - Horizontal Line")
-        # make axis titles
-        axs[0].set_xlabel("Position (normalized)")
-        axs[0].set_ylabel("Heat flux vertical [W/m^2]")
-        axs[1].set_xlabel("Position (normalized)")
-        axs[1].set_ylabel("Heat flux horizontal [W/m^2]")
-        if self.config.plot_mode == "screenshot":
-            if self.logger:
-                self.logger.save_image(fig, "flux_profiles.png")
-            else:
-                plt.savefig("flux_profiles.png")
-            plt.close(fig)
-        else:
-            plt.show()
-
-        # PLOT CURL AND EFF CONDUCTIVITY PROFILES #
-        fig, axs = plt.subplots(1, 2, figsize=(10, 4))
-        curl_vals_horiz *= -1  # flip the sign of the curl
-        curl_vals_vert *= -1  # flip the sign of the curl
-        axs[0].plot(x_vals, curl_vals_horiz, color='red', label="Curl(q) - Horizontal Line")
-        axs[0].plot(y_vals, curl_vals_vert, color='blue', label="Curl(q) - Vertical Line")
-        axs[1].plot(y_vals, eff_cond_vals, color='blue', label="Effective conductivity - Vertical Line")
-        if self.config.plot_mode == "screenshot":
-            if self.logger:
-                self.logger.save_image(fig, "curl_and_cond_profiles.png")
-            else:
-                plt.savefig("curl_and_cond_profiles.png")
             plt.close(fig)
         else:
             plt.show()
@@ -285,7 +237,7 @@ class PostProcessingModule:
         plotter = pv.Plotter(off_screen=self.is_off_screen)
         plotter.add_text("magnitude", font_size=12, color="black")
         # plotter.add_mesh(V_grid.copy(), show_edges=False)
-        # plotter.add_mesh(V_grid.copy(), show_edges=False, clim=[0,10000])
+        plotter.add_mesh(V_grid.copy(), show_edges=False, clim=[0,3000])
         
         plotter.view_xy()
         plotter.link_views()

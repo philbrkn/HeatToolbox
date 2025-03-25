@@ -10,7 +10,7 @@ import dolfinx.io
 # for plotting fields:
 from heatoptim.utilities.vae_module import load_vae_model
 from heatoptim.utilities.image_processing import generate_images
-from heatoptim.postprocessing.post_processing_fenicsx import PostProcessingModule
+from heatoptim.postprocessing.post_processing_gke import PostProcessingGKE
 from heatoptim.solvers.mesh_generator import MeshGenerator
 from heatoptim.config.sim_config import SimulationConfig
 from heatoptim.solvers.solver_gke_module import GKESolver
@@ -226,7 +226,7 @@ class PymooPostprocess:
             solver = self.run_fenics_solver(img_list=img_list)
 
             # Post-process results
-            post_processor = PostProcessingModule(self.rank, self.config)
+            post_processor = PostProcessingGKE(self.rank, self.config)
             q, T = solver.U.sub(0).collapse(), solver.U.sub(1).collapse()
             V1, _ = solver.U.function_space.sub(1).collapse()
 

@@ -57,12 +57,12 @@ class SimulationConfig:
         # Geometric properties
         # if solver type is fourier, set length manually to 1
         if self.solver_type == "fourier":
-            self.LENGTH = 1
+            self.LENGTH = 5e-3
         elif self.solver_type == "gke":
             # self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN
             # self.LENGTH = 0.439e-6
-            self.LENGTH = 0.5e-6  # 0.5 microns or 500 nm
-            # self.LENGTH = 5e-3
+            # self.LENGTH = 0.5e-6  # 0.5 microns or 500 nm
+            self.LENGTH = 5e-3
 
         # AT 300K
         self.MEAN_FREE_PATH_SI = 0.439e-6

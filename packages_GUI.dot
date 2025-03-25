@@ -1,0 +1,20 @@
+digraph "packages_GUI" {
+rankdir=BT
+charset="utf-8"
+"heatoptim.gui" [color="black", label=<heatoptim.gui>, shape="box", style="solid"];
+"heatoptim.gui.hpc_frame" [color="black", label=<heatoptim.gui.hpc_frame>, shape="box", style="solid"];
+"heatoptim.gui.main_window" [color="black", label=<heatoptim.gui.main_window>, shape="box", style="solid"];
+"heatoptim.gui.material_frame" [color="black", label=<heatoptim.gui.material_frame>, shape="box", style="solid"];
+"heatoptim.gui.optimization_frame" [color="black", label=<heatoptim.gui.optimization_frame>, shape="box", style="solid"];
+"heatoptim.gui.solving_frame" [color="black", label=<heatoptim.gui.solving_frame>, shape="box", style="solid"];
+"heatoptim.gui.sources_frame" [color="black", label=<heatoptim.gui.sources_frame>, shape="box", style="solid"];
+"heatoptim.gui.utils_config" [color="black", label=<heatoptim.gui.utils_config>, shape="box", style="solid"];
+"heatoptim.gui.visualization_frame" [color="black", label=<heatoptim.gui.visualization_frame>, shape="box", style="solid"];
+"heatoptim.gui.main_window" -> "heatoptim.gui.hpc_frame" [arrowhead="open", arrowtail="none"];
+"heatoptim.gui.main_window" -> "heatoptim.gui.material_frame" [arrowhead="open", arrowtail="none"];
+"heatoptim.gui.main_window" -> "heatoptim.gui.optimization_frame" [arrowhead="open", arrowtail="none"];
+"heatoptim.gui.main_window" -> "heatoptim.gui.solving_frame" [arrowhead="open", arrowtail="none"];
+"heatoptim.gui.main_window" -> "heatoptim.gui.sources_frame" [arrowhead="open", arrowtail="none"];
+"heatoptim.gui.main_window" -> "heatoptim.gui.utils_config" [arrowhead="open", arrowtail="none"];
+"heatoptim.gui.main_window" -> "heatoptim.gui.visualization_frame" [arrowhead="open", arrowtail="none"];
+}

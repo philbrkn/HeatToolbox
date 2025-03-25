@@ -3,8 +3,8 @@ import numpy as np
 # from mpi4py import MPI
 import torch
 import torch.nn.functional as F
-from scipy.ndimage import zoom, label, generate_binary_structure, binary_dilation, binary_erosion
-# from skimage.morphology import binary_dilation, binary_erosion, remove_small_objects
+from scipy.ndimage import (zoom, label, generate_binary_structure,
+                           binary_dilation, binary_erosion)
 
 
 def remove_small_specs(grid, min_size=3000):

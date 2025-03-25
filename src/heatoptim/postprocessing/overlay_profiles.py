@@ -18,7 +18,7 @@ from heatoptim.solvers.mesh_generator import MeshGenerator
 from heatoptim.solvers.solver_gke_module import GKESolver
 from heatoptim.utilities.vae_module import load_vae_model
 from heatoptim.utilities.image_processing import generate_images
-from heatoptim.postprocessing.post_processing_fenicsx import PostProcessingModule
+from heatoptim.postprocessing.post_processing_gke import PostProcessingGKE
 from heatoptim.utilities.log_utils import read_last_latent_vector
 import dolfinx.io
 
@@ -78,7 +78,7 @@ def get_temperature_profile_from_simulation(config):
         x_end = x_char
         y_val = config.L_Y - (4 * config.LENGTH / 8)
         # Use a temporary PostProcessingModule instance to extract the profile
-        ppm = PostProcessingModule(rank, config)
+        ppm = PostProcessingGKE(rank, config)
         (x_vals, T_x) = ppm.get_temperature_line(T, msh, "horizontal", start=0, end=x_end, value=y_val)
         (_, q_x_vals_horiz) = ppm.get_temperature_line(q_x, msh, "horizontal", start=0, end=x_end, value=y_val)
 
