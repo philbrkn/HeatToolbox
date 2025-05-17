@@ -284,8 +284,8 @@ class PostProcessingGKE:
 
         plotter = pv.Plotter(off_screen=self.is_off_screen)
         plotter.add_text("magnitude", font_size=12, color="black")
-        # plotter.add_mesh(V_grid.copy(), show_edges=False)
-        plotter.add_mesh(V_grid.copy(), show_edges=False, clim=[0,3000])
+        plotter.add_mesh(V_grid.copy(), show_edges=False)
+        # plotter.add_mesh(V_grid.copy(), show_edges=False, clim=[0,3000])
         
         plotter.view_xy()
         plotter.link_views()

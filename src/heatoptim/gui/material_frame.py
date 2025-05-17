@@ -24,8 +24,8 @@ class MaterialFrame(ctk.CTkFrame):
 
         # write knudsen number
         row += 1
-        ctk.CTkLabel(self, text="Knudsen Number").grid(row=row, column=0, sticky="w")
-        ctk.CTkEntry(self, textvariable=self.options["knudsen"], width=100).grid(
+        ctk.CTkLabel(self, text="Charisteristic Length").grid(row=row, column=0, sticky="w")
+        ctk.CTkEntry(self, textvariable=self.options["length"], width=100).grid(
             row=row, column=1
         )
 
@@ -120,13 +120,13 @@ class MaterialFrame(ctk.CTkFrame):
 
         # Update defaults based on solver type
         if solver_type == "gke":
-            self.options["knudsen"].set(1.0)
+            self.options["length"].set(0.001)
             # Additional GKE-specific defaults
         elif solver_type == "fourier":
-            self.options["knudsen"].set(None)  # Not used for Fourier
+            self.options["length"].set(1.0)  # Not used for Fourier
             # Fourier-specific defaults
         elif solver_type == "joule":
-            self.options["knudsen"].set(None)  # Not applicable
+            self.options["length"].set(None)  # Not applicable
             # Add Joule-specific defaults here
 
         # Trigger updates for dependent widgets

@@ -42,7 +42,7 @@ def initialize_options():
         "hpc_enabled": tk.BooleanVar(value=False),
         "load_cmaes_config": tk.BooleanVar(value=False),
         # "timeout": tk.StringVar(),
-        "knudsen": tk.DoubleVar(value=1),
+        "length": tk.DoubleVar(value=0.5e-6),
         "solver_type": tk.StringVar(value="gke"),
         "maxtime": tk.IntVar(value=3600),  # Max optimization time for NSGA2
     }
@@ -83,7 +83,7 @@ def get_config_dict(options):
         "n_iter": options["n_iter"].get(),  # New parameter
         "hpc_enabled": options["hpc_enabled"].get(),
         "load_cmaes_config": options["load_cmaes_config"].get(),
-        "knudsen": options["knudsen"].get(),
+        "length": options["length"].get(),
         "solver_type": options["solver_type"].get(),
         "maxtime":  options["maxtime"].get(),  # Max optimization time for NSGA2
     }

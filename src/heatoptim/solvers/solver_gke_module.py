@@ -60,11 +60,17 @@ class GKESolver:
         q, T = ufl.split(self.U)
         n = ufl.FacetNormal(self.msh)
 
-        def ramp(gamma, a_min, a_max, qa=200):
-            return a_min + (a_max - a_min) * gamma / (1 + qa * (1 - gamma))
+        # def ramp(gamma, a_min, a_max, qa=200):
+        #     return a_min + (a_max - a_min) * gamma / (1 + qa * (1 - gamma))
 
-        ramp_kappa = ramp(self.gamma, self.config.KAPPA_SI, self.config.KAPPA_DI)
-        ramp_ell = ramp(self.gamma, self.config.ELL_SI, self.config.ELL_DI)
+        # ramp_kappa = ramp(self.gamma, self.config.KAPPA_SI, self.config.KAPPA_DI)
+        # ramp_ell = ramp(self.gamma, self.config.ELL_SI, self.config.ELL_DI)
+        ramp_kappa = (1 - self.gamma)*self.config.KAPPA_SI \
+            + self.gamma*self.config.KAPPA_DI
+        ramp_ell = (1 - self.gamma)*self.config.ELL_SI   \
+            + self.gamma*self.config.ELL_DI
+        
+        
         # ramp_kappa = ramp(self.gamma, self.config.KAPPA_DI, self.config.KAPPA_SI)
         # ramp_ell = ramp(self.gamma, self.config.ELL_DI, self.config.ELL_SI)
 
@@ -118,6 +124,8 @@ class GKESolver:
         gamma_expr = img_list_to_gamma_expression(img_list, self.config)
         # gamma_expr = img_to_gamma_expression(img_list[0], self.config)
         self.gamma.interpolate(gamma_expr)
+        # new:
+        self.gamma.x.array[:] = (self.gamma.x.array > 0.5)  # hard binarise
 
         # Define variational forms
         F = self.define_variational_form()

@@ -43,8 +43,6 @@ class SimulationConfig:
         self.T_ISO = PETSc.ScalarType(0.0)
         self.Q_L = PETSc.ScalarType(80)
 
-        # self.MEAN_FREE_PATH = 0.439e-6
-        # self.KNUDSEN = self.config.get("knudsen", 1)
         self.solver_type = self.config.get("solver_type", "gke")
 
         # Volume fraction
@@ -61,9 +59,10 @@ class SimulationConfig:
         elif self.solver_type == "gke":
             # self.LENGTH = self.MEAN_FREE_PATH / self.KNUDSEN
             # self.LENGTH = 0.439e-6
-            # self.LENGTH = 0.5e-6  # 0.5 microns or 500 nm
-            self.LENGTH = 5e-3
+            self.LENGTH = 0.5e-6  # 0.5 microns or 500 nm
+            # self.LENGTH = 5e-3
             # self.LENGTH = 1
+        self.LENGTH = self.config.get("length", self.LENGTH)  # Default to 0.5 microns if not set
 
         # AT 300K
         self.MEAN_FREE_PATH_SI = 0.439e-6

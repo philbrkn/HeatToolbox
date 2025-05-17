@@ -56,10 +56,12 @@ class FourierSolver:
         v = ufl.TestFunction(self.V)
         # n = ufl.FacetNormal(self.msh)
 
-        def ramp(gamma, a_min, a_max, qa=200):
-            return a_min + (a_max - a_min) * gamma / (1 + qa * (1 - gamma))
+        # def ramp(gamma, a_min, a_max, qa=200):
+        #     return a_min + (a_max - a_min) * gamma / (1 + qa * (1 - gamma))
 
-        ramp_kappa = ramp(self.gamma, self.config.KAPPA_SI, self.config.KAPPA_DI)
+        # ramp_kappa = ramp(self.gamma, self.config.KAPPA_SI, self.config.KAPPA_DI)
+        ramp_kappa = (1 - self.gamma)*self.config.KAPPA_SI \
+            + self.gamma*self.config.KAPPA_DI
 
         # Variational form for Fourier's heat conduction
         F = ufl.inner(ramp_kappa * ufl.grad(T), ufl.grad(v)) * ufl.dx
@@ -79,6 +81,8 @@ class FourierSolver:
 
         gamma_expr = img_list_to_gamma_expression(img_list, self.config)
         self.gamma.interpolate(gamma_expr)
+        # new:
+        self.gamma.x.array[:] = (self.gamma.x.array > 0.5)  # hard binarise
 
         # Define variational forms
         F = self.define_variational_form()

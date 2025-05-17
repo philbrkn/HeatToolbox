@@ -224,6 +224,8 @@ def img_list_to_gamma_expression(img_list, config):
             # at each x_pos ± source_width/2 (with clamp).
             if config.symmetry:  # ISSUE!!!!
                 source_positions = np.array(config.source_positions) * config.L_X * 2
+            else:
+                source_positions = np.array(config.source_positions) * config.L_X
             for x_pos in source_positions:
                 # define a slightly bigger region than the width for safety
                 half_w = 1.1 * config.SOURCE_WIDTH / 2.0
