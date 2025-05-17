@@ -97,6 +97,8 @@ class PostProcessingFourier:
         x_val = x_char - self.config.LENGTH / 8
         (y_vals, T_y) = self.get_temperature_line(T, msh, "vertical", start=0, end=y_end, value=x_val)
         # normalize x and y vals by config.ell_si
+        x_vals = (x_vals[-1] - x_vals) / self.config.ELL_SI
+        y_vals = (y_vals[-1] - y_vals) / self.config.ELL_SI
 
         # PLOT TEMP PROFILES #
         fig, ax = plt.subplots(figsize=(10, 5))

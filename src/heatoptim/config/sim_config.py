@@ -63,6 +63,7 @@ class SimulationConfig:
             # self.LENGTH = 0.439e-6
             # self.LENGTH = 0.5e-6  # 0.5 microns or 500 nm
             self.LENGTH = 5e-3
+            # self.LENGTH = 1
 
         # AT 300K
         self.MEAN_FREE_PATH_SI = 0.439e-6

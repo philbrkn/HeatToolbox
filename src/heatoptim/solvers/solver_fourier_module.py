@@ -54,7 +54,7 @@ class FourierSolver:
     def define_variational_form(self):
         T = self.T  # Current temperature solution
         v = ufl.TestFunction(self.V)
-        n = ufl.FacetNormal(self.msh)
+        # n = ufl.FacetNormal(self.msh)
 
         def ramp(gamma, a_min, a_max, qa=200):
             return a_min + (a_max - a_min) * gamma / (1 + qa * (1 - gamma))
@@ -62,7 +62,7 @@ class FourierSolver:
         ramp_kappa = ramp(self.gamma, self.config.KAPPA_SI, self.config.KAPPA_DI)
 
         # Variational form for Fourier's heat conduction
-        F = ramp_kappa * ufl.inner(ufl.grad(T), ufl.grad(v)) * ufl.dx
+        F = ufl.inner(ramp_kappa * ufl.grad(T), ufl.grad(v)) * ufl.dx
 
         # Include Neumann boundary conditions (source terms) on top boundaries
         source_term = sum(
@@ -124,7 +124,7 @@ class FourierSolver:
         solver = PETSc.KSP().create(self.T.function_space.mesh.comm)
         solver.setOperators(A)
         solver.setType("cg")  # Conjugate Gradient for symmetric positive-definite
-        solver.setTolerances(rtol=1e-6, atol=1e-13, max_it=1000)
+        solver.setTolerances(rtol=1e-3, atol=1e-3, max_it=1000)
         pc = solver.getPC()
         pc.setType("ilu")  # Incomplete LU factorization
 
