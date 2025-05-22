@@ -1,0 +1,67 @@
+\doxysection{heatoptim.\+postprocessing.\+overlay\+\_\+profiles Namespace Reference}
+\hypertarget{namespaceheatoptim_1_1postprocessing_1_1overlay__profiles}{}\label{namespaceheatoptim_1_1postprocessing_1_1overlay__profiles}\index{heatoptim.postprocessing.overlay\_profiles@{heatoptim.postprocessing.overlay\_profiles}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespaceheatoptim_1_1postprocessing_1_1overlay__profiles_a862c81c3b2cd1f0141dd4854c5c4cdb8}{get\+\_\+temperature\+\_\+profile\+\_\+from\+\_\+simulation}} (config)
+\item 
+\mbox{\hyperlink{namespaceheatoptim_1_1postprocessing_1_1overlay__profiles_a8c6f6c2c4865c850c9f9f30e81cc5576}{overlay\+\_\+temperature\+\_\+profiles}} (base\+\_\+dir)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{namespaceheatoptim_1_1postprocessing_1_1overlay__profiles_a7b980ea04b40bba073f9cd04c7bd58d9}\label{namespaceheatoptim_1_1postprocessing_1_1overlay__profiles_a7b980ea04b40bba073f9cd04c7bd58d9} 
+{\bfseries base\+\_\+directory} = os.\+path.\+join("{}logs"{}, "{}\+\_\+\+ONE\+\_\+\+SOURCE\+\_\+\+CMAES"{})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}overlay_profiles.py
+
+This script iterates over all subfolders inside a given base directory (e.g. "logs/_ONE_SOURCE_CMAES"),
+loads each subfolder’s config.json, forces load_cma_result, and re‑runs the heat simulation to extract a
+temperature profile. Finally, it overlays the extracted profiles into one plot.
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceheatoptim_1_1postprocessing_1_1overlay__profiles_a862c81c3b2cd1f0141dd4854c5c4cdb8}\index{heatoptim.postprocessing.overlay\_profiles@{heatoptim.postprocessing.overlay\_profiles}!get\_temperature\_profile\_from\_simulation@{get\_temperature\_profile\_from\_simulation}}
+\index{get\_temperature\_profile\_from\_simulation@{get\_temperature\_profile\_from\_simulation}!heatoptim.postprocessing.overlay\_profiles@{heatoptim.postprocessing.overlay\_profiles}}
+\doxysubsubsection{\texorpdfstring{get\_temperature\_profile\_from\_simulation()}{get\_temperature\_profile\_from\_simulation()}}
+{\footnotesize\ttfamily \label{namespaceheatoptim_1_1postprocessing_1_1overlay__profiles_a862c81c3b2cd1f0141dd4854c5c4cdb8} 
+heatoptim.\+postprocessing.\+overlay\+\_\+profiles.\+get\+\_\+temperature\+\_\+profile\+\_\+from\+\_\+simulation (\begin{DoxyParamCaption}\item[{}]{config}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run a single simulation (using the load_cma_result branch) and return
+the horizontal temperature profile.
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespaceheatoptim_1_1postprocessing_1_1overlay__profiles_a862c81c3b2cd1f0141dd4854c5c4cdb8_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespaceheatoptim_1_1postprocessing_1_1overlay__profiles_a8c6f6c2c4865c850c9f9f30e81cc5576}\index{heatoptim.postprocessing.overlay\_profiles@{heatoptim.postprocessing.overlay\_profiles}!overlay\_temperature\_profiles@{overlay\_temperature\_profiles}}
+\index{overlay\_temperature\_profiles@{overlay\_temperature\_profiles}!heatoptim.postprocessing.overlay\_profiles@{heatoptim.postprocessing.overlay\_profiles}}
+\doxysubsubsection{\texorpdfstring{overlay\_temperature\_profiles()}{overlay\_temperature\_profiles()}}
+{\footnotesize\ttfamily \label{namespaceheatoptim_1_1postprocessing_1_1overlay__profiles_a8c6f6c2c4865c850c9f9f30e81cc5576} 
+heatoptim.\+postprocessing.\+overlay\+\_\+profiles.\+overlay\+\_\+temperature\+\_\+profiles (\begin{DoxyParamCaption}\item[{}]{base\+\_\+dir}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}For each subfolder (each simulation run) in base_dir, load its config,
+force load_cma_result, run the simulation, and extract the temperature profile.
+Then overlay all the profiles into one plot.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespaceheatoptim_1_1postprocessing_1_1overlay__profiles_a8c6f6c2c4865c850c9f9f30e81cc5576_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=242pt]{namespaceheatoptim_1_1postprocessing_1_1overlay__profiles_a8c6f6c2c4865c850c9f9f30e81cc5576_icgraph}
+\end{center}
+\end{figure}

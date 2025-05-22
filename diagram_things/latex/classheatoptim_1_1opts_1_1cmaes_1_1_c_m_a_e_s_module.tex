@@ -1,0 +1,159 @@
+\doxysection{heatoptim.\+opts.\+cmaes.\+CMAESModule Class Reference}
+\hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module}{}\label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module}\index{heatoptim.opts.cmaes.CMAESModule@{heatoptim.opts.cmaes.CMAESModule}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a8a10108137245bbaeae30017f8eca6fa}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, solver, model, device, rank, config, logger=None)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a96d7c1f2cb2f9961bfc17196f5935ab3}{evaluate\+\_\+candidate}} (self, latent\+\_\+vectors)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a8f0ca956e67f7736fd294d4892e3201a}{optimize}} (self, n\+\_\+iter=100)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a6b14aa98bfd8a538aeced0444ae67006}{save\+\_\+cma\+\_\+plots}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a43c04333f909b754d403f7dd78b5419f}\label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a43c04333f909b754d403f7dd78b5419f} 
+{\bfseries solver} = solver
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_ab8476ce6281f1a6db49708385103197e}\label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_ab8476ce6281f1a6db49708385103197e} 
+{\bfseries model} = model
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a7b0a91c53c83f9b1b63647a268ea2672}\label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a7b0a91c53c83f9b1b63647a268ea2672} 
+{\bfseries device} = device
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a535de8f8ad6ec1a224abb335ac05ea74}\label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a535de8f8ad6ec1a224abb335ac05ea74} 
+{\bfseries config} = config
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_af75c8136b3da1295afa96fbb81362ff4}\label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_af75c8136b3da1295afa96fbb81362ff4} 
+{\bfseries logger} = logger
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_af1a8f866b09598acaabeff3090f094ff}\label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_af1a8f866b09598acaabeff3090f094ff} 
+int {\bfseries rank} = rank
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a027dba3967fb6ddf4023a03a4414ca74}\label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a027dba3967fb6ddf4023a03a4414ca74} 
+{\bfseries comm} = MPI.\+COMM\+\_\+\+WORLD
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_acfd033c1fd7503779e7c6701dd40a2f9}\label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_acfd033c1fd7503779e7c6701dd40a2f9} 
+{\bfseries size} = self.\+comm.\+Get\+\_\+size()
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a43aa2ffcf045dd250978afa627fb0310}\label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a43aa2ffcf045dd250978afa627fb0310} 
+{\bfseries N\+\_\+sources} = len(config.\+source\+\_\+positions)
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a1c95446463b4a198a22ba31d0d21f49f}\label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a1c95446463b4a198a22ba31d0d21f49f} 
+{\bfseries z\+\_\+dim} = config.\+latent\+\_\+size
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_afd06c68b14a9f495805e89650b6e2dd2}\label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_afd06c68b14a9f495805e89650b6e2dd2} 
+{\bfseries init\+\_\+z} = np.\+zeros(self.\+z\+\_\+dim \texorpdfstring{$\ast$}{*} self.\+N\+\_\+sources)
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a4d376f028fee55769503fd3e03cb6f0c}\label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a4d376f028fee55769503fd3e03cb6f0c} 
+float {\bfseries sigma0} = 0.\+5
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_ac61c0dc0aafdc377b4cece12226bfd74}\label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_ac61c0dc0aafdc377b4cece12226bfd74} 
+str {\bfseries cma\+\_\+log\+\_\+dir} = os.\+path.\+join(self.\+logger.\+log\+\_\+dir, "{}cma\+\_\+logs"{}) if self.\+logger else "{}cma\+\_\+logs"{}
+\item 
+tuple \mbox{\hyperlink{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a10263f263e9a9495646bcde9f30f85ac}{timeout}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a8a10108137245bbaeae30017f8eca6fa}\index{heatoptim.opts.cmaes.CMAESModule@{heatoptim.opts.cmaes.CMAESModule}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!heatoptim.opts.cmaes.CMAESModule@{heatoptim.opts.cmaes.CMAESModule}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a8a10108137245bbaeae30017f8eca6fa} 
+heatoptim.\+opts.\+cmaes.\+CMAESModule.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{solver}{, }\item[{}]{model}{, }\item[{}]{device}{, }\item[{}]{rank}{, }\item[{}]{config}{, }\item[{}]{logger}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Initialize the CMAESModule.
+
+Parameters:
+- solver: An instance of your solver class that can evaluate a solution.
+- model: The VAE model used for decoding latent vectors to images.
+- device: The device (CPU or GPU) to run computations on.
+- config: The simulation configuration containing settings and parameters.
+- logger: Optional logger instance for logging optimization progress.
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a96d7c1f2cb2f9961bfc17196f5935ab3}\index{heatoptim.opts.cmaes.CMAESModule@{heatoptim.opts.cmaes.CMAESModule}!evaluate\_candidate@{evaluate\_candidate}}
+\index{evaluate\_candidate@{evaluate\_candidate}!heatoptim.opts.cmaes.CMAESModule@{heatoptim.opts.cmaes.CMAESModule}}
+\doxysubsubsection{\texorpdfstring{evaluate\_candidate()}{evaluate\_candidate()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a96d7c1f2cb2f9961bfc17196f5935ab3} 
+heatoptim.\+opts.\+cmaes.\+CMAESModule.\+evaluate\+\_\+candidate (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{latent\+\_\+vectors}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Evaluate a candidate solution.
+
+Parameters:
+- z: The latent vector representing the candidate solution.
+
+Returns:
+- fitness: The fitness value of the candidate (e.g., average temperature).
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a96d7c1f2cb2f9961bfc17196f5935ab3_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a8f0ca956e67f7736fd294d4892e3201a}\index{heatoptim.opts.cmaes.CMAESModule@{heatoptim.opts.cmaes.CMAESModule}!optimize@{optimize}}
+\index{optimize@{optimize}!heatoptim.opts.cmaes.CMAESModule@{heatoptim.opts.cmaes.CMAESModule}}
+\doxysubsubsection{\texorpdfstring{optimize()}{optimize()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a8f0ca956e67f7736fd294d4892e3201a} 
+heatoptim.\+opts.\+cmaes.\+CMAESModule.\+optimize (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{n\+\_\+iter}{ = {\ttfamily 100}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Run the CMA-ES optimization.
+
+Parameters:
+- n_iter: Number of iterations to run the optimization.
+
+Returns:
+- best_z: The best latent vector found during optimization.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a8f0ca956e67f7736fd294d4892e3201a_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a6b14aa98bfd8a538aeced0444ae67006}\index{heatoptim.opts.cmaes.CMAESModule@{heatoptim.opts.cmaes.CMAESModule}!save\_cma\_plots@{save\_cma\_plots}}
+\index{save\_cma\_plots@{save\_cma\_plots}!heatoptim.opts.cmaes.CMAESModule@{heatoptim.opts.cmaes.CMAESModule}}
+\doxysubsubsection{\texorpdfstring{save\_cma\_plots()}{save\_cma\_plots()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a6b14aa98bfd8a538aeced0444ae67006} 
+heatoptim.\+opts.\+cmaes.\+CMAESModule.\+save\+\_\+cma\+\_\+plots (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Generate and save plots from the CMA-ES optimization.
+
+Parameters:
+- es: The CMAEvolutionStrategy instance.
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a6b14aa98bfd8a538aeced0444ae67006_icgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a10263f263e9a9495646bcde9f30f85ac}\index{heatoptim.opts.cmaes.CMAESModule@{heatoptim.opts.cmaes.CMAESModule}!timeout@{timeout}}
+\index{timeout@{timeout}!heatoptim.opts.cmaes.CMAESModule@{heatoptim.opts.cmaes.CMAESModule}}
+\doxysubsubsection{\texorpdfstring{timeout}{timeout}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1opts_1_1cmaes_1_1_c_m_a_e_s_module_a10263f263e9a9495646bcde9f30f85ac} 
+tuple heatoptim.\+opts.\+cmaes.\+CMAESModule.\+timeout}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ (}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ timeout\_parts[0]*3600\ +\ timeout\_parts[1]\ *\ 60\ +\ timeout\_parts[2]}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ )}
+
+\end{DoxyCode}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/heatoptim/opts/cmaes.\+py\end{DoxyCompactItemize}

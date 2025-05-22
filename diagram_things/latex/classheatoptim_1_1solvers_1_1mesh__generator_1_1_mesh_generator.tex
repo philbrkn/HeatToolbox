@@ -1,0 +1,41 @@
+\doxysection{heatoptim.\+solvers.\+mesh\+\_\+generator.\+Mesh\+Generator Class Reference}
+\hypertarget{classheatoptim_1_1solvers_1_1mesh__generator_1_1_mesh_generator}{}\label{classheatoptim_1_1solvers_1_1mesh__generator_1_1_mesh_generator}\index{heatoptim.solvers.mesh\_generator.MeshGenerator@{heatoptim.solvers.mesh\_generator.MeshGenerator}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1mesh__generator_1_1_mesh_generator_ae6db9a075b6c8132accf198d2808ff66}\label{classheatoptim_1_1solvers_1_1mesh__generator_1_1_mesh_generator_ae6db9a075b6c8132accf198d2808ff66} 
+{\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self, config)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1mesh__generator_1_1_mesh_generator_a70c477581da6beac51b868ded8a69d3b}\label{classheatoptim_1_1solvers_1_1mesh__generator_1_1_mesh_generator_a70c477581da6beac51b868ded8a69d3b} 
+{\bfseries create\+\_\+mesh} (self)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1solvers_1_1mesh__generator_1_1_mesh_generator_ac73681a48e7ca8d6d1a501aebfadd9dc}{sym\+\_\+create\+\_\+mesh}} (self)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1mesh__generator_1_1_mesh_generator_a84c3dd7185ff321f52382505c808833e}\label{classheatoptim_1_1solvers_1_1mesh__generator_1_1_mesh_generator_a84c3dd7185ff321f52382505c808833e} 
+{\bfseries old\+\_\+sym\+\_\+create\+\_\+mesh} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1mesh__generator_1_1_mesh_generator_a8a3b2e25f28cd1149ecd45066dabb00b}\label{classheatoptim_1_1solvers_1_1mesh__generator_1_1_mesh_generator_a8a3b2e25f28cd1149ecd45066dabb00b} 
+{\bfseries config} = config
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classheatoptim_1_1solvers_1_1mesh__generator_1_1_mesh_generator_ac73681a48e7ca8d6d1a501aebfadd9dc}\index{heatoptim.solvers.mesh\_generator.MeshGenerator@{heatoptim.solvers.mesh\_generator.MeshGenerator}!sym\_create\_mesh@{sym\_create\_mesh}}
+\index{sym\_create\_mesh@{sym\_create\_mesh}!heatoptim.solvers.mesh\_generator.MeshGenerator@{heatoptim.solvers.mesh\_generator.MeshGenerator}}
+\doxysubsubsection{\texorpdfstring{sym\_create\_mesh()}{sym\_create\_mesh()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1solvers_1_1mesh__generator_1_1_mesh_generator_ac73681a48e7ca8d6d1a501aebfadd9dc} 
+heatoptim.\+solvers.\+mesh\+\_\+generator.\+Mesh\+Generator.\+sym\+\_\+create\+\_\+mesh (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Symmetric version: 
+- The right boundary (x = L_X) is flagged as 'Symmetry'.
+    This boundary is set as L_X / 2 in sim_config.py
+- We create a single source 'extrusion' region at the top-right corner.
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/heatoptim/solvers/mesh\+\_\+generator.\+py\end{DoxyCompactItemize}

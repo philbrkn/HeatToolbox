@@ -1,0 +1,61 @@
+\doxysection{heatoptim.\+utilities.\+logging\+\_\+module.\+Logging\+Module Class Reference}
+\hypertarget{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module}{}\label{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module}\index{heatoptim.utilities.logging\_module.LoggingModule@{heatoptim.utilities.logging\_module.LoggingModule}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_a4e228c8778f207fa106dcd80f4dd1602}\label{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_a4e228c8778f207fa106dcd80f4dd1602} 
+{\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self, config)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_afe9ddf1e019f719d18f0bf19f9c51b1b}{log\+\_\+generation\+\_\+data}} (self, generation, data)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_a55305aac7b519b28d1bc218daddb81c5}{save\+\_\+optimized\+\_\+latent\+\_\+vectors}} (self, latent\+\_\+vectors)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_aaf92331a1c830c9f70dcdde0d2cfb14b}{save\+\_\+image}} (self, fig, filename, latent\+\_\+vector\+\_\+name=None)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_ae70e9d5de55f78d426ec24c20561fdd8}\label{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_ae70e9d5de55f78d426ec24c20561fdd8} 
+int {\bfseries rank} = MPI.\+COMM\+\_\+\+WORLD.\+rank
+\item 
+\Hypertarget{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_aead289a77dcebf277a451477bb68d914}\label{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_aead289a77dcebf277a451477bb68d914} 
+{\bfseries config} = config
+\item 
+\Hypertarget{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_a738599daca74635e76444c23db2cfaa6}\label{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_a738599daca74635e76444c23db2cfaa6} 
+str {\bfseries log\+\_\+dir} = os.\+path.\+join("{}logs"{}, config.\+log\+\_\+name)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_af7c62b31a67e5fc73ab8fdeb0a928434}\label{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_af7c62b31a67e5fc73ab8fdeb0a928434} 
+{\bfseries \+\_\+initialize\+\_\+logging} (self)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_afe9ddf1e019f719d18f0bf19f9c51b1b}\index{heatoptim.utilities.logging\_module.LoggingModule@{heatoptim.utilities.logging\_module.LoggingModule}!log\_generation\_data@{log\_generation\_data}}
+\index{log\_generation\_data@{log\_generation\_data}!heatoptim.utilities.logging\_module.LoggingModule@{heatoptim.utilities.logging\_module.LoggingModule}}
+\doxysubsubsection{\texorpdfstring{log\_generation\_data()}{log\_generation\_data()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_afe9ddf1e019f719d18f0bf19f9c51b1b} 
+heatoptim.\+utilities.\+logging\+\_\+module.\+Logging\+Module.\+log\+\_\+generation\+\_\+data (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{generation}{, }\item[{}]{data}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Log generation data during optimization.\end{DoxyVerb}
+ \Hypertarget{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_aaf92331a1c830c9f70dcdde0d2cfb14b}\index{heatoptim.utilities.logging\_module.LoggingModule@{heatoptim.utilities.logging\_module.LoggingModule}!save\_image@{save\_image}}
+\index{save\_image@{save\_image}!heatoptim.utilities.logging\_module.LoggingModule@{heatoptim.utilities.logging\_module.LoggingModule}}
+\doxysubsubsection{\texorpdfstring{save\_image()}{save\_image()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_aaf92331a1c830c9f70dcdde0d2cfb14b} 
+heatoptim.\+utilities.\+logging\+\_\+module.\+Logging\+Module.\+save\+\_\+image (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{fig}{, }\item[{}]{filename}{, }\item[{}]{latent\+\_\+vector\+\_\+name}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Save visualization images in the appropriate directory.\end{DoxyVerb}
+ \Hypertarget{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_a55305aac7b519b28d1bc218daddb81c5}\index{heatoptim.utilities.logging\_module.LoggingModule@{heatoptim.utilities.logging\_module.LoggingModule}!save\_optimized\_latent\_vectors@{save\_optimized\_latent\_vectors}}
+\index{save\_optimized\_latent\_vectors@{save\_optimized\_latent\_vectors}!heatoptim.utilities.logging\_module.LoggingModule@{heatoptim.utilities.logging\_module.LoggingModule}}
+\doxysubsubsection{\texorpdfstring{save\_optimized\_latent\_vectors()}{save\_optimized\_latent\_vectors()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1utilities_1_1logging__module_1_1_logging_module_a55305aac7b519b28d1bc218daddb81c5} 
+heatoptim.\+utilities.\+logging\+\_\+module.\+Logging\+Module.\+save\+\_\+optimized\+\_\+latent\+\_\+vectors (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{latent\+\_\+vectors}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Save the best latent vectors from optimization.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/heatoptim/utilities/logging\+\_\+module.\+py\end{DoxyCompactItemize}

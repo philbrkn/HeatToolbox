@@ -1,0 +1,52 @@
+\doxysection{heatoptim.\+opts.\+montecarlo.\+Monte\+Carlo\+Optimizer Class Reference}
+\hypertarget{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer}{}\label{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer}\index{heatoptim.opts.montecarlo.MonteCarloOptimizer@{heatoptim.opts.montecarlo.MonteCarloOptimizer}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a04b8d15ebe39e104258397030062a783}\label{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a04b8d15ebe39e104258397030062a783} 
+{\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self, config\+\_\+path, num\+\_\+samples=100)
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a9f2d1be09c4f537a15b397aeae827e25}\label{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a9f2d1be09c4f537a15b397aeae827e25} 
+{\bfseries run\+\_\+solver} (self, latent\+\_\+vector)
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_ab20e7f42de05731eae704e950cefcf20}\label{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_ab20e7f42de05731eae704e950cefcf20} 
+{\bfseries init\+\_\+solver} (self)
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a2f7b861d7e7205561f6d239b77fbaa0e}\label{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a2f7b861d7e7205561f6d239b77fbaa0e} 
+{\bfseries run\+\_\+monte\+\_\+carlo} (self, n\+\_\+samples=100)
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a9e893e2676bb2feadcf1dab4754d4a7c}\label{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a9e893e2676bb2feadcf1dab4754d4a7c} 
+{\bfseries save\+\_\+best\+\_\+results} (self, best\+\_\+z, best\+\_\+results)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_aa4405376a078397c5cecb66a1db8b239}\label{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_aa4405376a078397c5cecb66a1db8b239} 
+{\bfseries config\+\_\+dict} = json.\+load(f)
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_af3a7c44d73102d816527d49b56be94a9}\label{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_af3a7c44d73102d816527d49b56be94a9} 
+{\bfseries config} = \mbox{\hyperlink{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config}{Simulation\+Config}}(self.\+config\+\_\+dict)
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a6a8521e9130f86e269b4df6f51fad3c7}\label{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a6a8521e9130f86e269b4df6f51fad3c7} 
+{\bfseries comm} = MPI.\+COMM\+\_\+\+WORLD
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_aa4177844fa52d045f5f7f4826914c3db}\label{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_aa4177844fa52d045f5f7f4826914c3db} 
+int {\bfseries rank} = self.\+comm.\+rank
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a2666351594fca069998cba18a39ec00a}\label{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a2666351594fca069998cba18a39ec00a} 
+{\bfseries model} = load\+\_\+vae\+\_\+model(self.\+rank, self.\+config.\+latent\+\_\+size)
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a42154f697c110a287217ce2edfa6c298}\label{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a42154f697c110a287217ce2edfa6c298} 
+{\bfseries solver} = None
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_afd80359f02a90726e5c686b99be6719c}\label{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_afd80359f02a90726e5c686b99be6719c} 
+{\bfseries num\+\_\+samples} = num\+\_\+samples
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a1c269a96e8594e2cfe4e0be711260c02}\label{classheatoptim_1_1opts_1_1montecarlo_1_1_monte_carlo_optimizer_a1c269a96e8594e2cfe4e0be711260c02} 
+list {\bfseries results} = \mbox{[}$\,$\mbox{]}
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/heatoptim/opts/montecarlo.\+py\end{DoxyCompactItemize}

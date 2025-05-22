@@ -1,0 +1,31 @@
+\doxysection{heatoptim.\+postprocessing.\+postprocess\+\_\+nsga\+\_\+cmaes Namespace Reference}
+\hypertarget{namespaceheatoptim_1_1postprocessing_1_1postprocess__nsga__cmaes}{}\label{namespaceheatoptim_1_1postprocessing_1_1postprocess__nsga__cmaes}\index{heatoptim.postprocessing.postprocess\_nsga\_cmaes@{heatoptim.postprocessing.postprocess\_nsga\_cmaes}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{namespaceheatoptim_1_1postprocessing_1_1postprocess__nsga__cmaes_a784fb21ceb0e7d8235b1c4e74cd1d3a1}\label{namespaceheatoptim_1_1postprocessing_1_1postprocess__nsga__cmaes_a784fb21ceb0e7d8235b1c4e74cd1d3a1} 
+{\bfseries main} (config\+\_\+file, ITER\+\_\+\+PATH\+\_\+\+NSGA)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{namespaceheatoptim_1_1postprocessing_1_1postprocess__nsga__cmaes_a4e839dcd2af04e5ddbc085c5bab2124c}\label{namespaceheatoptim_1_1postprocessing_1_1postprocess__nsga__cmaes_a4e839dcd2af04e5ddbc085c5bab2124c} 
+str {\bfseries ITER\+\_\+\+PATH\+\_\+\+NSGA} = "{}logs/\+\_\+\+ONE\+\_\+\+SOURCE\+\_\+\+NSGA2/test\+\_\+nsga\+\_\+10mpi\+\_\+z8"{}
+\item 
+\Hypertarget{namespaceheatoptim_1_1postprocessing_1_1postprocess__nsga__cmaes_a5cb7904b5df1ff3f9d733584e397bd92}\label{namespaceheatoptim_1_1postprocessing_1_1postprocess__nsga__cmaes_a5cb7904b5df1ff3f9d733584e397bd92} 
+str {\bfseries ITER\+\_\+\+PATH\+\_\+\+CMAES} = "{}logs/\+\_\+\+ONE\+\_\+\+SOURCE\+\_\+\+CMAES/cmaes\+\_\+sym\+\_\+1source\+\_\+z8"{}
+\item 
+\Hypertarget{namespaceheatoptim_1_1postprocessing_1_1postprocess__nsga__cmaes_a92d787c2016b5dcf119b67045833ebdc}\label{namespaceheatoptim_1_1postprocessing_1_1postprocess__nsga__cmaes_a92d787c2016b5dcf119b67045833ebdc} 
+{\bfseries config\+\_\+file} = os.\+path.\+join(ITER\+\_\+\+PATH\+\_\+\+CMAES, "{}config.\+json"{})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}compare_nsga_cmaes.py
+
+This script loads a configuration file, sets up the simulation (mesh, solver, VAE, etc.),
+loads the latent vectors from the CMA-ES log, generates the image list, runs the heat simulation
+(using GKESolver.solve_image and get_std_dev), and then uses the NSGA post-processing module
+to plot the hypervolume convergence, Pareto front, and overlay the CMA-ES solution on the Pareto plot.
+\end{DoxyVerb}
+ 

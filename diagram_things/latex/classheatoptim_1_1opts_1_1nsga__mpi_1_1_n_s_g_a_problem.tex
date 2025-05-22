@@ -1,0 +1,119 @@
+\doxysection{heatoptim.\+opts.\+nsga\+\_\+mpi.\+NSGAProblem Class Reference}
+\hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem}{}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem}\index{heatoptim.opts.nsga\_mpi.NSGAProblem@{heatoptim.opts.nsga\_mpi.NSGAProblem}}
+
+
+Inheritance diagram for heatoptim.\+opts.\+nsga\+\_\+mpi.\+NSGAProblem\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=185pt]{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for heatoptim.\+opts.\+nsga\+\_\+mpi.\+NSGAProblem\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=185pt]{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a338ef0d350a8fd043a41280783040798}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a338ef0d350a8fd043a41280783040798} 
+{\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self, solver, model, config)
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_afd7c0b09d609f7a8cc3567e6a5caf1db}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_afd7c0b09d609f7a8cc3567e6a5caf1db} 
+{\bfseries \+\_\+\+\_\+reduce\+\_\+\+\_\+} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a78a7801bd8628a343ce52c36c5a91f54}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a78a7801bd8628a343ce52c36c5a91f54} 
+{\bfseries solver} = solver
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_aed65afe4641776316a9ba6bbc93b76ff}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_aed65afe4641776316a9ba6bbc93b76ff} 
+{\bfseries model} = model
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a97dcc457b47b8610f3dbe657be937992}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a97dcc457b47b8610f3dbe657be937992} 
+{\bfseries config} = config
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_aa5f0970c65aa790801e9d0c0969771a8}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_aa5f0970c65aa790801e9d0c0969771a8} 
+{\bfseries comm} = MPI.\+COMM\+\_\+\+WORLD
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a9a76cb68e8e780ef2de91c573f3f1dc6}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a9a76cb68e8e780ef2de91c573f3f1dc6} 
+int {\bfseries rank} = self.\+comm.\+Get\+\_\+rank()
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_ac59b537f1461b60137e19e0226e056c9}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_ac59b537f1461b60137e19e0226e056c9} 
+{\bfseries size} = self.\+comm.\+Get\+\_\+size()
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a5f441894782e07cffb4c18fe7db73a55}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a5f441894782e07cffb4c18fe7db73a55} 
+{\bfseries N\+\_\+sources} = len(config.\+source\+\_\+positions)
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_afa47a5010976a5140c9502f9e0eba449}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_afa47a5010976a5140c9502f9e0eba449} 
+{\bfseries z\+\_\+dim} = config.\+latent\+\_\+size
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a7be1e711bc15b8b023bf686b63bb7c1c}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a7be1e711bc15b8b023bf686b63bb7c1c} 
+{\bfseries n\+\_\+var}
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a337917ac84b9fc69bcfbdd5b02396ce2}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a337917ac84b9fc69bcfbdd5b02396ce2} 
+{\bfseries n\+\_\+obj}
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a1a16222b76b1c1148f8abe706699625c}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a1a16222b76b1c1148f8abe706699625c} 
+{\bfseries n\+\_\+constr}
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a9384f8f80d4e5149f7e10153d98e1122}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a9384f8f80d4e5149f7e10153d98e1122} 
+{\bfseries xl}
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_aa0682c4344090f0fdd1c66268ee94fe1}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_aa0682c4344090f0fdd1c66268ee94fe1} 
+{\bfseries xu}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a02ba61fbe4d4b8f3d0389d6455b17286}{\+\_\+evaluate}} (self, x, out, \texorpdfstring{$\ast$}{*}args, \texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}kwargs)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_aefd3cdf382e2cd54ce5463fd95e8b3cf}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_aefd3cdf382e2cd54ce5463fd95e8b3cf} 
+{\bfseries \+\_\+recreate} (n\+\_\+var, n\+\_\+obj, n\+\_\+constr, xl, xu)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a5a2b9e133d295e46d07e656f137b2c59}\label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a5a2b9e133d295e46d07e656f137b2c59} 
+{\bfseries \+\_\+recreate}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}NSGA2 problem definition for optimizing the latent vectors.
+(Multi-objective: 2 objectives: [avg_temp, std_dev])
+This class is IDENTICAL in structure to your original NSGA code,
+but now does the exact same MPI partitioning logic as CMA-ES.
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a02ba61fbe4d4b8f3d0389d6455b17286}\index{heatoptim.opts.nsga\_mpi.NSGAProblem@{heatoptim.opts.nsga\_mpi.NSGAProblem}!\_evaluate@{\_evaluate}}
+\index{\_evaluate@{\_evaluate}!heatoptim.opts.nsga\_mpi.NSGAProblem@{heatoptim.opts.nsga\_mpi.NSGAProblem}}
+\doxysubsubsection{\texorpdfstring{\_evaluate()}{\_evaluate()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1opts_1_1nsga__mpi_1_1_n_s_g_a_problem_a02ba61fbe4d4b8f3d0389d6455b17286} 
+heatoptim.\+opts.\+nsga\+\_\+mpi.\+NSGAProblem.\+\_\+evaluate (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{x}{, }\item[{}]{out}{, }\item[{\texorpdfstring{$\ast$}{*}}]{args}{, }\item[{\texorpdfstring{$\ast$}{*}\texorpdfstring{$\ast$}{*}}]{kwargs}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}EXACT MPI logic from your CMA-ES code:
+
+ 1) rank 0 has the entire population x.
+ 2) broadcast x to all other ranks.
+ 3) each rank takes a slice of x (local_x), evaluates it,
+ 4) gather partial results to rank 0,
+ 5) rank 0 flattens them into out["F"],
+ 6) broadcast out["F"] if needed so all have consistent data.
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/heatoptim/opts/nsga\+\_\+mpi.\+py\end{DoxyCompactItemize}

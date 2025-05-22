@@ -1,0 +1,188 @@
+\doxysection{heatoptim.\+config.\+sim\+\_\+config.\+Simulation\+Config Class Reference}
+\hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config}{}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config}\index{heatoptim.config.sim\_config.SimulationConfig@{heatoptim.config.sim\_config.SimulationConfig}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a5bcbb9d86db3e52858c83f1a6bf21aaa}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, config)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_abae2cb3884f9cc6926e35bf2c05927cc}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_abae2cb3884f9cc6926e35bf2c05927cc} 
+{\bfseries process\+\_\+sources} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_ac17a2f58acded17c23e8841961fc098c}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_ac17a2f58acded17c23e8841961fc098c} 
+{\bfseries comm} = MPI.\+COMM\+\_\+\+WORLD
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_aa284349afa0049a38ab057bfd3fa3513}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_aa284349afa0049a38ab057bfd3fa3513} 
+{\bfseries size} = self.\+comm.\+Get\+\_\+size()
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_af1972cb38c6c6476fbe3feb36759411e}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_af1972cb38c6c6476fbe3feb36759411e} 
+{\bfseries config} = loaded\+\_\+config
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a80bb5f8d3fceb72d93c19d4fb7b63bb9}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a80bb5f8d3fceb72d93c19d4fb7b63bb9} 
+{\bfseries C} = PETSc.\+Scalar\+Type(1.\+0)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a8dad3255b152eabb3a5b59f471fa9571}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a8dad3255b152eabb3a5b59f471fa9571} 
+{\bfseries T\+\_\+\+ISO} = PETSc.\+Scalar\+Type(0.\+0)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a126ec20353e451aaa9b0586f6642a846}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a126ec20353e451aaa9b0586f6642a846} 
+{\bfseries Q\+\_\+L} = PETSc.\+Scalar\+Type(80)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_ae6e4c7b8da07058485a637b0606d8c9b}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_ae6e4c7b8da07058485a637b0606d8c9b} 
+float {\bfseries MEAN\+\_\+\+FREE\+\_\+\+PATH} = 0.\+439e-\/6
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a228b192547d1d07af34bc2e27ed19eee}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a228b192547d1d07af34bc2e27ed19eee} 
+{\bfseries KNUDSEN} = self.\+config.\+get("{}knudsen"{}, 1)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a60051c91646de4fcc5a9fb07dd893994}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a60051c91646de4fcc5a9fb07dd893994} 
+str {\bfseries solver\+\_\+type} = self.\+config.\+get("{}solver\+\_\+type"{}, "{}gke"{})
+\item 
+tuple \mbox{\hyperlink{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a382aea35b8aefe0ce82a8f2d1a55a393}{vol\+\_\+fraction}}
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a5ec835fce36eb647bdde64a83f2ab953}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a5ec835fce36eb647bdde64a83f2ab953} 
+int {\bfseries LENGTH} = 1
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a3f0d8bd913f2f0a281382b3bc93c1f63}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a3f0d8bd913f2f0a281382b3bc93c1f63} 
+int {\bfseries L\+\_\+X} = 25 \texorpdfstring{$\ast$}{*} self.\+LENGTH
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a7e23d5d3c20f135068ebfd4b7c3b2354}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a7e23d5d3c20f135068ebfd4b7c3b2354} 
+float {\bfseries L\+\_\+Y} = 12.\+5 \texorpdfstring{$\ast$}{*} self.\+LENGTH
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a6d372c8b7fd9e6dfe8bbf49b27c7cf03}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a6d372c8b7fd9e6dfe8bbf49b27c7cf03} 
+int {\bfseries SOURCE\+\_\+\+WIDTH} = self.\+LENGTH
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a43f88c3ffcfa893aaa32fe0d8d64fa40}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a43f88c3ffcfa893aaa32fe0d8d64fa40} 
+int {\bfseries SOURCE\+\_\+\+HEIGHT} = self.\+LENGTH \texorpdfstring{$\ast$}{*} 0.\+25
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a3bf74e981fce11e2f169614d1a8f42ee}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a3bf74e981fce11e2f169614d1a8f42ee} 
+bool {\bfseries mask\+\_\+extrusion} = True
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a4ef765e1dbbc168b0e21460355574365}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a4ef765e1dbbc168b0e21460355574365} 
+bool {\bfseries blank} = True
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_ae462a2ef7130e8af4b5d9b10063008d2}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_ae462a2ef7130e8af4b5d9b10063008d2} 
+int {\bfseries RESOLUTION} = self.\+LENGTH / res if res $>$ 0 else self.\+LENGTH / 12
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_abffdbd5b3986d526f555147a47cf68f0}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_abffdbd5b3986d526f555147a47cf68f0} 
+{\bfseries ELL\+\_\+\+SI} = PETSc.\+Scalar\+Type(self.\+MEAN\+\_\+\+FREE\+\_\+\+PATH / np.\+sqrt(5))
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a5ecd7b0f54f62b67534419e832ed9ab9}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a5ecd7b0f54f62b67534419e832ed9ab9} 
+{\bfseries ELL\+\_\+\+DI} = PETSc.\+Scalar\+Type(196e-\/8)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_acf8e7d8b5f65e57d5806232338510f22}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_acf8e7d8b5f65e57d5806232338510f22} 
+{\bfseries KAPPA\+\_\+\+SI} = PETSc.\+Scalar\+Type(141.\+0)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_ad3479d89c574ae3f332b4f8b5994316e}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_ad3479d89c574ae3f332b4f8b5994316e} 
+{\bfseries KAPPA\+\_\+\+DI} = PETSc.\+Scalar\+Type(600.\+0)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a6a92061f5e5c96708d97a4f6e7bf9d5b}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a6a92061f5e5c96708d97a4f6e7bf9d5b} 
+{\bfseries sources} = self.\+config.\+get("{}sources"{}, \mbox{[}0.\+5, self.\+Q\+\_\+L\mbox{]})
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a3c3af660dc15688de78adca052d987d1}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a3c3af660dc15688de78adca052d987d1} 
+{\bfseries symmetry} = self.\+config.\+get("{}symmetry"{}, False)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a271251b571a1e74824e5b6dc33ba44cf}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a271251b571a1e74824e5b6dc33ba44cf} 
+{\bfseries visualize} = self.\+config.\+get("{}visualize"{}, \mbox{[}$\,$\mbox{]})
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_aafbeca25ad16f2fb6de2163cfddf9fc7}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_aafbeca25ad16f2fb6de2163cfddf9fc7} 
+{\bfseries plot\+\_\+mode} = self.\+config.\+get("{}plot\+\_\+mode"{}, "{}screenshot"{})
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a35a4d3e8d56e1fe49c6f042535f66170}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a35a4d3e8d56e1fe49c6f042535f66170} 
+{\bfseries optim} = self.\+config.\+get("{}optim"{}, False)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a20db9d2aee574b8605b19af681070a32}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a20db9d2aee574b8605b19af681070a32} 
+{\bfseries optimizer} = self.\+config.\+get("{}optimizer"{}, "{}cmaes"{})
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a38849ec3aa68af86fbd9c044f7d57860}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a38849ec3aa68af86fbd9c044f7d57860} 
+{\bfseries latent} = self.\+config.\+get("{}latent"{}, None)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a2c1a5e8f530ee391f0641c1c84822a19}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a2c1a5e8f530ee391f0641c1c84822a19} 
+{\bfseries latent\+\_\+size} = self.\+config.\+get("{}latent\+\_\+size"{}, 4)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a0c39f7a76cfb5e0517bab740dd4beebf}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a0c39f7a76cfb5e0517bab740dd4beebf} 
+{\bfseries latent\+\_\+method} = self.\+config.\+get("{}latent\+\_\+method"{}, "{}preloaded"{})
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_ae9f81611bb8f4bd2e786240609cf910d}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_ae9f81611bb8f4bd2e786240609cf910d} 
+{\bfseries walltime} = self.\+config.\+get("{}walltime"{}, "{}03\+:00\+:00"{})
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_ae347b1312955946911ea735f46ec22f3}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_ae347b1312955946911ea735f46ec22f3} 
+{\bfseries popsize} = self.\+config.\+get("{}popsize"{}, 8)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a527986cdfab12e83cde85f5bdd96cce2}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a527986cdfab12e83cde85f5bdd96cce2} 
+{\bfseries bounds} = self.\+config.\+get("{}bounds"{}, \mbox{[}-\/2.\+5, 2.\+5\mbox{]})
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_adfe8163aa3246b24178ce145448541e3}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_adfe8163aa3246b24178ce145448541e3} 
+{\bfseries n\+\_\+iter} = self.\+config.\+get("{}n\+\_\+iter"{}, 100)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a2ce46049074b1dc482656a164fca43d9}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a2ce46049074b1dc482656a164fca43d9} 
+{\bfseries logging\+\_\+enabled} = self.\+config.\+get("{}logging\+\_\+enabled"{}, True)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a571f3e673dda1de6b733b77d9344dc0e}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a571f3e673dda1de6b733b77d9344dc0e} 
+{\bfseries log\+\_\+name} = self.\+config.\+get("{}log\+\_\+name"{}, None)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a61a88d5ab5e1c81459d11b8d2946406f}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a61a88d5ab5e1c81459d11b8d2946406f} 
+{\bfseries log\+\_\+dir} = os.\+path.\+join("{}logs"{}, self.\+log\+\_\+name)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a09851164a68264c926b2ce2ec10f1c42}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a09851164a68264c926b2ce2ec10f1c42} 
+{\bfseries hpc\+\_\+enabled} = self.\+config.\+get("{}hpc\+\_\+enabled"{}, True)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a888f442b81b813fbc94be3c9f85c1bf6}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a888f442b81b813fbc94be3c9f85c1bf6} 
+{\bfseries load\+\_\+cma\+\_\+result} = self.\+config.\+get("{}load\+\_\+cma\+\_\+result"{}, False)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_aa5ba38d7788326886c7d13ec92a9a847}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_aa5ba38d7788326886c7d13ec92a9a847} 
+{\bfseries maxtime} = int(float(self.\+walltime.\+split("{}\+:"{})\mbox{[}0\mbox{]}) \texorpdfstring{$\ast$}{*} 3600 \texorpdfstring{$\ast$}{*} 0.\+95+float(self.\+walltime.\+split("{}\+:"{})\mbox{[}1\mbox{]}) \texorpdfstring{$\ast$}{*} 60 \texorpdfstring{$\ast$}{*} 0.\+95)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a71b391d828657940a0a07d3735103551}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a71b391d828657940a0a07d3735103551} 
+{\bfseries parallelize} = self.\+config.\+get("{}parallelize"{}, False)
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_ac35c77ce5d39eefa60ab7e0caa0c0735}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_ac35c77ce5d39eefa60ab7e0caa0c0735} 
+list {\bfseries source\+\_\+positions} = \mbox{[}$\,$\mbox{]}
+\item 
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a7b388b23f37709b1daf8e06219fcc8ad}\label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a7b388b23f37709b1daf8e06219fcc8ad} 
+list {\bfseries Q\+\_\+sources} = \mbox{[}$\,$\mbox{]}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a5bcbb9d86db3e52858c83f1a6bf21aaa}\index{heatoptim.config.sim\_config.SimulationConfig@{heatoptim.config.sim\_config.SimulationConfig}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!heatoptim.config.sim\_config.SimulationConfig@{heatoptim.config.sim\_config.SimulationConfig}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a5bcbb9d86db3e52858c83f1a6bf21aaa} 
+heatoptim.\+config.\+sim\+\_\+config.\+Simulation\+Config.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{config}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Initialize the simulation configuration.
+
+Parameters:
+- config (str or dict): Path to a JSON configuration file or a dictionary containing configuration data.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a5bcbb9d86db3e52858c83f1a6bf21aaa_cgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a382aea35b8aefe0ce82a8f2d1a55a393}\index{heatoptim.config.sim\_config.SimulationConfig@{heatoptim.config.sim\_config.SimulationConfig}!vol\_fraction@{vol\_fraction}}
+\index{vol\_fraction@{vol\_fraction}!heatoptim.config.sim\_config.SimulationConfig@{heatoptim.config.sim\_config.SimulationConfig}}
+\doxysubsubsection{\texorpdfstring{vol\_fraction}{vol\_fraction}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config_a382aea35b8aefe0ce82a8f2d1a55a393} 
+tuple heatoptim.\+config.\+sim\+\_\+config.\+Simulation\+Config.\+vol\+\_\+fraction}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ (}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ self.config.get(\textcolor{stringliteral}{"{}vf\_value"{}},\ 0.2)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.config.get(\textcolor{stringliteral}{"{}vf\_enabled"{}},\ \textcolor{keyword}{True})}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ )}
+
+\end{DoxyCode}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/heatoptim/config/sim\+\_\+config.\+py\end{DoxyCompactItemize}

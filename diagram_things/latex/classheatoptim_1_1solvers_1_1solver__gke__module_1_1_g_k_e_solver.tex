@@ -1,0 +1,79 @@
+\doxysection{heatoptim.\+solvers.\+solver\+\_\+gke\+\_\+module.\+GKESolver Class Reference}
+\hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver}{}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver}\index{heatoptim.solvers.solver\_gke\_module.GKESolver@{heatoptim.solvers.solver\_gke\_module.GKESolver}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a08a8c48f8ac5e0216a478c1464cbfc72}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a08a8c48f8ac5e0216a478c1464cbfc72} 
+{\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self, msh, facet\+\_\+markers, config)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_aea85e4bd73f7189af3673779c3ede05d}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_aea85e4bd73f7189af3673779c3ede05d} 
+{\bfseries define\+\_\+boundary\+\_\+conditions} (self)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_afa0e9ad0dca80002ca94abcde7fb344d}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_afa0e9ad0dca80002ca94abcde7fb344d} 
+{\bfseries define\+\_\+variational\+\_\+form} (self)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a602d86e0ceb5fcaf48071f8db23d9d0e}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a602d86e0ceb5fcaf48071f8db23d9d0e} 
+{\bfseries solve\+\_\+image} (self, img\+\_\+list)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_af6135b88acd7a3c5bc37b06dcc82a975}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_af6135b88acd7a3c5bc37b06dcc82a975} 
+{\bfseries get\+\_\+std\+\_\+dev} (self)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_af9942a675ef0cdd50612ffab8d8b39cc}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_af9942a675ef0cdd50612ffab8d8b39cc} 
+{\bfseries solve\+\_\+problem} (self, F)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_abf47765aac2fd7b23d718b95da8d82ea}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_abf47765aac2fd7b23d718b95da8d82ea} 
+{\bfseries perform\+\_\+mesh\+\_\+checks} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_ae6dd0c5e0f8f6a171ae2769022dd7253}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_ae6dd0c5e0f8f6a171ae2769022dd7253} 
+{\bfseries msh} = msh
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a9db6ba993cf909ea2200406755f95e09}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a9db6ba993cf909ea2200406755f95e09} 
+{\bfseries config} = config
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_ae0da80216ed1b444e8638f648a061483}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_ae0da80216ed1b444e8638f648a061483} 
+{\bfseries facet\+\_\+markers} = facet\+\_\+markers
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a43d0e0164e6856c17486e28309aee312}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a43d0e0164e6856c17486e28309aee312} 
+{\bfseries W} = fem.\+functionspace(msh, TH)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a7ca9d9218c783f77beb3fec18ad588bb}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a7ca9d9218c783f77beb3fec18ad588bb} 
+{\bfseries U} = fem.\+Function(self.\+W)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a970ed631ddf9baf2d8cb72974328854b}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a970ed631ddf9baf2d8cb72974328854b} 
+{\bfseries dU} = ufl.\+Trial\+Function(self.\+W)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_ad4ec0c17e342dd7e47dfcaf3cfc3c856}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_ad4ec0c17e342dd7e47dfcaf3cfc3c856} 
+{\bfseries v}
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a128e05d3adf3162b752e07c0c95bb086}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a128e05d3adf3162b752e07c0c95bb086} 
+{\bfseries s}
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a7081e242406a2922d9b2c006e9b33f49}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a7081e242406a2922d9b2c006e9b33f49} 
+{\bfseries gamma} = fem.\+Function(V\+\_\+gamma)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a28e98dbaf2a17aefff8b4e243707a5ad}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a28e98dbaf2a17aefff8b4e243707a5ad} 
+{\bfseries ds} = ufl.\+Measure("{}ds"{}, domain=self.\+msh, subdomain\+\_\+data=self.\+facet\+\_\+markers)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a6c1d4522d9b22da284a9063bcdf91b19}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a6c1d4522d9b22da284a9063bcdf91b19} 
+{\bfseries ds\+\_\+bottom} = self.\+ds(1)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_aa29ee8fac04bd7cc045d0c3119de2de9}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_aa29ee8fac04bd7cc045d0c3119de2de9} 
+{\bfseries ds\+\_\+slip} = self.\+ds(2)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a696ef0ebbc97ec8438910d44ee1d13f8}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a696ef0ebbc97ec8438910d44ee1d13f8} 
+list {\bfseries ds\+\_\+tops} = \mbox{[}self.\+ds(tag) for tag in top\+\_\+tags\mbox{]}
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a44553a484ce91658dcfefe2f661cc972}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_a44553a484ce91658dcfefe2f661cc972} 
+{\bfseries ds\+\_\+symmetry} = self.\+ds(99)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_ae8adaee6d5043a41049dafb7490a44a4}\label{classheatoptim_1_1solvers_1_1solver__gke__module_1_1_g_k_e_solver_ae8adaee6d5043a41049dafb7490a44a4} 
+{\bfseries bc0} = fem.\+dirichletbc(noslip, dofs, W1)
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/heatoptim/solvers/solver\+\_\+gke\+\_\+module.\+py\end{DoxyCompactItemize}

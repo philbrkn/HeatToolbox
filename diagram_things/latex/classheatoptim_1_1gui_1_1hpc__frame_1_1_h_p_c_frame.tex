@@ -1,0 +1,209 @@
+\doxysection{heatoptim.\+gui.\+hpc\+\_\+frame.\+HPCFrame Class Reference}
+\hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame}{}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame}\index{heatoptim.gui.hpc\_frame.HPCFrame@{heatoptim.gui.hpc\_frame.HPCFrame}}
+
+
+Inheritance diagram for heatoptim.\+gui.\+hpc\+\_\+frame.\+HPCFrame\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=206pt]{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for heatoptim.\+gui.\+hpc\+\_\+frame.\+HPCFrame\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=206pt]{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_ae7821d76fdf18fcb20d0186c016f1033}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_ae7821d76fdf18fcb20d0186c016f1033} 
+{\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self, parent, options)
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_aaab40e98a349e96cd1cd260926d5018e}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_aaab40e98a349e96cd1cd260926d5018e} 
+{\bfseries create\+\_\+widgets} (self)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a288eb2b77326c37d4c3a3ff000f766ee}{toggle\+\_\+hpc\+\_\+options}} (self)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_aec206f2d6b4f5b72a61e100fecd21c67}{hide\+\_\+hpc\+\_\+options}} (self)
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_acc44e0d59fe129b5aecbd03ba34fe6b0}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_acc44e0d59fe129b5aecbd03ba34fe6b0} 
+{\bfseries toggle\+\_\+mpi\+\_\+options} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_abada73c42c18be8590ff187f273ca8f4}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_abada73c42c18be8590ff187f273ca8f4} 
+{\bfseries options} = options
+\item 
+\mbox{\hyperlink{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a2d25781bf75a70e683ede6fcc6c52eb4}{hpc\+\_\+checkbox}}
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_ae523d04850dc0587accfd76127081398}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_ae523d04850dc0587accfd76127081398} 
+{\bfseries nodes\+\_\+label} = ctk.\+CTk\+Label(self, text="{}Number of Nodes\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_ad4766672d8b86cdd48b6135f1b294aa6}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_ad4766672d8b86cdd48b6135f1b294aa6} 
+{\bfseries nodes\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}nodes"{}\mbox{]}, width=100)
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a0101df09184e6e154c9bcc8f8573d8f8}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a0101df09184e6e154c9bcc8f8573d8f8} 
+{\bfseries ncpus\+\_\+label} = ctk.\+CTk\+Label(self, text="{}CPUs per Node (ncpus)\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a3a8dd3d2640d86b617d5ca848a654b82}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a3a8dd3d2640d86b617d5ca848a654b82} 
+{\bfseries ncpus\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}ncpus"{}\mbox{]}, width=100)
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a06b2c6bea34ef275f6f954a2d0b56aa5}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a06b2c6bea34ef275f6f954a2d0b56aa5} 
+{\bfseries mem\+\_\+label} = ctk.\+CTk\+Label(self, text="{}Memory per Node (GB)\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a99bf8af936906aa2e52a2956d6f31205}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a99bf8af936906aa2e52a2956d6f31205} 
+{\bfseries mem\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}mem"{}\mbox{]}, width=100)
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a65e9d0818984656ed0037c7ce6283c15}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a65e9d0818984656ed0037c7ce6283c15} 
+{\bfseries walltime\+\_\+label} = ctk.\+CTk\+Label(self, text="{}Walltime (HH\+:\+MM\+:\+SS)\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_afbe081d94fe06f6df49a3335253129a0}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_afbe081d94fe06f6df49a3335253129a0} 
+{\bfseries walltime\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}walltime"{}\mbox{]}, width=100)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_acde97ef4842971e03a6ac2f41fe2895c}{parallelize\+\_\+checkbutton}}
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_adde3c018cbb5acb6e3f2d1bd7f2545c9}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_adde3c018cbb5acb6e3f2d1bd7f2545c9} 
+{\bfseries mpiprocs\+\_\+label} = ctk.\+CTk\+Label(self, text="{}MPI Processes per Node (mpiprocs)\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a76eef7040c3bb35420d25bfc9abf5fad}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a76eef7040c3bb35420d25bfc9abf5fad} 
+{\bfseries mpiprocs\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}mpiprocs"{}\mbox{]}, width=100)
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a9cff383269325da1d061dba5d1052c6c}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a9cff383269325da1d061dba5d1052c6c} 
+{\bfseries conda\+\_\+path\+\_\+label} = ctk.\+CTk\+Label(self, text="{}Conda Environment Path\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a83ee6d1031441a59ab3d2fdf40c4e269}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a83ee6d1031441a59ab3d2fdf40c4e269} 
+{\bfseries conda\+\_\+path\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}conda\+\_\+env\+\_\+path"{}\mbox{]}, width=150)
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a6a7265bdfd6847d4a17a801747df5907}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a6a7265bdfd6847d4a17a801747df5907} 
+{\bfseries conda\+\_\+name\+\_\+label} = ctk.\+CTk\+Label(self, text="{}Conda Environment Name\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a5b902d0f3eea7fa3c376d0c3e8af171f}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a5b902d0f3eea7fa3c376d0c3e8af171f} 
+{\bfseries conda\+\_\+name\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}conda\+\_\+env\+\_\+name"{}\mbox{]}, width=150)
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a1d107307d53bce753c56676f2ae55e8b}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a1d107307d53bce753c56676f2ae55e8b} 
+{\bfseries hpc\+\_\+user\+\_\+label} = ctk.\+CTk\+Label(self, text="{}HPC User\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_aaca0d92e31b070bb4eae0f5f681d922d}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_aaca0d92e31b070bb4eae0f5f681d922d} 
+{\bfseries hpc\+\_\+user\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}hpc\+\_\+user"{}\mbox{]}, width=150)
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_aa87760af1ba8e1ae7b794b05b34992e0}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_aa87760af1ba8e1ae7b794b05b34992e0} 
+{\bfseries hpc\+\_\+host\+\_\+label} = ctk.\+CTk\+Label(self, text="{}HPC Host\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a0bcc393fcb56f8f229ae0304eaba860e}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a0bcc393fcb56f8f229ae0304eaba860e} 
+{\bfseries hpc\+\_\+host\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}hpc\+\_\+host"{}\mbox{]}, width=150)
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a09a5527c88687f6a0d2ecea547268b5b}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a09a5527c88687f6a0d2ecea547268b5b} 
+{\bfseries hpc\+\_\+dir\+\_\+label} = ctk.\+CTk\+Label(self, text="{}HPC Directory\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a46ce912e812c8e5fbbdcabacadd04e38}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a46ce912e812c8e5fbbdcabacadd04e38} 
+{\bfseries hpc\+\_\+dir\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}hpc\+\_\+dir"{}\mbox{]}, width=150)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a25b4f8a265270a664e6f55e637c4666a}{\+\_\+on\+\_\+hpc\+\_\+enabled\+\_\+changed}} (self, \texorpdfstring{$\ast$}{*}args)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a01b1b6232fe0431f3e4cf2b1acee4c27}\label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a01b1b6232fe0431f3e4cf2b1acee4c27} 
+{\bfseries \+\_\+on\+\_\+hpc\+\_\+enabled\+\_\+changed} = 1)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a25b4f8a265270a664e6f55e637c4666a}\index{heatoptim.gui.hpc\_frame.HPCFrame@{heatoptim.gui.hpc\_frame.HPCFrame}!\_on\_hpc\_enabled\_changed@{\_on\_hpc\_enabled\_changed}}
+\index{\_on\_hpc\_enabled\_changed@{\_on\_hpc\_enabled\_changed}!heatoptim.gui.hpc\_frame.HPCFrame@{heatoptim.gui.hpc\_frame.HPCFrame}}
+\doxysubsubsection{\texorpdfstring{\_on\_hpc\_enabled\_changed()}{\_on\_hpc\_enabled\_changed()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a25b4f8a265270a664e6f55e637c4666a} 
+heatoptim.\+gui.\+hpc\+\_\+frame.\+HPCFrame.\+\_\+on\+\_\+hpc\+\_\+enabled\+\_\+changed (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\texorpdfstring{$\ast$}{*}}]{args}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Callback whenever self.options['hpc_enabled'] is set (True/False).\end{DoxyVerb}
+ Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a25b4f8a265270a664e6f55e637c4666a_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_aec206f2d6b4f5b72a61e100fecd21c67}\index{heatoptim.gui.hpc\_frame.HPCFrame@{heatoptim.gui.hpc\_frame.HPCFrame}!hide\_hpc\_options@{hide\_hpc\_options}}
+\index{hide\_hpc\_options@{hide\_hpc\_options}!heatoptim.gui.hpc\_frame.HPCFrame@{heatoptim.gui.hpc\_frame.HPCFrame}}
+\doxysubsubsection{\texorpdfstring{hide\_hpc\_options()}{hide\_hpc\_options()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_aec206f2d6b4f5b72a61e100fecd21c67} 
+heatoptim.\+gui.\+hpc\+\_\+frame.\+HPCFrame.\+hide\+\_\+hpc\+\_\+options (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Hide all HPC-related options.\end{DoxyVerb}
+ Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_aec206f2d6b4f5b72a61e100fecd21c67_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a288eb2b77326c37d4c3a3ff000f766ee}\index{heatoptim.gui.hpc\_frame.HPCFrame@{heatoptim.gui.hpc\_frame.HPCFrame}!toggle\_hpc\_options@{toggle\_hpc\_options}}
+\index{toggle\_hpc\_options@{toggle\_hpc\_options}!heatoptim.gui.hpc\_frame.HPCFrame@{heatoptim.gui.hpc\_frame.HPCFrame}}
+\doxysubsubsection{\texorpdfstring{toggle\_hpc\_options()}{toggle\_hpc\_options()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a288eb2b77326c37d4c3a3ff000f766ee} 
+heatoptim.\+gui.\+hpc\+\_\+frame.\+HPCFrame.\+toggle\+\_\+hpc\+\_\+options (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Show or hide HPC options based on the Enable HPC checkbox.\end{DoxyVerb}
+ Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a288eb2b77326c37d4c3a3ff000f766ee_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a288eb2b77326c37d4c3a3ff000f766ee_icgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a2d25781bf75a70e683ede6fcc6c52eb4}\index{heatoptim.gui.hpc\_frame.HPCFrame@{heatoptim.gui.hpc\_frame.HPCFrame}!hpc\_checkbox@{hpc\_checkbox}}
+\index{hpc\_checkbox@{hpc\_checkbox}!heatoptim.gui.hpc\_frame.HPCFrame@{heatoptim.gui.hpc\_frame.HPCFrame}}
+\doxysubsubsection{\texorpdfstring{hpc\_checkbox}{hpc\_checkbox}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_a2d25781bf75a70e683ede6fcc6c52eb4} 
+heatoptim.\+gui.\+hpc\+\_\+frame.\+HPCFrame.\+hpc\+\_\+checkbox}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ ctk.CTkCheckBox(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ self,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ text=\textcolor{stringliteral}{"{}Enable\ HPC"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ variable=self.options[\textcolor{stringliteral}{"{}hpc\_enabled"{}}]}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ command=self.toggle\_hpc\_options,}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ )}
+
+\end{DoxyCode}
+\Hypertarget{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_acde97ef4842971e03a6ac2f41fe2895c}\index{heatoptim.gui.hpc\_frame.HPCFrame@{heatoptim.gui.hpc\_frame.HPCFrame}!parallelize\_checkbutton@{parallelize\_checkbutton}}
+\index{parallelize\_checkbutton@{parallelize\_checkbutton}!heatoptim.gui.hpc\_frame.HPCFrame@{heatoptim.gui.hpc\_frame.HPCFrame}}
+\doxysubsubsection{\texorpdfstring{parallelize\_checkbutton}{parallelize\_checkbutton}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame_acde97ef4842971e03a6ac2f41fe2895c} 
+heatoptim.\+gui.\+hpc\+\_\+frame.\+HPCFrame.\+parallelize\+\_\+checkbutton}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ ctk.CTkCheckBox(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ self,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ text=\textcolor{stringliteral}{"{}Enable\ Parallelization\ (MPI)"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ variable=self.options[\textcolor{stringliteral}{"{}parallelize"{}}],}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ command=self.toggle\_mpi\_options,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ )}
+
+\end{DoxyCode}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/heatoptim/gui/hpc\+\_\+frame.\+py\end{DoxyCompactItemize}

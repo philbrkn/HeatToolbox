@@ -1,0 +1,111 @@
+\doxysection{heatoptim.\+utilities.\+vae\+\_\+module.\+VAE Class Reference}
+\hypertarget{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e}{}\label{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e}\index{heatoptim.utilities.vae\_module.VAE@{heatoptim.utilities.vae\_module.VAE}}
+
+
+Inheritance diagram for heatoptim.\+utilities.\+vae\+\_\+module.\+VAE\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=191pt]{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for heatoptim.\+utilities.\+vae\+\_\+module.\+VAE\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=191pt]{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a2c6a7d734f3d73db98ccc51ca41714d4}\label{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a2c6a7d734f3d73db98ccc51ca41714d4} 
+{\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self, image\+\_\+channels=1, h\+\_\+dim=hidden\+\_\+size, z\+\_\+dim=latent\+\_\+size)
+\item 
+\Hypertarget{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_aa44cba456e5fb6814024d1fd9b4e75dd}\label{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_aa44cba456e5fb6814024d1fd9b4e75dd} 
+{\bfseries reparameterize} (self, mu, logvar)
+\item 
+\Hypertarget{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a71cdae858e9d078b32145c897378c552}\label{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a71cdae858e9d078b32145c897378c552} 
+{\bfseries bottleneck} (self, h)
+\item 
+\Hypertarget{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_ac6f3515793152b2a61836f03d9e91812}\label{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_ac6f3515793152b2a61836f03d9e91812} 
+{\bfseries encode} (self, x)
+\item 
+\Hypertarget{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_aeb07a160158e88677194b704cc29c93a}\label{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_aeb07a160158e88677194b704cc29c93a} 
+{\bfseries decode} (self, z)
+\item 
+\Hypertarget{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a2bca75432f38d6c0db07607ce4628749}\label{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a2bca75432f38d6c0db07607ce4628749} 
+{\bfseries forward} (self, x)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a330961383e1a70e21e00e3074d21d43c}{encoder}}
+\item 
+\Hypertarget{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_ac4b27639641a6a29f8ef99e7f3086c6f}\label{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_ac4b27639641a6a29f8ef99e7f3086c6f} 
+{\bfseries fc1} = nn.\+Linear(h\+\_\+dim, z\+\_\+dim)
+\item 
+\Hypertarget{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a7ae27c9445ca452693e3281edadc87a3}\label{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a7ae27c9445ca452693e3281edadc87a3} 
+{\bfseries fc2} = nn.\+Linear(h\+\_\+dim, z\+\_\+dim)
+\item 
+\Hypertarget{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a9397f02b1eb598c168453bc5605c9243}\label{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a9397f02b1eb598c168453bc5605c9243} 
+{\bfseries fc3} = nn.\+Linear(z\+\_\+dim, h\+\_\+dim)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a83af88ffed0d19d880d68d4a0f485659}{decoder}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a83af88ffed0d19d880d68d4a0f485659}\index{heatoptim.utilities.vae\_module.VAE@{heatoptim.utilities.vae\_module.VAE}!decoder@{decoder}}
+\index{decoder@{decoder}!heatoptim.utilities.vae\_module.VAE@{heatoptim.utilities.vae\_module.VAE}}
+\doxysubsubsection{\texorpdfstring{decoder}{decoder}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a83af88ffed0d19d880d68d4a0f485659} 
+heatoptim.\+utilities.\+vae\+\_\+module.\+VAE.\+decoder}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ nn.Sequential(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ UnFlatten(),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.ConvTranspose2d(h\_dim,\ 128,\ kernel\_size=5,\ stride=2),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.ReLU(),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.ConvTranspose2d(128,\ 64,\ kernel\_size=5,\ stride=2),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.ReLU(),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.ConvTranspose2d(64,\ 32,\ kernel\_size=5,\ stride=2),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.ReLU(),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.ConvTranspose2d(32,\ 16,\ kernel\_size=6,\ stride=2),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.ReLU(),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.ConvTranspose2d(16,\ image\_channels,\ kernel\_size=6,\ stride=2),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.Sigmoid(),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ )}
+
+\end{DoxyCode}
+\Hypertarget{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a330961383e1a70e21e00e3074d21d43c}\index{heatoptim.utilities.vae\_module.VAE@{heatoptim.utilities.vae\_module.VAE}!encoder@{encoder}}
+\index{encoder@{encoder}!heatoptim.utilities.vae\_module.VAE@{heatoptim.utilities.vae\_module.VAE}}
+\doxysubsubsection{\texorpdfstring{encoder}{encoder}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1utilities_1_1vae__module_1_1_v_a_e_a330961383e1a70e21e00e3074d21d43c} 
+heatoptim.\+utilities.\+vae\+\_\+module.\+VAE.\+encoder}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ nn.Sequential(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.Conv2d(image\_channels,\ 16,\ kernel\_size=4,\ stride=2),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.ReLU(),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.Conv2d(16,\ 32,\ kernel\_size=4,\ stride=2),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.ReLU(),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.Conv2d(32,\ 64,\ kernel\_size=4,\ stride=2),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.ReLU(),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.Conv2d(64,\ 128,\ kernel\_size=4,\ stride=2),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.ReLU(),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.Conv2d(128,\ 256,\ kernel\_size=4,\ stride=2),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ nn.ReLU(),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ Flatten(),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ )}
+
+\end{DoxyCode}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/heatoptim/utilities/vae\+\_\+module.\+py\end{DoxyCompactItemize}

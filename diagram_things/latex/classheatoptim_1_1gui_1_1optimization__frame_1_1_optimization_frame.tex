@@ -1,0 +1,186 @@
+\doxysection{heatoptim.\+gui.\+optimization\+\_\+frame.\+Optimization\+Frame Class Reference}
+\hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame}{}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame}\index{heatoptim.gui.optimization\_frame.OptimizationFrame@{heatoptim.gui.optimization\_frame.OptimizationFrame}}
+
+
+Inheritance diagram for heatoptim.\+gui.\+optimization\+\_\+frame.\+Optimization\+Frame\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=212pt]{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for heatoptim.\+gui.\+optimization\+\_\+frame.\+Optimization\+Frame\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=212pt]{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a172e978966756374228a8499273b4508}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a172e978966756374228a8499273b4508} 
+{\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self, parent, options)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a862e78f49a30dceef05f037e15433bca}{create\+\_\+widgets}} (self)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_abac59e9d3083d5f4045038c8d5ea936f}{toggle\+\_\+optimizer\+\_\+options}} (self)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_aaad1e8a57257419cd1ce0be6b56a7ec5}{hide\+\_\+optimizer\+\_\+options}} (self)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_aa5d52058290b469c6ad9fabc292e9cb2}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_aa5d52058290b469c6ad9fabc292e9cb2} 
+{\bfseries options} = options
+\item 
+\mbox{\hyperlink{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a0586416b66e7b9ce16a41612858046b8}{optim\+\_\+checkbox}}
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a76464036ac565beb6fe028a102d4e865}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a76464036ac565beb6fe028a102d4e865} 
+{\bfseries optimizer\+\_\+label} = ctk.\+CTk\+Label(self, text="{}Select Optimizer\+:"{})
+\item 
+\mbox{\hyperlink{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a3a1fd55edf779cd11538d59ee3c22c52}{optimizer\+\_\+menu}}
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a544c4e0e31309094bc36fc82ea324dcd}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a544c4e0e31309094bc36fc82ea324dcd} 
+{\bfseries popsize\+\_\+label} = ctk.\+CTk\+Label(self, text="{}Population Size\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a605ed00db5a2ac1e207f5249dcc2ef88}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a605ed00db5a2ac1e207f5249dcc2ef88} 
+{\bfseries popsize\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}popsize"{}\mbox{]}, width=100)
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_aa3d1fade832bbafbf421d8f118804afe}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_aa3d1fade832bbafbf421d8f118804afe} 
+{\bfseries bounds\+\_\+lower\+\_\+label} = ctk.\+CTk\+Label(self, text="{}Lower Bound\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_ab216fea46600ba5fdb29f97a0edcca32}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_ab216fea46600ba5fdb29f97a0edcca32} 
+{\bfseries bounds\+\_\+lower\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}bounds\+\_\+lower"{}\mbox{]}, width=100)
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a87b815890ae3a84add4f1dd2dea4d483}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a87b815890ae3a84add4f1dd2dea4d483} 
+{\bfseries bounds\+\_\+upper\+\_\+label} = ctk.\+CTk\+Label(self, text="{}Upper Bound\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_ae7a01202e8b4ac5b8de70621537b7917}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_ae7a01202e8b4ac5b8de70621537b7917} 
+{\bfseries bounds\+\_\+upper\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}bounds\+\_\+upper"{}\mbox{]}, width=100)
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a90c2b8a589e2424a5daf7b141011902f}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a90c2b8a589e2424a5daf7b141011902f} 
+{\bfseries n\+\_\+iter\+\_\+label} = ctk.\+CTk\+Label(self, text="{}Number of Iterations\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_ac46d17aa0d82c51a9df2ce838bcbea49}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_ac46d17aa0d82c51a9df2ce838bcbea49} 
+{\bfseries n\+\_\+iter\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}n\+\_\+iter"{}\mbox{]}, width=100)
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_afbd2decf48f585996a19f1e3f83b0e48}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_afbd2decf48f585996a19f1e3f83b0e48} 
+{\bfseries maxtime\+\_\+label} = ctk.\+CTk\+Label(self, text="{}Max Time (seconds)\+:"{})
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a7be9055bd689538806b8ddb6464ca1ec}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a7be9055bd689538806b8ddb6464ca1ec} 
+{\bfseries maxtime\+\_\+entry} = ctk.\+CTk\+Entry(self, textvariable=self.\+options\mbox{[}"{}maxtime"{}\mbox{]}, width=100)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a0c6bf9bded10d33f3e862f2ae1a42f79}{\+\_\+on\+\_\+optim\+\_\+changed}} (self, \texorpdfstring{$\ast$}{*}args)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a97001d4f5de140c1f1c9b98f27f87116}\label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a97001d4f5de140c1f1c9b98f27f87116} 
+{\bfseries \+\_\+on\+\_\+optim\+\_\+changed} = 1)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a0c6bf9bded10d33f3e862f2ae1a42f79}\index{heatoptim.gui.optimization\_frame.OptimizationFrame@{heatoptim.gui.optimization\_frame.OptimizationFrame}!\_on\_optim\_changed@{\_on\_optim\_changed}}
+\index{\_on\_optim\_changed@{\_on\_optim\_changed}!heatoptim.gui.optimization\_frame.OptimizationFrame@{heatoptim.gui.optimization\_frame.OptimizationFrame}}
+\doxysubsubsection{\texorpdfstring{\_on\_optim\_changed()}{\_on\_optim\_changed()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a0c6bf9bded10d33f3e862f2ae1a42f79} 
+heatoptim.\+gui.\+optimization\+\_\+frame.\+Optimization\+Frame.\+\_\+on\+\_\+optim\+\_\+changed (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{\texorpdfstring{$\ast$}{*}}]{args}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
+
+\begin{DoxyVerb}Callback whenever self.options['hpc_enabled'] is set (True/False).\end{DoxyVerb}
+ Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a0c6bf9bded10d33f3e862f2ae1a42f79_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a862e78f49a30dceef05f037e15433bca}\index{heatoptim.gui.optimization\_frame.OptimizationFrame@{heatoptim.gui.optimization\_frame.OptimizationFrame}!create\_widgets@{create\_widgets}}
+\index{create\_widgets@{create\_widgets}!heatoptim.gui.optimization\_frame.OptimizationFrame@{heatoptim.gui.optimization\_frame.OptimizationFrame}}
+\doxysubsubsection{\texorpdfstring{create\_widgets()}{create\_widgets()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a862e78f49a30dceef05f037e15433bca} 
+heatoptim.\+gui.\+optimization\+\_\+frame.\+Optimization\+Frame.\+create\+\_\+widgets (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Create UI elements with CustomTkinter.\end{DoxyVerb}
+ Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a862e78f49a30dceef05f037e15433bca_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_aaad1e8a57257419cd1ce0be6b56a7ec5}\index{heatoptim.gui.optimization\_frame.OptimizationFrame@{heatoptim.gui.optimization\_frame.OptimizationFrame}!hide\_optimizer\_options@{hide\_optimizer\_options}}
+\index{hide\_optimizer\_options@{hide\_optimizer\_options}!heatoptim.gui.optimization\_frame.OptimizationFrame@{heatoptim.gui.optimization\_frame.OptimizationFrame}}
+\doxysubsubsection{\texorpdfstring{hide\_optimizer\_options()}{hide\_optimizer\_options()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_aaad1e8a57257419cd1ce0be6b56a7ec5} 
+heatoptim.\+gui.\+optimization\+\_\+frame.\+Optimization\+Frame.\+hide\+\_\+optimizer\+\_\+options (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Hide all optimizer-related options.\end{DoxyVerb}
+ Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_aaad1e8a57257419cd1ce0be6b56a7ec5_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_abac59e9d3083d5f4045038c8d5ea936f}\index{heatoptim.gui.optimization\_frame.OptimizationFrame@{heatoptim.gui.optimization\_frame.OptimizationFrame}!toggle\_optimizer\_options@{toggle\_optimizer\_options}}
+\index{toggle\_optimizer\_options@{toggle\_optimizer\_options}!heatoptim.gui.optimization\_frame.OptimizationFrame@{heatoptim.gui.optimization\_frame.OptimizationFrame}}
+\doxysubsubsection{\texorpdfstring{toggle\_optimizer\_options()}{toggle\_optimizer\_options()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_abac59e9d3083d5f4045038c8d5ea936f} 
+heatoptim.\+gui.\+optimization\+\_\+frame.\+Optimization\+Frame.\+toggle\+\_\+optimizer\+\_\+options (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Show or hide optimizer options based on the Run Optimization checkbox.\end{DoxyVerb}
+ Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_abac59e9d3083d5f4045038c8d5ea936f_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_abac59e9d3083d5f4045038c8d5ea936f_icgraph}
+\end{center}
+\end{figure}
+
+
+\doxysubsection{Member Data Documentation}
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a0586416b66e7b9ce16a41612858046b8}\index{heatoptim.gui.optimization\_frame.OptimizationFrame@{heatoptim.gui.optimization\_frame.OptimizationFrame}!optim\_checkbox@{optim\_checkbox}}
+\index{optim\_checkbox@{optim\_checkbox}!heatoptim.gui.optimization\_frame.OptimizationFrame@{heatoptim.gui.optimization\_frame.OptimizationFrame}}
+\doxysubsubsection{\texorpdfstring{optim\_checkbox}{optim\_checkbox}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a0586416b66e7b9ce16a41612858046b8} 
+heatoptim.\+gui.\+optimization\+\_\+frame.\+Optimization\+Frame.\+optim\+\_\+checkbox}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ ctk.CTkCheckBox(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ self,\ text=\textcolor{stringliteral}{"{}Run\ Optimization"{}},\ variable=self.options[\textcolor{stringliteral}{"{}optim"{}}]}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ )}
+
+\end{DoxyCode}
+\Hypertarget{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a3a1fd55edf779cd11538d59ee3c22c52}\index{heatoptim.gui.optimization\_frame.OptimizationFrame@{heatoptim.gui.optimization\_frame.OptimizationFrame}!optimizer\_menu@{optimizer\_menu}}
+\index{optimizer\_menu@{optimizer\_menu}!heatoptim.gui.optimization\_frame.OptimizationFrame@{heatoptim.gui.optimization\_frame.OptimizationFrame}}
+\doxysubsubsection{\texorpdfstring{optimizer\_menu}{optimizer\_menu}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame_a3a1fd55edf779cd11538d59ee3c22c52} 
+heatoptim.\+gui.\+optimization\+\_\+frame.\+Optimization\+Frame.\+optimizer\+\_\+menu}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \ ctk.CTkOptionMenu(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ self,\ variable=self.options[\textcolor{stringliteral}{"{}optimizer"{}}],\ values=[\textcolor{stringliteral}{"{}bayesian"{}},\ \textcolor{stringliteral}{"{}cmaes"{}},\ \textcolor{stringliteral}{"{}nsga2"{}}]}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ )}
+
+\end{DoxyCode}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/heatoptim/gui/optimization\+\_\+frame.\+py\end{DoxyCompactItemize}

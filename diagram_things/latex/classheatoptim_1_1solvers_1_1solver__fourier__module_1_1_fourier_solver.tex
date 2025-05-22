@@ -1,0 +1,70 @@
+\doxysection{heatoptim.\+solvers.\+solver\+\_\+fourier\+\_\+module.\+Fourier\+Solver Class Reference}
+\hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver}{}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver}\index{heatoptim.solvers.solver\_fourier\_module.FourierSolver@{heatoptim.solvers.solver\_fourier\_module.FourierSolver}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_aa27b6fa0bedd6743e5dd82246ecd04e5}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_aa27b6fa0bedd6743e5dd82246ecd04e5} 
+{\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self, msh, facet\+\_\+markers, config)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_ae9227d45be908fbd9b12ec8a7013a7f5}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_ae9227d45be908fbd9b12ec8a7013a7f5} 
+{\bfseries define\+\_\+boundary\+\_\+conditions} (self)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a9869e1d05c9571763cacce3b90456439}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a9869e1d05c9571763cacce3b90456439} 
+{\bfseries define\+\_\+variational\+\_\+form} (self)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_aebfe4839445656b5916906a9fcc0c6e8}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_aebfe4839445656b5916906a9fcc0c6e8} 
+{\bfseries solve\+\_\+image} (self, img\+\_\+list)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a7cb183c7323c38a76a44f145560f3159}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a7cb183c7323c38a76a44f145560f3159} 
+{\bfseries get\+\_\+std\+\_\+dev} (self)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a4d5d4be53362ee67707986bdfc00b47f}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a4d5d4be53362ee67707986bdfc00b47f} 
+{\bfseries solve\+\_\+problem} (self, residual, jacobian)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a84d323aa2ebde38865c47849e338db91}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a84d323aa2ebde38865c47849e338db91} 
+{\bfseries msh} = msh
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a43289f371d795c499d2a7931b54f32b2}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a43289f371d795c499d2a7931b54f32b2} 
+{\bfseries config} = config
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_adea87f07e54cce01a86a99ef542b268e}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_adea87f07e54cce01a86a99ef542b268e} 
+{\bfseries facet\+\_\+markers} = facet\+\_\+markers
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a687ddf160f1f7fd112b7b9dd938701cd}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a687ddf160f1f7fd112b7b9dd938701cd} 
+{\bfseries V} = fem.\+functionspace(msh, ("{}CG"{}, 1))
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a340a2cab223e05ebb259f0b008c6dc35}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a340a2cab223e05ebb259f0b008c6dc35} 
+{\bfseries T} = fem.\+Function(self.\+V)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a8d1f4345d234daf3062aa07b600566f0}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a8d1f4345d234daf3062aa07b600566f0} 
+{\bfseries gamma} = fem.\+Function(V\+\_\+gamma)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_af6b007f40e4cb5d0d6cdfb8ab813b9a4}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_af6b007f40e4cb5d0d6cdfb8ab813b9a4} 
+{\bfseries ds} = ufl.\+Measure("{}ds"{}, domain=self.\+msh, subdomain\+\_\+data=self.\+facet\+\_\+markers)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a2f57890fa0936c1c2481b6320eaef4a1}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a2f57890fa0936c1c2481b6320eaef4a1} 
+{\bfseries ds\+\_\+bottom} = self.\+ds(1)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_ad545ebe3527d3ea56c22cf35770e238c}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_ad545ebe3527d3ea56c22cf35770e238c} 
+{\bfseries ds\+\_\+slip} = self.\+ds(2)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_ad41847b30c1bf152e27fca1a546d00fa}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_ad41847b30c1bf152e27fca1a546d00fa} 
+list {\bfseries ds\+\_\+tops} = \mbox{[}self.\+ds(tag) for tag in top\+\_\+tags\mbox{]}
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_aa6f9df640096d2961e1bb1057dbc5070}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_aa6f9df640096d2961e1bb1057dbc5070} 
+{\bfseries ds\+\_\+symmetry} = self.\+ds(4)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a0913d07ea76a3e4de130e6313cb926ca}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a0913d07ea76a3e4de130e6313cb926ca} 
+{\bfseries bc\+\_\+bottom} = fem.\+dirichletbc(T\+\_\+\+D\+\_\+bottom, dofs\+\_\+bottom, self.\+V)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a77059a80263bbc0d8092d6e0e44eeb62}\label{classheatoptim_1_1solvers_1_1solver__fourier__module_1_1_fourier_solver_a77059a80263bbc0d8092d6e0e44eeb62} 
+list {\bfseries bcs} = \mbox{[}self.\+bc\+\_\+bottom\mbox{]}
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/heatoptim/solvers/solver\+\_\+fourier\+\_\+module.\+py\end{DoxyCompactItemize}

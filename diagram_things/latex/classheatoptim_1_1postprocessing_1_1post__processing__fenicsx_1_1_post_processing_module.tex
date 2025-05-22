@@ -1,0 +1,84 @@
+\doxysection{heatoptim.\+postprocessing.\+post\+\_\+processing\+\_\+fenicsx.\+Post\+Processing\+Module Class Reference}
+\hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module}{}\label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module}\index{heatoptim.postprocessing.post\_processing\_fenicsx.PostProcessingModule@{heatoptim.postprocessing.post\_processing\_fenicsx.PostProcessingModule}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a214b92435ff2ea846a077432a2f09de7}\label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a214b92435ff2ea846a077432a2f09de7} 
+{\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self, rank, config, logger=None)
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a6d04571ff6c57acc883ee59ac087645b}\label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a6d04571ff6c57acc883ee59ac087645b} 
+{\bfseries postprocess\+\_\+results} (self, q, T, V, msh, gamma, fileadd="{}"{})
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a913efab1613cc5ee7501a457ef0f6ac8}\label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a913efab1613cc5ee7501a457ef0f6ac8} 
+{\bfseries plot\+\_\+profiles} (self, q, T, msh)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a60a0f69b1af0c8e80024a37c1f148dd1}{gather\+\_\+mesh\+\_\+on\+\_\+rank0}} (self, mesh, V, function, root=0)
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a17ef224a3ce1e4f94776fccb46c302b5}\label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a17ef224a3ce1e4f94776fccb46c302b5} 
+{\bfseries plot\+\_\+scalar\+\_\+field} (self, global\+\_\+top, global\+\_\+ct, global\+\_\+geom, values, field\+\_\+name="{}field"{}, clim=None, show\+\_\+edges=False)
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a7cbfaa3fb00dc8618b130a5de8831882}\label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a7cbfaa3fb00dc8618b130a5de8831882} 
+{\bfseries plot\+\_\+vector\+\_\+field} (self, q, msh)
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a4d5e2d54709b71006f22475d9bc9f68c}\label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a4d5e2d54709b71006f22475d9bc9f68c} 
+{\bfseries get\+\_\+temperature\+\_\+line} (self, T\+\_\+results, msh, line\+\_\+orientation="{}horizontal"{}, start=0.\+0, end=1.\+0, value=0.\+5, num\+\_\+points=500)
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a3fe71d13939ed99b846e50889bc1b22e}\label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a3fe71d13939ed99b846e50889bc1b22e} 
+{\bfseries calculate\+\_\+curl} (self, q, msh, plot\+\_\+curl=False)
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_af5b09e2b5cff5b99242423cca119b315}\label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_af5b09e2b5cff5b99242423cca119b315} 
+{\bfseries calculate\+\_\+eff\+\_\+thermal\+\_\+cond} (self, q, T, msh)
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a8ffc55b1f258693e76343b3f20529fa1}\label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a8ffc55b1f258693e76343b3f20529fa1} 
+{\bfseries project\+\_\+to\+\_\+\+CG\+\_\+space} (self, function\+\_\+\+DG, msh, degree=1)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a1de4a390ccdaa7fdb91e3dc6123eaa6f}\label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a1de4a390ccdaa7fdb91e3dc6123eaa6f} 
+int {\bfseries rank} = rank
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a1455aec99eaae467d11ca7193c8f9c3c}\label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a1455aec99eaae467d11ca7193c8f9c3c} 
+{\bfseries config} = config
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_ac8875945e2159c7f95d6fb10ce3359e4}\label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_ac8875945e2159c7f95d6fb10ce3359e4} 
+{\bfseries logger} = logger
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_ac3a29f1aea235827bff5130d6b41b1fd}\label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_ac3a29f1aea235827bff5130d6b41b1fd} 
+str {\bfseries is\+\_\+off\+\_\+screen} = "{}screenshot"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a60a0f69b1af0c8e80024a37c1f148dd1}\index{heatoptim.postprocessing.post\_processing\_fenicsx.PostProcessingModule@{heatoptim.postprocessing.post\_processing\_fenicsx.PostProcessingModule}!gather\_mesh\_on\_rank0@{gather\_mesh\_on\_rank0}}
+\index{gather\_mesh\_on\_rank0@{gather\_mesh\_on\_rank0}!heatoptim.postprocessing.post\_processing\_fenicsx.PostProcessingModule@{heatoptim.postprocessing.post\_processing\_fenicsx.PostProcessingModule}}
+\doxysubsubsection{\texorpdfstring{gather\_mesh\_on\_rank0()}{gather\_mesh\_on\_rank0()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1postprocessing_1_1post__processing__fenicsx_1_1_post_processing_module_a60a0f69b1af0c8e80024a37c1f148dd1} 
+heatoptim.\+postprocessing.\+post\+\_\+processing\+\_\+fenicsx.\+Post\+Processing\+Module.\+gather\+\_\+mesh\+\_\+on\+\_\+rank0 (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{mesh}{, }\item[{}]{V}{, }\item[{}]{function}{, }\item[{}]{root}{ = {\ttfamily 0}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Gathers mesh data (topology, cell types, geometry) and solution data (u) from all ranks to rank 0.
+
+Parameters:
+mesh: dolfinx.Mesh
+    The distributed mesh.
+V: dolfinx.FunctionSpace
+    The function space associated with the function.
+function: dolfinx.Function
+    The function whose data needs to be gathered (e.g., temperature field).
+root: int
+    The rank on which to gather data (default is 0).
+
+Returns:
+On rank 0:
+    - root_top: np.ndarray (global topology)
+    - root_geom: np.ndarray (global geometry)
+    - root_ct: np.ndarray (global cell types)
+    - root_vals: np.ndarray (global function values)
+On other ranks:
+    - None, None, None, None
+\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/heatoptim/postprocessing/post\+\_\+processing\+\_\+fenicsx.\+py\end{DoxyCompactItemize}

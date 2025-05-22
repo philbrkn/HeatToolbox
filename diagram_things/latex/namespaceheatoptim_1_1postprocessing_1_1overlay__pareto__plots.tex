@@ -1,0 +1,79 @@
+\doxysection{heatoptim.\+postprocessing.\+overlay\+\_\+pareto\+\_\+plots Namespace Reference}
+\hypertarget{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots}{}\label{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots}\index{heatoptim.postprocessing.overlay\_pareto\_plots@{heatoptim.postprocessing.overlay\_pareto\_plots}}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_a55a6fd254228f3f91fed477bad8909aa}{load\+\_\+pareto\+\_\+front}} (iter\+\_\+path)
+\item 
+\mbox{\hyperlink{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_a7da0e274c235476c26d1da61c32dfcaa}{overlay\+\_\+pareto\+\_\+fronts}} (base\+\_\+dir, output\+\_\+file)
+\item 
+\Hypertarget{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_afde94f96e882387143893f60481f0706}\label{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_afde94f96e882387143893f60481f0706} 
+{\bfseries main} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_adcd62569ddea952af5cb4c2406e7c557}\label{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_adcd62569ddea952af5cb4c2406e7c557} 
+str {\bfseries ITER\+\_\+\+PATH} = "{}logs/\+\_\+\+ONE\+\_\+\+SOURCE\+\_\+\+NSGA3"{}
+\item 
+\Hypertarget{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_a30d09da594b400bd0d181003c228c37c}\label{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_a30d09da594b400bd0d181003c228c37c} 
+{\bfseries output\+\_\+file} = os.\+path.\+join(ITER\+\_\+\+PATH, "{}overlay\+\_\+pareto\+\_\+fronts.\+png"{})
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}overlay_pareto_fronts.py
+
+This script overlays Pareto fronts from different NSGA runs.
+For example, in the base directory logs/_ONE_SOURCE_NSGA2,
+it looks for subfolders like:
+  test_nsga_10mpi_z2
+  test_nsga_10mpi_z4
+  test_nsga_10mpi_z8
+  test_nsga_10mpi_z16
+
+Each subfolder must contain an NSGA_Result.pk1 file.
+The script extracts the Pareto front (objective values) from each file
+and plots them on a single figure, saving the overlay plot.
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Function Documentation}
+\Hypertarget{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_a55a6fd254228f3f91fed477bad8909aa}\index{heatoptim.postprocessing.overlay\_pareto\_plots@{heatoptim.postprocessing.overlay\_pareto\_plots}!load\_pareto\_front@{load\_pareto\_front}}
+\index{load\_pareto\_front@{load\_pareto\_front}!heatoptim.postprocessing.overlay\_pareto\_plots@{heatoptim.postprocessing.overlay\_pareto\_plots}}
+\doxysubsubsection{\texorpdfstring{load\_pareto\_front()}{load\_pareto\_front()}}
+{\footnotesize\ttfamily \label{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_a55a6fd254228f3f91fed477bad8909aa} 
+heatoptim.\+postprocessing.\+overlay\+\_\+pareto\+\_\+plots.\+load\+\_\+pareto\+\_\+front (\begin{DoxyParamCaption}\item[{}]{iter\+\_\+path}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Load NSGA_Result.pk1 from the given folder and return its Pareto front (F).
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_a55a6fd254228f3f91fed477bad8909aa_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_a7da0e274c235476c26d1da61c32dfcaa}\index{heatoptim.postprocessing.overlay\_pareto\_plots@{heatoptim.postprocessing.overlay\_pareto\_plots}!overlay\_pareto\_fronts@{overlay\_pareto\_fronts}}
+\index{overlay\_pareto\_fronts@{overlay\_pareto\_fronts}!heatoptim.postprocessing.overlay\_pareto\_plots@{heatoptim.postprocessing.overlay\_pareto\_plots}}
+\doxysubsubsection{\texorpdfstring{overlay\_pareto\_fronts()}{overlay\_pareto\_fronts()}}
+{\footnotesize\ttfamily \label{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_a7da0e274c235476c26d1da61c32dfcaa} 
+heatoptim.\+postprocessing.\+overlay\+\_\+pareto\+\_\+plots.\+overlay\+\_\+pareto\+\_\+fronts (\begin{DoxyParamCaption}\item[{}]{base\+\_\+dir}{, }\item[{}]{output\+\_\+file}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Loop over subdirectories in base_dir that contain NSGA_Result.pk1,
+extract their Pareto fronts, and overlay them on a single 2D plot.
+\end{DoxyVerb}
+ Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_a7da0e274c235476c26d1da61c32dfcaa_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=251pt]{namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots_a7da0e274c235476c26d1da61c32dfcaa_icgraph}
+\end{center}
+\end{figure}

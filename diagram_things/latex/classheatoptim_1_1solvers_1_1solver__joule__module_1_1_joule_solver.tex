@@ -1,0 +1,67 @@
+\doxysection{heatoptim.\+solvers.\+solver\+\_\+joule\+\_\+module.\+Joule\+Solver Class Reference}
+\hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver}{}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver}\index{heatoptim.solvers.solver\_joule\_module.JouleSolver@{heatoptim.solvers.solver\_joule\_module.JouleSolver}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_af4586f7338346847280e8cbd570c0f07}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_af4586f7338346847280e8cbd570c0f07} 
+{\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self, msh, facet\+\_\+markers, config)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_af3f2e8a8df2ad8977fff51f9135054e2}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_af3f2e8a8df2ad8977fff51f9135054e2} 
+{\bfseries define\+\_\+boundary\+\_\+conditions} (self)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a429aa8968ac2dcd14b8a05e482d63cf9}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a429aa8968ac2dcd14b8a05e482d63cf9} 
+{\bfseries define\+\_\+variational\+\_\+form} (self)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_afb56b9c34e77847b21685fffaa7611c3}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_afb56b9c34e77847b21685fffaa7611c3} 
+{\bfseries solve\+\_\+image} (self, img\+\_\+list)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_ad2843c2c598f61e5498a4af80ffe7e6c}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_ad2843c2c598f61e5498a4af80ffe7e6c} 
+{\bfseries solve\+\_\+problem} (self, residual, jacobian)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a74e22d1a84c030b450666e646e2e1e66}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a74e22d1a84c030b450666e646e2e1e66} 
+{\bfseries msh} = msh
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a98228cd63593c02cb088f5ac913444c6}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a98228cd63593c02cb088f5ac913444c6} 
+{\bfseries config} = config
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_aebdab3ed6da70b3b9b3ca01fb0cb6442}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_aebdab3ed6da70b3b9b3ca01fb0cb6442} 
+{\bfseries facet\+\_\+markers} = facet\+\_\+markers
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a335b6348eb8f8560349690367f3e0ce8}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a335b6348eb8f8560349690367f3e0ce8} 
+{\bfseries V} = fem.\+functionspace(msh, ("{}CG"{}, 1))
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a2e4a1c52bc0c7fd710d4472d9b0ecd05}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a2e4a1c52bc0c7fd710d4472d9b0ecd05} 
+{\bfseries T} = fem.\+Function(self.\+V)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_aa2c8662b85942dce0480efbaa288d0d3}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_aa2c8662b85942dce0480efbaa288d0d3} 
+{\bfseries gamma} = fem.\+Function(V\+\_\+gamma)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a16b6350aa7934ed11e73c2dd77811c98}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a16b6350aa7934ed11e73c2dd77811c98} 
+{\bfseries ds} = ufl.\+Measure("{}ds"{}, domain=self.\+msh, subdomain\+\_\+data=self.\+facet\+\_\+markers)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a950ac7e7f26722ad9cba543f697fc3ce}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a950ac7e7f26722ad9cba543f697fc3ce} 
+{\bfseries ds\+\_\+bottom} = self.\+ds(1)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a6ab3d3c053f658346607053f315acd9f}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a6ab3d3c053f658346607053f315acd9f} 
+{\bfseries ds\+\_\+slip} = self.\+ds(2)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_abc31284c9be245e3463202e4f0157c09}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_abc31284c9be245e3463202e4f0157c09} 
+list {\bfseries ds\+\_\+tops} = \mbox{[}self.\+ds(tag) for tag in top\+\_\+tags\mbox{]}
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a31db310d9f8085a357a1612e8e618d77}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_a31db310d9f8085a357a1612e8e618d77} 
+{\bfseries ds\+\_\+symmetry} = self.\+ds(4)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_ac165360c8e64833b833b173cae0d58aa}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_ac165360c8e64833b833b173cae0d58aa} 
+{\bfseries bc\+\_\+bottom} = fem.\+dirichletbc(T\+\_\+\+D\+\_\+bottom, dofs\+\_\+bottom, self.\+V)
+\item 
+\Hypertarget{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_ac9ffa37665595f43dbd57d6ad1fd276f}\label{classheatoptim_1_1solvers_1_1solver__joule__module_1_1_joule_solver_ac9ffa37665595f43dbd57d6ad1fd276f} 
+list {\bfseries bcs} = \mbox{[}self.\+bc\+\_\+bottom\mbox{]}
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/heatoptim/solvers/solver\+\_\+joule\+\_\+module.\+py\end{DoxyCompactItemize}

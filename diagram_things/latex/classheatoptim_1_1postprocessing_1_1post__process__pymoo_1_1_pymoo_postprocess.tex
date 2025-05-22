@@ -1,0 +1,171 @@
+\doxysection{heatoptim.\+postprocessing.\+post\+\_\+process\+\_\+pymoo.\+Pymoo\+Postprocess Class Reference}
+\hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess}{}\label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess}\index{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a0ead5f931d1f4beed05b0bcf77ba4006}\label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a0ead5f931d1f4beed05b0bcf77ba4006} 
+{\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self, iter\+\_\+path)
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a615036e260ca2a665c3e9701d8f7491b}\label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a615036e260ca2a665c3e9701d8f7491b} 
+{\bfseries print\+\_\+termination\+\_\+reason} (self)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_ab45f59f5080eca4e1a69252cd7acc042}{get\+\_\+min\+\_\+max\+\_\+pareto}} (self, nds)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a46a76ad0f3083a9fb49787cee4d38a77}{get\+\_\+pareto\+\_\+plot}} (self, plot\+\_\+sols=False, filter\+\_\+outliers=False, threshold=10000, minmax=False)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_ad14fa880338beed6260272d0e39f351f}{get\+\_\+solution\+\_\+vector}} (self, pos)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_acf3c23c0498ca167413f3f5206dfa4c0}{get\+\_\+hyperbolic\+\_\+convergence}} (self)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_af7efec107f7802656afaf062df5178f6}{get\+\_\+compromise\+\_\+solution}} (self)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a9ed91ec2df39315c924d1e5edddcb995}{get\+\_\+pareto\+\_\+plot\+\_\+with\+\_\+cmaes}} (self, path, cmaes\+\_\+obj)
+\item 
+\mbox{\hyperlink{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a540a415fa705272b1d8f6412801a8dca}{visualize\+\_\+fields}} (self, positions=\mbox{[}0, 1, 2\mbox{]}, config\+\_\+path=None)
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a402f8f7cc801ce3ac495fb14416d8a8e}\label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a402f8f7cc801ce3ac495fb14416d8a8e} 
+{\bfseries run\+\_\+fenics\+\_\+solver} (self, img\+\_\+list)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a32ff6c33b325921c0928d2c94733c8d3}\label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a32ff6c33b325921c0928d2c94733c8d3} 
+{\bfseries iter\+\_\+path} = iter\+\_\+path
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a8ff75af6166965fd22f99b1a8ca48967}\label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a8ff75af6166965fd22f99b1a8ca48967} 
+{\bfseries res} = pickle.\+load(f)
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a40f339b23630eb83db5d299ec6c865df}\label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a40f339b23630eb83db5d299ec6c865df} 
+{\bfseries decomp\+\_\+idx} = decomp(self.\+res.\+F, weights).argmin()
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a996d5ee706da5f2f2ad3ea62815ea861}\label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a996d5ee706da5f2f2ad3ea62815ea861} 
+{\bfseries config\+\_\+dict} = json.\+load(f)
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a89e931ff96ae9f1007595ac448bcb963}\label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a89e931ff96ae9f1007595ac448bcb963} 
+{\bfseries config} = \mbox{\hyperlink{classheatoptim_1_1config_1_1sim__config_1_1_simulation_config}{Simulation\+Config}}(self.\+config\+\_\+dict)
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a1aa10797f63b39bc3b5b8b6bac1f21f3}\label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a1aa10797f63b39bc3b5b8b6bac1f21f3} 
+{\bfseries comm} = MPI.\+COMM\+\_\+\+WORLD
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a6764db311f1d274d3fa45a40f9ad8c3a}\label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a6764db311f1d274d3fa45a40f9ad8c3a} 
+{\bfseries rank} = self.\+comm.\+rank
+\item 
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a2ad09882a014c522c5c8d02affc78a7a}\label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a2ad09882a014c522c5c8d02affc78a7a} 
+{\bfseries model} = load\+\_\+vae\+\_\+model(self.\+rank, self.\+config.\+latent\+\_\+size)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\begin{DoxyVerb}Post processing for pymoo plots
+e.g: pareto front, hypervolume convergence, running metric
+\end{DoxyVerb}
+ 
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_af7efec107f7802656afaf062df5178f6}\index{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}!get\_compromise\_solution@{get\_compromise\_solution}}
+\index{get\_compromise\_solution@{get\_compromise\_solution}!heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}}
+\doxysubsubsection{\texorpdfstring{get\_compromise\_solution()}{get\_compromise\_solution()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_af7efec107f7802656afaf062df5178f6} 
+heatoptim.\+postprocessing.\+post\+\_\+process\+\_\+pymoo.\+Pymoo\+Postprocess.\+get\+\_\+compromise\+\_\+solution (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Use achievement scalarization function, https://pymoo.org/mcdm/index.html
+input: pf, pareto front 1d array
+path: path to save the plot
+returns: solution vector and point
+\end{DoxyVerb}
+ Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_af7efec107f7802656afaf062df5178f6_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_acf3c23c0498ca167413f3f5206dfa4c0}\index{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}!get\_hyperbolic\_convergence@{get\_hyperbolic\_convergence}}
+\index{get\_hyperbolic\_convergence@{get\_hyperbolic\_convergence}!heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}}
+\doxysubsubsection{\texorpdfstring{get\_hyperbolic\_convergence()}{get\_hyperbolic\_convergence()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_acf3c23c0498ca167413f3f5206dfa4c0} 
+heatoptim.\+postprocessing.\+post\+\_\+process\+\_\+pymoo.\+Pymoo\+Postprocess.\+get\+\_\+hyperbolic\+\_\+convergence (\begin{DoxyParamCaption}\item[{}]{self}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}docstring\end{DoxyVerb}
+ \Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_ab45f59f5080eca4e1a69252cd7acc042}\index{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}!get\_min\_max\_pareto@{get\_min\_max\_pareto}}
+\index{get\_min\_max\_pareto@{get\_min\_max\_pareto}!heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}}
+\doxysubsubsection{\texorpdfstring{get\_min\_max\_pareto()}{get\_min\_max\_pareto()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_ab45f59f5080eca4e1a69252cd7acc042} 
+heatoptim.\+postprocessing.\+post\+\_\+process\+\_\+pymoo.\+Pymoo\+Postprocess.\+get\+\_\+min\+\_\+max\+\_\+pareto (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{nds}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}for scaling purposes
+parameter: nds, list of non dominated solutions\end{DoxyVerb}
+ \Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a46a76ad0f3083a9fb49787cee4d38a77}\index{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}!get\_pareto\_plot@{get\_pareto\_plot}}
+\index{get\_pareto\_plot@{get\_pareto\_plot}!heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}}
+\doxysubsubsection{\texorpdfstring{get\_pareto\_plot()}{get\_pareto\_plot()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a46a76ad0f3083a9fb49787cee4d38a77} 
+heatoptim.\+postprocessing.\+post\+\_\+process\+\_\+pymoo.\+Pymoo\+Postprocess.\+get\+\_\+pareto\+\_\+plot (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{plot\+\_\+sols}{ = {\ttfamily False}, }\item[{}]{filter\+\_\+outliers}{ = {\ttfamily False}, }\item[{}]{threshold}{ = {\ttfamily 10000}, }\item[{}]{minmax}{ = {\ttfamily False}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Saves pareto plot, 2d or 3d depending on problem
+inputs: path-> path to save the plot
+        plot_compromise-> plot the compromise solution point
+        filter_outliers-> filter out solutions above threshold
+        threshold-> threshold value
+        minmax-> normalize the pareto front
+\end{DoxyVerb}
+ Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a46a76ad0f3083a9fb49787cee4d38a77_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a9ed91ec2df39315c924d1e5edddcb995}\index{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}!get\_pareto\_plot\_with\_cmaes@{get\_pareto\_plot\_with\_cmaes}}
+\index{get\_pareto\_plot\_with\_cmaes@{get\_pareto\_plot\_with\_cmaes}!heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}}
+\doxysubsubsection{\texorpdfstring{get\_pareto\_plot\_with\_cmaes()}{get\_pareto\_plot\_with\_cmaes()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a9ed91ec2df39315c924d1e5edddcb995} 
+heatoptim.\+postprocessing.\+post\+\_\+process\+\_\+pymoo.\+Pymoo\+Postprocess.\+get\+\_\+pareto\+\_\+plot\+\_\+with\+\_\+cmaes (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{path}{, }\item[{}]{cmaes\+\_\+obj}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Creates a Pareto plot (2D or 3D) and overlays the CMA-ES solution.
+\end{DoxyVerb}
+ \Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_ad14fa880338beed6260272d0e39f351f}\index{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}!get\_solution\_vector@{get\_solution\_vector}}
+\index{get\_solution\_vector@{get\_solution\_vector}!heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}}
+\doxysubsubsection{\texorpdfstring{get\_solution\_vector()}{get\_solution\_vector()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_ad14fa880338beed6260272d0e39f351f} 
+heatoptim.\+postprocessing.\+post\+\_\+process\+\_\+pymoo.\+Pymoo\+Postprocess.\+get\+\_\+solution\+\_\+vector (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{pos}{}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}return a solution vector, from either side of the pareto extreme
+or the middle of the population
+for 2 objs:
+    pos=0: f1 minimum (min Tsub)
+    pos=1: f2 minimum (min flux)
+    pos=2: compromise of the population
+\end{DoxyVerb}
+ Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_ad14fa880338beed6260272d0e39f351f_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_ad14fa880338beed6260272d0e39f351f_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a540a415fa705272b1d8f6412801a8dca}\index{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}!visualize\_fields@{visualize\_fields}}
+\index{visualize\_fields@{visualize\_fields}!heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess@{heatoptim.postprocessing.post\_process\_pymoo.PymooPostprocess}}
+\doxysubsubsection{\texorpdfstring{visualize\_fields()}{visualize\_fields()}}
+{\footnotesize\ttfamily \label{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a540a415fa705272b1d8f6412801a8dca} 
+heatoptim.\+postprocessing.\+post\+\_\+process\+\_\+pymoo.\+Pymoo\+Postprocess.\+visualize\+\_\+fields (\begin{DoxyParamCaption}\item[{}]{self}{, }\item[{}]{positions}{ = {\ttfamily \mbox{[}0,~1,~2\mbox{]}}, }\item[{}]{config\+\_\+path}{ = {\ttfamily None}}\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Visualize gamma fields for selected positions on Pareto front.\end{DoxyVerb}
+ Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classheatoptim_1_1postprocessing_1_1post__process__pymoo_1_1_pymoo_postprocess_a540a415fa705272b1d8f6412801a8dca_cgraph}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/heatoptim/postprocessing/post\+\_\+process\+\_\+pymoo.\+py\end{DoxyCompactItemize}
