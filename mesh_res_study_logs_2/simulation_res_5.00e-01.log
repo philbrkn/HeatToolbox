@@ -1,0 +1,12 @@
+Info    : Reading 'domain_with_extrusions.msh'...
+Info    : 18 entities
+Info    : 142 nodes
+Info    : 282 elements
+Info    : Done reading 'domain_with_extrusions.msh'
+Loading config from file on rank 0
+Opening best vector from file
+Average temperature: 0.006611127205769483 K
+Time taken to solve: 0.073 seconds
+For a length of 5e-07 m:
+Knudsen number (silicon): 0.878
+Knudsen number (diamond): 2.6832815729997477

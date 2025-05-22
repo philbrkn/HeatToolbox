@@ -231,11 +231,14 @@ def parse_arguments():
     parser.add_argument(
         "--config", type=str, required=True, help="Path to the configuration JSON file."
     )
+    parser.add_argument(
+        "--res", type=float, default=12.0, help="Mesh resolution (default: 12.0)"
+    )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_arguments()
-    config = SimulationConfig(args.config)
+    config = SimulationConfig(args.config, arg_res=args.res)
     controller = SimulationController(config)
     controller.run_simulation()

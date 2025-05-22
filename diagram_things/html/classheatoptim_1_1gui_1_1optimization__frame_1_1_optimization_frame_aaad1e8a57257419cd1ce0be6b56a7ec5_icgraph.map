@@ -1,0 +1,9 @@
+<map id="heatoptim.gui.optimization_frame.OptimizationFrame.hide_optimizer_options" name="heatoptim.gui.optimization_frame.OptimizationFrame.hide_optimizer_options">
+<area shape="rect" id="Node000001" title=" " alt="" coords="496,45,699,101"/>
+<area shape="rect" id="Node000002" href="$classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame.html#a862e78f49a30dceef05f037e15433bca" title=" " alt="" coords="233,5,448,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="480,58,448,53,449,47,481,52"/>
+<area shape="rect" id="Node000003" href="$classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame.html#abac59e9d3083d5f4045038c8d5ea936f" title=" " alt="" coords="233,85,448,141"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="481,94,448,99,447,94,480,89"/>
+<area shape="rect" id="Node000004" href="$classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame.html#a0c6bf9bded10d33f3e862f2ae1a42f79" title=" " alt="" coords="5,85,185,141"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="217,116,185,116,185,110,217,110"/>
+</map>

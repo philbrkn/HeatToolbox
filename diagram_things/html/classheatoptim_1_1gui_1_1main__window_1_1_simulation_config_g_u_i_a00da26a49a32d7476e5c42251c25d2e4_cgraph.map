@@ -1,0 +1,18 @@
+<map id="heatoptim.gui.main_window.SimulationConfigGUI.add_buttons" name="heatoptim.gui.main_window.SimulationConfigGUI.add_buttons">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,216,228,272"/>
+<area shape="rect" id="Node000002" href="$classheatoptim_1_1gui_1_1main__window_1_1_simulation_config_g_u_i.html#a18a7fdd95072a022374cd35cc6f5d045" title=" " alt="" coords="289,5,514,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,214,194,147,232,110,274,78,295,65,298,70,277,82,236,114,198,150,140,217"/>
+<area shape="rect" id="Node000003" href="$classheatoptim_1_1gui_1_1main__window_1_1_simulation_config_g_u_i.html#a76aa17230560791d3ea925162a22fdc5" title=" " alt="" coords="576,224,795,280"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="142,213,199,163,235,139,275,121,345,101,402,94,460,100,529,121,565,138,599,161,653,211,649,215,595,165,563,143,527,126,458,105,402,99,346,106,277,126,238,144,202,167,145,217"/>
+<area shape="rect" id="Node000004" href="$classheatoptim_1_1gui_1_1main__window_1_1_simulation_config_g_u_i.html#a8a65fc007b6db542011247a646572bdb" title=" " alt="" coords="287,136,516,192"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="218,213,285,194,286,199,219,218"/>
+<area shape="rect" id="Node000005" href="$classheatoptim_1_1gui_1_1main__window_1_1_simulation_config_g_u_i.html#a6561ad2b20091128061a5eb2c0e8a0db" title=" " alt="" coords="287,216,516,272"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="228,241,271,241,271,246,228,246"/>
+<area shape="rect" id="Node000006" href="$classheatoptim_1_1gui_1_1main__window_1_1_simulation_config_g_u_i.html#ad464e21e1f3bd03a64a3546069c198a9" title=" " alt="" coords="282,296,522,352"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="219,270,286,289,285,294,218,275"/>
+<area shape="rect" id="Node000007" href="$classheatoptim_1_1gui_1_1main__window_1_1_simulation_config_g_u_i.html#a0ab3ddc2f5e8f3391dc6b2b28feb9653" title=" " alt="" coords="276,376,528,432"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="150,270,207,316,277,362,288,367,286,372,274,366,204,321,147,274"/>
+<area shape="rect" id="Node000008" href="$classheatoptim_1_1gui_1_1main__window_1_1_simulation_config_g_u_i.html#ab8c031c9d7afcbc02015077f35ff6ca2" title=" " alt="" coords="276,456,528,512"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="135,271,158,309,190,355,231,402,277,442,284,446,281,450,274,446,227,406,186,359,154,312,131,273"/>
+<area shape="poly" id="edge7_Node000007_Node000003" title=" " alt="" coords="501,373,527,361,586,326,638,287,641,292,589,330,529,366,503,378"/>
+</map>

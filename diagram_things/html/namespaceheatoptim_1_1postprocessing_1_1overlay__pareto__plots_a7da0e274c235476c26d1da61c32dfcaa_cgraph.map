@@ -1,0 +1,6 @@
+<map id="heatoptim.postprocessing.overlay_pareto_plots.overlay_pareto_fronts" name="heatoptim.postprocessing.overlay_pareto_plots.overlay_pareto_fronts">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,234,70"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="69,29,67,19,75,10,93,5,120,3,149,5,166,11,164,16,147,10,119,8,94,10,78,15,72,21,74,28"/>
+<area shape="rect" id="Node000002" href="$namespaceheatoptim_1_1postprocessing_1_1overlay__pareto__plots.html#a55a6fd254228f3f91fed477bad8909aa" title=" " alt="" coords="282,29,498,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,47,266,47,266,52,234,52"/>
+</map>

@@ -6,7 +6,7 @@ from mpi4py import MPI
 
 
 class SimulationConfig:
-    def __init__(self, config):
+    def __init__(self, config, arg_res=None):
         """
         Initialize the simulation configuration.
 
@@ -65,7 +65,7 @@ class SimulationConfig:
         self.LENGTH = self.config.get("length", self.LENGTH)  # Default to 0.5 microns if not set
 
         # AT 300K
-        self.MEAN_FREE_PATH_SI = 0.439e-6
+        self.MEAN_FREE_PATH_SI = 0.439e-6  # 439 nm @ 300 K
         self.ELL_SI = PETSc.ScalarType(self.MEAN_FREE_PATH_SI / np.sqrt(5))  # should be 196 nm
         self.ELL_DI = PETSc.ScalarType(600e-9)  # 600 nm @ 300 K
         # self.ELL_DI = PETSc.ScalarType(1960e-9)
@@ -89,8 +89,11 @@ class SimulationConfig:
             self.blank = False
 
         # Mesh resolution
-        res = self.config.get("res", 12.0)
-        self.RESOLUTION = self.LENGTH / res if res > 0 else self.LENGTH / 12
+        if arg_res is not None:
+            self.RESOLUTION = self.LENGTH / arg_res
+        else:
+            res = self.config.get("res", 12.0)
+            self.RESOLUTION = self.LENGTH / res if res > 0 else self.LENGTH / 12
 
         # Sources
         self.sources = self.config.get("sources", [0.5, self.Q_L])

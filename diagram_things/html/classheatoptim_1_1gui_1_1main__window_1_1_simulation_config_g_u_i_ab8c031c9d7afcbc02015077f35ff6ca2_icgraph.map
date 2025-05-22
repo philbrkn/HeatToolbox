@@ -1,0 +1,5 @@
+<map id="heatoptim.gui.main_window.SimulationConfigGUI.visualize_gmsh_mesh" name="heatoptim.gui.main_window.SimulationConfigGUI.visualize_gmsh_mesh">
+<area shape="rect" id="Node000001" title=" " alt="" coords="276,5,528,61"/>
+<area shape="rect" id="Node000002" href="$classheatoptim_1_1gui_1_1main__window_1_1_simulation_config_g_u_i.html#a00da26a49a32d7476e5c42251c25d2e4" title=" " alt="" coords="5,5,228,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="260,36,228,36,228,30,260,30"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="heatoptim.gui.hpc_frame.HPCFrame._on_hpc_enabled_changed" name="heatoptim.gui.hpc_frame.HPCFrame._on_hpc_enabled_changed">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,198,87"/>
+<area shape="rect" id="Node000002" href="$classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame.html#a288eb2b77326c37d4c3a3ff000f766ee" title=" " alt="" coords="246,39,449,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,56,230,56,230,62,198,62"/>
+<area shape="rect" id="Node000003" href="$classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame.html#aec206f2d6b4f5b72a61e100fecd21c67" title=" " alt="" coords="502,5,695,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="449,43,487,38,487,43,450,48"/>
+<area shape="rect" id="Node000004" href="$classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame.html#acc44e0d59fe129b5aecbd03ba34fe6b0" title=" " alt="" coords="497,71,700,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="450,69,482,73,481,79,449,75"/>
+</map>

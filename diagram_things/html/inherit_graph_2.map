@@ -1,0 +1,15 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,177,111,202"/>
+<area shape="rect" id="Node000001" href="$classheatoptim_1_1gui_1_1hpc__frame_1_1_h_p_c_frame.html" title=" " alt="" coords="163,5,331,46"/>
+<area shape="poly" id="edge5_Node000000_Node000001" title=" " alt="" coords="71,162,106,109,130,81,157,57,178,44,181,49,160,61,134,85,110,112,76,165"/>
+<area shape="rect" id="Node000002" href="$classheatoptim_1_1gui_1_1material__frame_1_1_material_frame.html" title=" " alt="" coords="172,71,322,111"/>
+<area shape="poly" id="edge6_Node000000_Node000002" title=" " alt="" coords="88,165,157,122,185,109,187,114,160,127,90,170"/>
+<area shape="rect" id="Node000003" href="$classheatoptim_1_1gui_1_1optimization__frame_1_1_optimization_frame.html" title=" " alt="" coords="159,136,334,177"/>
+<area shape="poly" id="edge7_Node000000_Node000003" title=" " alt="" coords="126,175,158,169,159,175,127,180"/>
+<area shape="rect" id="Node000004" href="$classheatoptim_1_1gui_1_1solving__frame_1_1_solving_frame.html" title=" " alt="" coords="174,201,320,242"/>
+<area shape="poly" id="edge8_Node000000_Node000004" title=" " alt="" coords="127,199,174,207,173,212,126,204"/>
+<area shape="rect" id="Node000005" href="$classheatoptim_1_1gui_1_1sources__frame_1_1_sources_frame.html" title=" " alt="" coords="172,267,322,307"/>
+<area shape="poly" id="edge9_Node000000_Node000005" title=" " alt="" coords="91,209,160,251,187,264,185,268,157,256,88,214"/>
+<area shape="rect" id="Node000006" href="$classheatoptim_1_1gui_1_1visualization__frame_1_1_visualization_frame.html" title=" " alt="" coords="159,332,335,373"/>
+<area shape="poly" id="edge10_Node000000_Node000006" title=" " alt="" coords="76,214,110,266,134,293,160,317,181,329,178,334,157,321,130,297,106,269,71,217"/>
+</map>
