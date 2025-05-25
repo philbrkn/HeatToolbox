@@ -7,10 +7,12 @@ import os
 
 
 def main():
-    # Define the length scale from your config or set it directly
-    # MEAN_FREE_PATH = 0.439e-6  # meters
-    # KNUDSEN = 1
-    # LENGTH = MEAN_FREE_PATH / KNUDSEN  # meters
+    # folder name:
+    folder_name = "mesh_res_study_logs_blank"
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
 
     # List of mesh resolutions to test (from coarser to finer)
     resolutions = [
@@ -26,10 +28,7 @@ def main():
         15,
         20,
         30,    # Finer mesh
-        # LENGTH / 40,    # Finer mesh
     ]
-
-
 
     # Initialize a list to store average temperatures
     avg_temps = []
@@ -43,15 +42,15 @@ def main():
             "-m",
             "heatoptim.main",
             "--config",
-            "mesh_res_study_logs_2/config.json",  # Path to config file"
+            f"{folder_name}/config.json",  # Path to config file
             "--res",
             str(res),
         ]
 
         # Define log file name
-        log_file = f"mesh_res_study_logs_2/simulation_res_{res:.2e}.log"
+        log_file = f"{folder_name}/simulation_res_{res:.2e}.log"
 
-        # print(f"\nRunning simulation with resolution: {res:.2e} m")
+        print(f"\nRunning simulation with resolution: {res:.2e} m")
         # try:
         #     with open(log_file, "w") as f:
         #         result = subprocess.run(
@@ -113,7 +112,7 @@ def main():
     plt.grid(True, which="both", ls="--")
     plt.gca().invert_xaxis()  # Finer meshes (smaller resolutions) on the right
     plt.tight_layout()
-    plt.savefig("mesh_res_study_logs_2/mesh_refinement_study_results.png")
+    plt.savefig(f"{folder_name}/mesh_refinement_study_results.png")
     plt.show()
 
 
