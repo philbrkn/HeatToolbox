@@ -1,0 +1,54 @@
+{
+    "optim": false,
+    "optimizer": "cmaes",
+    "latent_size": 4,
+    "latent_method": "random",
+    "latent": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+    ],
+    "symmetry": false,
+    "blank": true,
+    "sources": [
+        0.5,
+        80.0
+    ],
+    "res": 12.0,
+    "visualize": {
+        "gamma": true,
+        "temperature": true,
+        "flux": true,
+        "profiles": true,
+        "pregamma": false,
+        "effective_conductivity": false
+    },
+    "vf_enabled": true,
+    "vf_value": 0.2,
+    "plot_mode": "screenshot",
+    "logging_enabled": true,
+    "nodes": 1,
+    "ncpus": 4,
+    "mem": 8,
+    "walltime": "03:00:00",
+    "parallelize": false,
+    "mpiprocs": 4,
+    "conda_env_path": "~/miniforge3/bin/conda",
+    "conda_env_name": "fenicsx_torch",
+    "log_name": "blank",
+    "hpc_user": "pt721",
+    "hpc_host": "login.cx3.hpc.ic.ac.uk",
+    "hpc_dir": "~/BTE-NO",
+    "popsize": 8,
+    "bounds": [
+        -2.5,
+        2.5
+    ],
+    "n_iter": 100,
+    "hpc_enabled": false,
+    "load_cmaes_config": false,
+    "length": 4.39e-06,
+    "solver_type": "gke",
+    "maxtime": 3600
+}

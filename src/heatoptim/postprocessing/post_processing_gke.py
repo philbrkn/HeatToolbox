@@ -95,14 +95,17 @@ class PostProcessingGKE:
         x_char = self.config.L_X if self.config.symmetry else self.config.L_X / 2
         # horizontal line:
         x_end = x_char
-        y_val = self.config.L_Y - 4 * self.config.LENGTH / 8
+        y_val = self.config.L_Y - 4 * self.config.LENGTH / 8  # to avoid the hotspots
+        # y_val = self.config.L_Y - self.config.LENGTH / 8  # from tur pratts
         (x_vals, T_x) = self.get_temperature_line(T, msh, "horizontal", start=0, end=x_end, value=y_val)
         (_, q_x_vals_horiz) = self.get_temperature_line(q_x, msh, "horizontal", start=0, end=x_end, value=y_val)
         (_, curl_vals_horiz) = self.get_temperature_line(curl_q, msh, "horizontal", start=0, end=x_end, value=y_val)
 
         # vertical line:
         y_end = self.config.L_Y + self.config.SOURCE_HEIGHT
-        x_val = x_char - self.config.LENGTH / 8
+        x_val = x_char - self.config.LENGTH / 8  # to avoid the hotspots
+        # x_val = x_char - 3 * self.config.LENGTH / 8  # from tur pratts
+
         (y_vals, T_y) = self.get_temperature_line(T, msh, "vertical", start=0, end=y_end, value=x_val)
         (_, q_y_vals_vert) = self.get_temperature_line(q_y, msh, "vertical", start=0, end=y_end, value=x_val)
         (_, curl_vals_vert) = self.get_temperature_line(curl_q, msh, "vertical", start=0, end=y_end, value=x_val)
