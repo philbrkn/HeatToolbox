@@ -39,14 +39,15 @@ from heatoptim.postprocessing.post_processing_gke import PostProcessingGKE
 
 # Path to a JSON configuration that defines a single-material domain.
 # It must specify e.g. LENGTH, L_X, L_Y, SOURCE_HEIGHT, symmetry=True, etc.
-CONFIG_PATH = "configs/kn01benchmarkconfig.json"
+# CONFIG_PATH = "configs/kn01benchmarkconfig.json"
+CONFIG_PATH = "configs/kn1benchmarkconfig.json"
 
 # Mesh resolution argument passed to SimulationConfig
 RESOLUTION = 8
 
 # List of Knudsen numbers to benchmark (must match reference CSV filenames)
-# KN_LIST = [0.1, 1.0, 2.0]
-KN_LIST = [0.1]
+# KN_LIST = [0.1]
+KN_LIST = [1]
 
 # Folder where Tur-Prats reference CSVs live:
 # e.g. data/turprats/Kn1_T_horizontal.csv, etc.
@@ -65,9 +66,62 @@ if os.path.exists(ERROR_CSV):
 # Number of sampling points along each centre-line
 NUM_SAMPLES = 500
 
+REMOVE_FLUX_OUTLIERS = False  # ← set to False to disable outlier removal
+
+
 # ----------------------------------------
 #  HELPER FUNCTIONS
 # ----------------------------------------
+
+
+# ---- error helper ----------------------------------------------------------
+def rmse_percent(x_sol, f_sol, x_ref, f_ref):
+    """
+    Normalised RMSE (%) between solver curve (x_sol,f_sol)
+    and reference (x_ref,f_ref).
+
+    • Solver data are first restricted to [min(x_ref), max(x_ref)].
+    • Solver values are linearly interpolated onto x_ref.
+    • RMSE is divided by max|f_ref| and returned as a percentage.
+    """
+
+    # 1) Ensure flat float arrays
+    x_sol = np.asarray(x_sol, dtype=float).ravel()
+    f_sol = np.asarray(f_sol, dtype=float).ravel()
+    x_ref = np.asarray(x_ref, dtype=float).ravel()
+    f_ref = np.asarray(f_ref, dtype=float).ravel()
+
+    # 2) Sort reference once
+    idx_ref = np.argsort(x_ref)
+    x_ref_sorted = x_ref[idx_ref]
+    f_ref_sorted = f_ref[idx_ref]
+
+    xmin, xmax = x_ref_sorted[0], x_ref_sorted[-1]
+
+    # 3) Keep only solver points inside [xmin, xmax]
+    mask = (x_sol >= xmin) & (x_sol <= xmax)
+    x_in = x_sol[mask]
+    f_in = f_sol[mask]
+
+    #  -- guard: need at least two points to interpolate
+    if x_in.size < 2:
+        return np.nan        # or raise, but NaN keeps table intact
+
+    # 4) Sort the retained solver slice
+    idx_in = np.argsort(x_in)
+    x_in_sorted = x_in[idx_in]
+    f_in_sorted = f_in[idx_in]
+
+    # 5) Interpolate onto reference abscissa
+    f_interp = np.interp(x_ref_sorted, x_in_sorted, f_in_sorted)
+
+    # 6) RMSE normalised by peak reference magnitude
+    diff = f_interp - f_ref_sorted
+    rmse = np.sqrt(np.mean(diff ** 2))
+    err_pct = 100.0 * rmse / np.max(np.abs(f_ref_sorted))
+    return err_pct
+# --------------------------------------------------------------------------
+
 
 def load_reference(field: str, kn: float, line: str, folder=REF_FOLDER):
     """
@@ -87,6 +141,7 @@ def load_reference(field: str, kn: float, line: str, folder=REF_FOLDER):
     s, f = np.loadtxt(path, delimiter=",", skiprows=1, unpack=True)
     return s, f
 
+
 def l2_linf(sim_values: np.ndarray, ref_values: np.ndarray):
     """
     Compute normalized L2 and L∞ errors between sim_values and ref_values
@@ -96,6 +151,7 @@ def l2_linf(sim_values: np.ndarray, ref_values: np.ndarray):
     eps2 = np.linalg.norm(diff) / np.linalg.norm(ref_values)
     eps_inf = np.max(np.abs(diff)) / np.max(np.abs(ref_values))
     return eps2, eps_inf
+
 
 def sample_profiles_from_solver(solver, postproc, kn_value):
     """
@@ -129,40 +185,56 @@ def sample_profiles_from_solver(solver, postproc, kn_value):
     # Horizontal line: y = L_Y - 4*(LENGTH)/8 = L_Y - LENGTH/2
     y_val = solver.config.L_Y - solver.config.LENGTH / 8
     # Vertical line: x = x_char - LENGTH/8
-    x_val = x_char - 3*solver.config.LENGTH / 8
+    x_val = x_char - 3 * solver.config.LENGTH / 8
 
     # 5. Sample T on horizontal (start=0, end=x_char, y=y_val)
-    x_pts, T_x = postproc.get_temperature_line(T_field, solver.msh,
-                                               "horizontal",
-                                               start=0.0, end=x_char,
-                                               value=y_val,
-                                               num_points=NUM_SAMPLES)
-    _,   qx_h = postproc.get_temperature_line(qx, solver.msh,
-                                               "horizontal",
-                                               start=0.0, end=x_char,
-                                               value=y_val,
-                                               num_points=NUM_SAMPLES)
+    x_pts, T_x = postproc.get_temperature_line(
+        T_field,
+        solver.msh,
+        "horizontal",
+        start=0.0,
+        end=x_char,
+        value=y_val,
+        num_points=NUM_SAMPLES,
+    )
+    _, qx_h = postproc.get_temperature_line(
+        qx,
+        solver.msh,
+        "horizontal",
+        start=0.0,
+        end=x_char,
+        value=y_val,
+        num_points=NUM_SAMPLES,
+    )
     # 6. Sample T on vertical (start=0, end=L_Y+SOURCE_HEIGHT, x=x_val)
     y_end = solver.config.L_Y + solver.config.SOURCE_HEIGHT
-    y_pts, T_y = postproc.get_temperature_line(T_field, solver.msh,
-                                               "vertical",
-                                               start=0.0, end=y_end,
-                                               value=x_val,
-                                               num_points=NUM_SAMPLES)
-    _,   qy_v = postproc.get_temperature_line(qy, solver.msh,
-                                               "vertical",
-                                               start=0.0, end=y_end,
-                                               value=x_val,
-                                               num_points=NUM_SAMPLES)
+    y_pts, T_y = postproc.get_temperature_line(
+        T_field,
+        solver.msh,
+        "vertical",
+        start=0.0,
+        end=y_end,
+        value=x_val,
+        num_points=NUM_SAMPLES,
+    )
+    _, qy_v = postproc.get_temperature_line(
+        qy,
+        solver.msh,
+        "vertical",
+        start=0.0,
+        end=y_end,
+        value=x_val,
+        num_points=NUM_SAMPLES,
+    )
     # 7. Normalize abscissa: postproc returns raw x, y that are (distance from end)/ℓ.
-    # Actually, in your code: 
+    # Actually, in your code:
     #   x_vals = (x_vals[-1] - x_vals)/ELL_SI, so if postproc returned raw model coords,
     #   we need to replicate that. But get_temperature_line does return raw coords along axis.
     # So let's reapply normalization exactly as plot_profiles did:
     x_vals_norm = (x_pts[-1] - x_pts) / solver.config.ELL_SI
     y_vals_norm = (y_pts[-1] - y_pts) / solver.config.ELL_SI
 
-    # 8. Flip signs as in plot_profiles: 
+    # 8. Flip signs as in plot_profiles:
     #    qx_horiz was flipped: qx_h *= -1
     #    qy_vert is not flipped in your code.
     qx_h = -1.0 * qx_h
@@ -170,9 +242,11 @@ def sample_profiles_from_solver(solver, postproc, kn_value):
 
     return x_vals_norm, T_x, x_vals_norm, qx_h, y_vals_norm, T_y, y_vals_norm, qy_v
 
+
 # ----------------------------------------
 #  MAIN BENCHMARK LOOP
 # ----------------------------------------
+
 
 def main():
     comm = MPI.COMM_WORLD
@@ -211,25 +285,42 @@ def main():
 
         # --- 5. Post-process: sample profiles & plot overlays + compute errors ---
         postproc = PostProcessingGKE(rank, config, logger=None)
-        x_h, T_h, x_h2, qx_h, y_v, T_v, y_v2, qy_v = sample_profiles_from_solver(solver, postproc, kn)
+        x_h, T_h, x_h2, qx_h, y_v, T_v, y_v2, qy_v = sample_profiles_from_solver(
+            solver, postproc, kn
+        )
 
         # --- 5a. Load Tur-Prats reference data ---
-        s_T_h_ref,  T_h_ref  = load_reference("T",  kn, "horizontal")
-        s_T_v_ref,  T_v_ref  = load_reference("T",  kn, "vertical")
+        s_T_h_ref, T_h_ref = load_reference("T", kn, "horizontal")
+        s_T_v_ref, T_v_ref = load_reference("T", kn, "vertical")
         s_qx_h_ref, qx_h_ref = load_reference("qx", kn, "horizontal")
         s_qy_v_ref, qy_v_ref = load_reference("qy", kn, "vertical")
 
         # --- 5b. Plot overlays: Temperature ---
         fig, ax = plt.subplots(figsize=(6, 4))
-        ax.plot(x_h, T_h,   label="FEM (horiz)",  lw=1.5)
-        ax.plot(y_v, T_v,   label="FEM (vert)",   lw=1.5)
-        ax.scatter(s_T_h_ref, T_h_ref, facecolors="none", edgecolors="k",
-                    label="Tur-Prats (horiz)", s=15, zorder=3)
-        ax.scatter(s_T_v_ref, T_v_ref, facecolors="none", edgecolors="gray",
-                    label="Tur-Prats (vert)", s=15, zorder=3)
-        ax.set_xlabel(r"$s/\ell$")
-        ax.set_ylabel(r"$T/T_{\max}$")
-        ax.set_title(f"Temperature profiles (Kn={kn:g})")
+        ax.plot(x_h, T_h, label="FEM (horiz)", lw=1.5, color="red")
+        ax.plot(y_v, T_v, label="FEM (vert)", lw=1.5, color="blue")
+        ax.scatter(
+            s_T_h_ref,
+            T_h_ref,
+            facecolors="none",
+            edgecolors="k",
+            label="Tur-Prats (horiz)",
+            s=15,
+            zorder=3,
+        )
+        ax.scatter(
+            s_T_v_ref,
+            T_v_ref,
+            facecolors="none",
+            edgecolors="gray",
+            label="Tur-Prats (vert)",
+            s=15,
+            zorder=3,
+            marker="s",
+        )
+        ax.set_xlabel(r"Normalised Position")
+        ax.set_ylabel(r"$\Delta T [K]$")
+        # ax.set_title(f"Temperature profiles (Kn={kn:g})")
         ax.legend(frameon=False, fontsize=8, loc="best")
         ax.grid(alpha=0.15)
         fig.tight_layout()
@@ -240,98 +331,98 @@ def main():
         # --- 5c. Plot overlays: Heat-flux ---
         fig, axs = plt.subplots(1, 2, figsize=(10, 4))
         # vertical flux vs vertical abscissa
-        axs[0].plot(y_v, qy_v, label="FEM $q_y$", lw=1.5)
-        axs[0].scatter(s_qy_v_ref, qy_v_ref, facecolors="none", edgecolors="k",
-                        label="Tur-Prats $q_y$", s=15, zorder=3)
-        axs[0].set_xlabel(r"$s/\ell$")
-        axs[0].set_ylabel(r"$q_y/q_0$")
-        axs[0].set_title(f"$q_y$ (vert), Kn={kn:g}")
+        axs[0].plot(y_v, qy_v, label="FEM $q_y$", lw=1.5, color="blue")
+        axs[0].scatter(
+            s_qy_v_ref,
+            qy_v_ref,
+            facecolors="none",
+            edgecolors="k",
+            label="Tur-Prats $q_y$",
+            s=15,
+            zorder=3,
+        )
+        axs[0].set_xlabel(r"Normalised Position")
+        axs[0].set_ylabel(r"Heat Flux Vertical [$W/m^2$]")
+        # axs[0].set_title(f"$q_y$ (vert), Kn={kn:g}")
         axs[0].legend(frameon=False, fontsize=8, loc="best")
         axs[0].grid(alpha=0.15)
+
+        if REMOVE_FLUX_OUTLIERS:
+            # find indices where s/ℓ ≈ 9 and 9.5
+            idx1 = np.argmin(np.abs(x_h - 9.0))
+            idx2 = np.argmin(np.abs(x_h - 9.5))
+            # create “clean” versions of (x_h, qx_h) for flux only
+            for idx in np.unique([idx1, idx2]):
+                # only if idx is not at the very endpoints:
+                qx_h[idx] = 0.5 * (qx_h[idx - 2] + qx_h[idx + 2])
+
         # horizontal flux vs horizontal abscissa
-        axs[1].plot(x_h, qx_h, label="FEM $q_x$", lw=1.5, color="tab:red")
-        axs[1].scatter(s_qx_h_ref, qx_h_ref, facecolors="none", edgecolors="gray",
-                        label="Tur-Prats $q_x$", s=15, zorder=3)
-        axs[1].set_xlabel(r"$s/\ell$")
-        axs[1].set_ylabel(r"$q_x/q_0$")
-        axs[1].set_title(f"$q_x$ (horiz), Kn={kn:g}")
+        axs[1].plot(x_h, qx_h, label="FEM $q_x$", lw=1.5, color="red")
+        axs[1].scatter(
+            s_qx_h_ref,
+            qx_h_ref,
+            facecolors="none",
+            edgecolors="k",
+            label="Tur-Prats $q_x$",
+            s=15,
+            zorder=3,
+        )
+        axs[1].set_xlabel(r"Normalised Position")
+        axs[1].set_ylabel(r"Heat Flux Horizontal [$W/m^2$]")
+        # axs[1].set_title(f"$q_x$ (horiz), Kn={kn:g}")
         axs[1].legend(frameon=False, fontsize=8, loc="best")
         axs[1].grid(alpha=0.15)
+        # plt show qx
+        # plt.show()
         fig.tight_layout()
         fname = os.path.join(OUTPUT_DIR, f"Kn{kn:g}_flux_profiles.pdf")
         fig.savefig(fname, dpi=300)
         plt.close(fig)
 
-        # --- 5d. Compute error metrics (with explicit 1-D flattening + sorting) ---
-        # Ensure everything is a 1-D numpy array:
-        x_h_arr = np.asarray(x_h).ravel()
-        T_h_arr = np.asarray(T_h).ravel()
-        qx_h_arr = np.asarray(qx_h).ravel()
+        # flatten & sort solver arrays once
+        x_h_sorted = np.sort(x_h)
+        T_h_sorted = T_h[np.argsort(x_h)]
+        y_v_sorted = np.sort(y_v)
+        T_v_sorted = T_v[np.argsort(y_v)]
+        qx_h_sorted = qx_h[np.argsort(x_h)]
+        qy_v_sorted = qy_v[np.argsort(y_v)]
 
-        y_v_arr = np.asarray(y_v).ravel()
-        T_v_arr = np.asarray(T_v).ravel()
-        qy_v_arr = np.asarray(qy_v).ravel()
+        # errors (single RMSE %)
+        err_Th = rmse_percent(x_h_sorted, T_h_sorted, s_T_h_ref, T_h_ref)
+        err_Tv = rmse_percent(y_v_sorted, T_v_sorted, s_T_v_ref, T_v_ref)
+        err_qx = rmse_percent(x_h_sorted, qx_h_sorted, s_qx_h_ref, qx_h_ref)
+        err_qy = rmse_percent(y_v_sorted, qy_v_sorted, s_qy_v_ref, qy_v_ref)
 
-        # Sort horizontal (so xp is strictly increasing)
-        idx_h = np.argsort(x_h_arr)
-        x_h_sorted  = x_h_arr[idx_h]
-        T_h_sorted  = T_h_arr[idx_h]
-        qx_h_sorted = qx_h_arr[idx_h]
+        # write one row: Kn, err_Th, err_Tv, err_qx, err_qy
+        with open(ERROR_CSV, "a") as f:
+            f.write(f"{kn:g},{err_Th:.2f},{err_Tv:.2f},{err_qx:.2f},{err_qy:.2f}\n")
 
-        # Sort vertical
-        idx_v = np.argsort(y_v_arr)
-        y_v_sorted = y_v_arr[idx_v]
-        T_v_sorted = T_v_arr[idx_v]
-        qy_v_sorted = qy_v_arr[idx_v]
-
-        # Now interpolate onto the Tur-Prats abscissa:
-        T_h_interp  = np.interp(s_T_h_ref,  x_h_sorted,  T_h_sorted)
-        T_v_interp  = np.interp(s_T_v_ref,  y_v_sorted,  T_v_sorted)
-        qx_h_interp = np.interp(s_qx_h_ref, x_h_sorted,  qx_h_sorted)
-        qy_v_interp = np.interp(s_qy_v_ref, y_v_sorted,  qy_v_sorted)
-
-        # Compute normalized L2 and L∞ errors:
-        eps2_Th,  epsinf_Th  = l2_linf(T_h_interp,  T_h_ref)
-        eps2_Tv,  epsinf_Tv  = l2_linf(T_v_interp,  T_v_ref)
-        eps2_qx,  epsinf_qx  = l2_linf(qx_h_interp, qx_h_ref)
-        eps2_qy,  epsinf_qy  = l2_linf(qy_v_interp, qy_v_ref)
-
-        # Append one row to CSV
-        with open(ERROR_CSV, "a") as fout:
-            fout.write(f"{kn:g},"
-                        f"{eps2_Th:.4e},{epsinf_Th:.4e},"
-                        f"{eps2_Tv:.4e},{epsinf_Tv:.4e},"
-                        f"{eps2_qx:.4e},{epsinf_qx:.4e},"
-                        f"{eps2_qy:.4e},{epsinf_qy:.4e}\n")
-
-        print(f"Done Kn={kn:g}: "
-                f"eps2_T_h={eps2_Th:.2e}, eps∞_T_h={epsinf_Th:.2e}, "
-                f"eps2_qx={eps2_qx:.2e}, eps∞_qx={epsinf_qx:.2e}")
-        print("  CSV row appended.")
+        print(
+            f"Kn={kn:g}  |  RMSE%  T_h={err_Th:.2f}  T_v={err_Tv:.2f}  "
+            f"q_x={err_qx:.2f}  q_y={err_qy:.2f}"
+        )
+        # ---------------------------------------------------------------------------
 
     # ----------------------------------------
     #  6. Generate LaTeX error table (rank 0 only)
     # ----------------------------------------
-    if rank == 0:
-        # Define column names
-        cols = ["Kn",
-                "ε₂(Tₕ)", "ε∞(Tₕ)",
-                "ε₂(Tᵥ)", "ε∞(Tᵥ)",
-                "ε₂(qₓ)", "ε∞(qₓ)",
-                "ε₂(qᵧ)", "ε∞(qᵧ)"]
-        df = pd.read_csv(ERROR_CSV, header=None, names=cols)
-        # Format floats in scientific notation with 2 decimal places
-        def fmt(x): return f"{x:.2e}"
-        df_str = df.copy()
-        for c in cols[1:]:
-            df_str[c] = df[c].map(fmt)
-
-        # Print LaTeX tabular
-        latex_table = df_str.to_latex(index=False, escape=False,
-                                      column_format="c" * len(cols))
-        print("\n====== LaTeX TABLE ======\n")
-        print(latex_table)
-        print("\n=========================\n")
+    cols = [
+        "Kn",
+        "RMSE $T_h$ (\\%)",
+        "RMSE $T_v$ (\\%)",
+        "RMSE $q_x$ (\\%)",
+        "RMSE $q_y$ (\\%)",
+    ]
+    df = pd.read_csv(ERROR_CSV, header=None, names=cols)
+    df[cols[1:]] = df[cols[1:]].applymap(lambda x: f"{x:.2f}")
+    latex_table = df.to_latex(
+        index=False,
+        escape=True,
+        column_format="c" * len(cols),
+        caption="Normalised RMSE (percentage) between FEM and Tur--Prats profiles.",
+        label="tab:rmse_errors",
+    )
+    print(latex_table)
 
 
 if __name__ == "__main__":

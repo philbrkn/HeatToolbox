@@ -419,3 +419,94 @@ class PostProcessingGKE:
         function_CG = fem.Function(V_CG)
         function_CG.interpolate(function_DG)
         return function_CG, V_CG
+
+    def plot_overlaid_profiles(self, msh, profile_solutions):
+        """
+        Overlay temperature profiles for multiple material cases on the same axes.
+
+        Parameters
+        ----------
+        msh : dolfinx.Mesh
+            The mesh used for all cases (must be identical across cases).
+        profile_solutions : dict
+            A mapping from a label string (e.g. "silicon", "diamond", "bimaterial")
+            to a tuple (q, T), where q is the heat-flux Function and T is the temperature Function.
+            
+            Example:
+                {
+                "silicon":   (q_si,  T_si),
+                "diamond":   (q_di,  T_di),
+                "bimaterial": (q_bi, T_bi)
+                }
+        """
+        # 1) Determine the same “lines” (horizontal & vertical) for all cases.
+        #    We only need to compute the raw (x_raw, y_raw) coordinate arrays once,
+        #    because they will be identical as long as mesh/config are the same.
+        x_char = self.config.L_X if self.config.symmetry else (self.config.L_X / 2)
+        # horizontal line parameters:
+        x_end = x_char
+        y_val = self.config.L_Y - 4 * self.config.LENGTH / 8
+        
+        # vertical line parameters:
+        y_end = self.config.L_Y + self.config.SOURCE_HEIGHT
+        x_val = x_char - self.config.LENGTH / 8
+
+        # Use a “sample” T from profile_solutions to get the raw coords:
+        sample_label, (sample_q, sample_T) = next(iter(profile_solutions.items()))
+        # Horizontal raw coords:
+        x_raw, _ = self.get_temperature_line(
+            sample_T, msh,
+            line_orientation="horizontal",
+            start=0.0,
+            end=x_end,
+            value=y_val
+        )
+        # Vertical raw coords:
+        y_raw, _ = self.get_temperature_line(
+            sample_T, msh,
+            line_orientation="vertical",
+            start=0.0,
+            end=y_end,
+            value=x_val
+        )
+        # Normalize by ell_si:
+        x_vals = x_raw / self.config.LENGTH
+        y_vals = y_raw / self.config.LENGTH
+
+        # 2) Now build the overlaid plot:
+        fig, ax = plt.subplots(figsize=(10, 5))
+        fig.suptitle("Overlaid Temperature Profiles")
+        for label, (q_func, T_func) in profile_solutions.items():
+            # Horizontal temperature along y = y_val
+            _, T_x = self.get_temperature_line(
+                T_func, msh,
+                line_orientation="horizontal",
+                start=0.0,
+                end=x_end,
+                value=y_val
+            )
+            # Vertical temperature along x = x_val
+            _, T_y = self.get_temperature_line(
+                T_func, msh,
+                line_orientation="vertical",
+                start=0.0,
+                end=y_end,
+                value=x_val
+            )
+            # Plot both on the same axes:
+            ax.plot(x_vals, T_x, linestyle="-", label=f"{label} Thoriz")
+            ax.plot(y_vals, T_y, linestyle="--", label=f"{label} Tvert")
+
+        ax.set_xlabel("Position (normalized by Length)")
+        ax.set_ylabel("Temperature [K]")
+        ax.legend()
+        
+        # 3) Save vs. show:
+        if self.is_off_screen:
+            if self.logger:
+                self.logger.save_image(fig, "overlaid_temperature_profiles.png")
+            else:
+                plt.savefig("overlaid_temperature_profiles.png")
+            plt.close(fig)
+        else:
+            plt.show()

@@ -12,7 +12,7 @@ from .hpc_frame import HPCFrame
 
 from heatoptim.config.sim_config import SimulationConfig
 from heatoptim.main import SimulationController
-from heatoptim.hpc.script_generator import generate_hpc_script
+from heatoptim.hpc.script_generator import generate_hpc_script, generate_hpc_script_tmpdir
 from .utils_config import initialize_options,  get_config_dict, save_config, load_config
 from heatoptim.hpc.hpc_utils import submit_job, prompt_password
 import os
@@ -145,7 +145,8 @@ class SimulationConfigGUI(ctk.CTk):
             save_config(self.options, log_dir)
             config_path = os.path.join(log_dir, "config.json")
 
-            script_content = generate_hpc_script(config, config_path)
+            # script_content = generate_hpc_script(config, config_path)
+            script_content = generate_hpc_script_tmpdir(config, config_path)
             self.save_hpc_script(script_content, log_dir)
 
             # Prompt for password and submit the job
