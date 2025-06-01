@@ -8,7 +8,7 @@ import os
 
 def main():
     # folder name:
-    folder_name = "mesh_res_study_logs_blank"
+    folder_name = "mesh_res_study_logs_bim2"
     # Create the folder if it doesn't exist
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
@@ -51,20 +51,20 @@ def main():
         log_file = f"{folder_name}/simulation_res_{res:.2e}.log"
 
         print(f"\nRunning simulation with resolution: {res:.2e} m")
-        # try:
-        #     with open(log_file, "w") as f:
-        #         result = subprocess.run(
-        #             command,
-        #             stdout=f,
-        #             stderr=subprocess.STDOUT,
-        #             text=True,
-        #             check=True  # Raise an error if the simulation fails
-        #         )
-        # except subprocess.CalledProcessError as e:
-        #     print(f"Simulation failed at resolution {res:.2e} m.")
-        #     print(f"Check log file {log_file} for details.")
-        #     avg_temps.append((res, None))
-        #     continue
+        try:
+            with open(log_file, "w") as f:
+                result = subprocess.run(
+                    command,
+                    stdout=f,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    check=True  # Raise an error if the simulation fails
+                )
+        except subprocess.CalledProcessError as e:
+            print(f"Simulation failed at resolution {res:.2e} m.")
+            print(f"Check log file {log_file} for details.")
+            avg_temps.append((res, None))
+            continue
 
         # Read the log file to extract average temperature
         avg_temp = None
@@ -108,7 +108,7 @@ def main():
     # plt.plot(res_array, temp_array, marker='o', linestyle='-')
     plt.xlabel('Mesh Resolution (m)')
     plt.ylabel('Average Temperature (K)')
-    plt.title('Mesh Refinement Study: Average Temperature vs. Mesh Resolution')
+    # plt.title('Mesh Refinement Study: Average Temperature vs. Mesh Resolution')
     plt.grid(True, which="both", ls="--")
     plt.gca().invert_xaxis()  # Finer meshes (smaller resolutions) on the right
     plt.tight_layout()

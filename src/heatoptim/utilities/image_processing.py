@@ -31,7 +31,7 @@ def remove_small_specs(grid, min_size=3000):
     return grid
 
 
-def enforce_volume_fraction(img, vf, max_iter=50, atol=5e-2):
+def enforce_volume_fraction(img, vf, max_iter=50, atol=5e-3):
     """
     Adjust a binary image iteratively so that its volume fraction (proportion of 1's)
     approaches the desired value.
@@ -48,6 +48,7 @@ def enforce_volume_fraction(img, vf, max_iter=50, atol=5e-2):
     # Ensure binary image is boolean for morphology operations.
     adjusted_img = img.copy().astype(np.bool_)
     current_vf = np.sum(adjusted_img) / adjusted_img.size
+    # print(f"DEBUG: Initial volume fraction: {current_vf:.4f}, Target: {vf:.4f}")
     niter = 0
     while (not np.isclose(current_vf, vf, atol=atol)) and (niter < max_iter):
         if current_vf < vf:
@@ -58,6 +59,7 @@ def enforce_volume_fraction(img, vf, max_iter=50, atol=5e-2):
             adjusted_img = binary_erosion(adjusted_img)
         current_vf = np.sum(adjusted_img) / adjusted_img.size
         niter += 1
+        # print(f"DEBUG: Iteration {niter}, Volume fraction: {current_vf:.4f}")
 
     # Remove small specks after adjustment.
     # adjusted_img = remove_small_specs(adjusted_img.astype(np.uint8), min_size=1000)
@@ -74,6 +76,7 @@ def generate_images(config, latent_vectors, model):
         else:
             # Ensure z is reshaped correctly if needed
             img = z_to_img(z.reshape(1, -1), model, config.vol_fraction)
+
         img = remove_small_specs(img, min_size=3000)
         img = enforce_volume_fraction(img, config.vol_fraction)
         img_list.append(img)
@@ -108,14 +111,14 @@ def img_list_to_gamma_expression(img_list, config):
     x_min = 0
     x_max = config.L_X
     y_min = 0
-    y_max = config.L_Y + config.SOURCE_HEIGHT
+    y_max = config.L_Y + 2*config.SOURCE_HEIGHT
 
     # Range in X and Y
     x_range = x_max - x_min
     y_range = y_max - y_min
 
     # For the images, we shift them upward by some offset:
-    y_min_im = y_min + 1.5 * config.SOURCE_HEIGHT  # To make image higher
+    y_min_im = y_min + 2 * config.SOURCE_HEIGHT  # To make image higher
 
     # ------------------------------------------------------------
     # 2) Handle the source positions in absolute coordinates
@@ -402,4 +405,3 @@ def img_to_gamma_expression(img, config):
         return gamma_values
 
     return gamma_expression
-

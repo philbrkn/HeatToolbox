@@ -270,7 +270,7 @@ def main(config_path, ITER_PATH, viz_sols=False):
 
 
 if __name__ == "__main__":
-    ITER_PATH = "logs/_ONE_SOURCE_NSGA2/test_nsga_10mpi_z16"
+    ITER_PATH = "logs/_ONE_SOURCE_NSGA3/test_nsga_10mpi_z16"
     viz_sols = True
     config_path = os.path.join(ITER_PATH, "config.json")
     main(config_path, ITER_PATH, viz_sols)

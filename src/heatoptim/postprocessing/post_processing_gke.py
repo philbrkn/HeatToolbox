@@ -56,6 +56,7 @@ class PostProcessingGKE:
                     global_gamma,
                     field_name=fileadd+"gamma",
                     show_edges=False,
+                    cmap="gray"
                 )
 
             if viz["temperature"] and global_vals is not None:
@@ -65,7 +66,7 @@ class PostProcessingGKE:
                     global_geom,
                     global_vals,
                     field_name=fileadd+"T",
-                    clim=[0, 0.5],
+                    clim=[0, 0.1],
                 )
 
             # ADD THIS BLOCK TO VISUALIZE EFFECTIVE CONDUCTIVITY
@@ -239,6 +240,7 @@ class PostProcessingGKE:
         field_name="field",
         clim=None,
         show_edges=False,
+        cmap="coolwarm",
     ):
         grid = pv.UnstructuredGrid(global_top, global_ct, global_geom)
         grid.point_data[field_name] = values.real
@@ -246,7 +248,7 @@ class PostProcessingGKE:
 
         # Plot the scalar field
         plotter = pv.Plotter(off_screen=self.is_off_screen)
-        plotter.add_mesh(grid, cmap="coolwarm", show_edges=show_edges, clim=clim)
+        plotter.add_mesh(grid, cmap=cmap, show_edges=show_edges, clim=clim)
         plotter.view_xy()
         if self.is_off_screen:
             if self.logger:
