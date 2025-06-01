@@ -216,9 +216,9 @@ def main():
     LENGTH = 5e-07
 
     # Folder to store logs and plots
-    OUTPUT_NAME = "blank"
+    OUTPUT_NAME = "bimaterial"
     OUTPUT_FOLDER = os.path.join("mesh_refinement_study", OUTPUT_NAME)
-    CONFIG_TEMPLATE = "mesh_refinement_study/blank/config.json"  # Replace with actual config path
+    CONFIG_TEMPLATE = os.path.join(OUTPUT_FOLDER, "config.json")  # Replace with actual config path
 
     # Mesh resolutions to test (number of elements per LENGTH)
     resolutions = [
