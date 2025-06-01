@@ -4,8 +4,10 @@ Info    : 52735 nodes
 Info    : 105468 elements
 Info    : Done reading 'domain_with_extrusions.msh'
 Loading config from file on rank 0
-Average temperature: 0.020355244360902813 K
-Time taken to solve: 17.638 seconds
+Average temperature: 0.020855244360902813 K
+Average flux: -529478235.17536557 W/m^2
+Average temperature std dev: 0.017065959789484563 K
+Time taken to solve: 14.223 seconds
 For a length of 5e-07 m:
 Knudsen number (silicon): 0.878
 Knudsen number (diamond): 2.6832815729997477

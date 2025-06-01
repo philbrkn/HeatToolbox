@@ -154,3 +154,5 @@ class SimulationConfig:
         # Sort sources
         combined_sources = sorted(zip(self.source_positions, self.Q_sources))
         self.source_positions, self.Q_sources = list(zip(*combined_sources))
+        # num sources:
+        self.num_sources = len(self.source_positions)

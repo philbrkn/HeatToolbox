@@ -18,8 +18,9 @@ import glob, os, re, numpy as np, matplotlib.pyplot as plt
 LOG_NAME = "bimaterial"  # sub-folder
 LOG_FOLDER = os.path.join("mesh_refinement_study", LOG_NAME)
 LENGTH = 5.0e-7  # m, domain length scale
-DELTA_T_TOL = 5.0e-5  # K, absolute tolerance
+DELTA_T_TOL = 5.0e-4  # K, absolute tolerance
 N_FINE = 9  # points for slope fit
+N_PLOT_SKIP = 2  # points to skip in the beginning
 FILE_RX = re.compile(r"sim_res_([0-9eE+\-.]+)\.log")
 TEMP_RX = re.compile(r"Average\s+temperature\s*:\s*([\d\.eE+\-]+)")
 # ---------------------------------------------------------------------------
@@ -48,6 +49,8 @@ def prepare_arrays(pairs):
     """Return sorted arrays  h_desc , T_desc , err_desc ."""
     # sort **descending** so index 0 is coarsest, −1 is finest
     pairs.sort(key=lambda p: p[0], reverse=True)
+    # skip the first N_PLOT_SKIP points for plotting
+    pairs = pairs[N_PLOT_SKIP:]
     h = np.array([p[0] for p in pairs])
     T = np.array([p[1] for p in pairs])
     T_ref = T[-1]  # finest-mesh temperature

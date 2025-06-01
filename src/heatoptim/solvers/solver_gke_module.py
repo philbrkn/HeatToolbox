@@ -31,6 +31,8 @@ class GKESolver:
 
         V_gamma = fem.functionspace(msh, ("CG", 1))
         self.gamma = fem.Function(V_gamma)
+        
+        self.area = self.config.L_X * self.config.L_Y + self.config.SOURCE_WIDTH * self.config.SOURCE_HEIGHT * self.config.num_sources
 
     def define_boundary_conditions(self):
         # Define boundary conditions and measures
@@ -133,15 +135,37 @@ class GKESolver:
         # Solve the problem
         self.solve_problem(F)
 
+        avg_temp_global = self.get_avg_temperature()
+
+        return avg_temp_global
+
+    def get_avg_flux(self):
+        # Calculate the average flux over the domain
         q, T = self.U.sub(0).collapse(), self.U.sub(1).collapse()
 
+        # Compute the flux integral
+        flux_form = fem.form(ufl.inner(q, ufl.FacetNormal(self.msh)) * ufl.ds)
+        flux_local = fem.assemble_scalar(flux_form)
+        flux_global = self.msh.comm.allreduce(flux_local, op=MPI.SUM)
+
+        # Average flux is total flux divided by area
+        avg_flux = flux_global / self.area
+
+        return avg_flux
+
+    def get_avg_temperature(self):
+        # Calculate the average temperature over the domain
+        q, T = self.U.sub(0).collapse(), self.U.sub(1).collapse()
+
+        # Compute the temperature integral
         temp_form = fem.form(T * ufl.dx)
         temp_local = fem.assemble_scalar(temp_form)
-        # temp_global = self.msh.comm.allreduce(temp_local, op=MPI.SUM)
-        temp_global = temp_local
-        area = self.config.L_X * self.config.L_Y + self.config.SOURCE_WIDTH * self.config.SOURCE_HEIGHT
-        avg_temp_global = temp_global / area
-        return avg_temp_global
+        temp_global = self.msh.comm.allreduce(temp_local, op=MPI.SUM)
+
+        # Average temperature is total temperature divided by area
+        avg_temp = temp_global / self.area
+
+        return avg_temp
 
     def get_std_dev(self):
         # Calculate the standard deviation of the temperature field

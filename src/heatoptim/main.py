@@ -112,6 +112,8 @@ class SimulationController:
             time2 = MPI.Wtime()
             if self.rank == 0:
                 print(f"Average temperature: {avg_temp_global} K")
+                print(f"Average flux: {solver.get_avg_flux()} W/m^2")
+                print(f"Average temperature std dev: {solver.get_std_dev()} K")
                 print(f"Time taken to solve: {time2 - time1:.3f} seconds")
 
             # Check if visualize list is not empty
@@ -150,6 +152,8 @@ class SimulationController:
             time2 = MPI.Wtime()
             if self.rank == 0:
                 print(f"Average temperature: {avg_temp_global} K")
+                print(f"Average flux: {solver.get_avg_flux()} W/m^2")
+                print(f"Average temperature std dev: {solver.get_std_dev()} K")
                 print(f"Time taken to solve: {time2 - time1:.3f} seconds")
 
             # Check if visualize list is not empty
